@@ -1,0 +1,141 @@
+#include "lhcbStyle.h"
+
+#include "utils.h"
+#include "data.h"
+
+void plotz(int event){
+
+  lhcbStyle();
+  TH1F hzkernel("hzkernel","",4000,-100,300);
+
+  TFile f("../dat/test_10pvs.root");
+  TTree *t = (TTree*)f.Get("data");
+  Data data;
+  data.init(t);
+  t->GetEntry(event);
+
+  // gets all hits, bins them in phi
+  Hits::instance()->newEvent(data);
+
+  // make triplets
+  Tracks *tracks = Tracks::instance();
+  tracks->newEvent();
+  cout << tracks->n() << " " << tracks->ngood() << " " << tracks->nbad() << endl;
+
+  int nb=hzkernel.GetNbinsX();
+  Point pv;
+
+  // build the kernel vs z profiled in x-y
+  // TODO: clearly non-optimal CPU-wise how this search is done
+  for(int b=1; b<=nb; b++){
+    double z = hzkernel.GetBinCenter(b);
+    double kmax=-1,xmax,ymax;
+
+    // 1st do coarse grid search
+    tracks->setRange(z);
+    if(!tracks->run()) continue;
+
+    for(double x=-0.4; x<=0.4; x+=0.1){
+      for(double y=-0.4; y<=0.4; y+=0.1){
+        pv.set(x,y,z);
+        double val = kernel(pv);
+        if(val > kmax){
+          kmax=val;
+          xmax=x;
+          ymax=y;
+        }
+      }
+    }
+
+    // now do gradient descent from max found
+    pv.set(xmax,ymax,z);
+    double kernel = kernelMax(pv);
+    hzkernel.SetBinContent(b,kernel);
+  }
+  hzkernel.SetMinimum(0);
+  hzkernel.DrawCopy();
+
+  // draw lines at true pv and sv locations
+  TLine *line = new TLine();
+  line->SetLineColor(kRed);
+  for(int i=0; i<data.pvz->size(); i++){
+    int cat = pvCategory(data,i);
+    if(cat < 0) continue;
+    if(cat == 0) line->SetLineStyle(2);
+    else line->SetLineStyle(1);
+    line->DrawLine(data.pvz->at(i),0,data.pvz->at(i),hzkernel.GetMaximum());
+  }
+  line->SetLineColor(kBlue);
+  for(int i=0; i<data.svz->size(); i++){
+    int cat = svCategory(data,i);
+    if(cat < 0) continue;
+    if(cat == 0) line->SetLineStyle(2);
+    else line->SetLineStyle(1);
+    line->DrawLine(data.svz->at(i),0,data.svz->at(i),hzkernel.GetMaximum());
+  }
+}
+
+void plotxy(int event, int which_pv, double zshift){
+   lhcbStyle();
+
+   const int Number = 2;
+   double Red[Number]    = {1,0};
+   double Green[Number]  = {1,0};
+   double Blue[Number]   = {1,0};
+   double Length[Number] = {0,1};
+   int nbcolor=512;
+   TColor::CreateGradientColorTable(Number,Length,Red,Green,Blue,nbcolor);
+   gStyle->SetNumberContours(nbcolor);
+
+   TH1F hbins("hbins","",100,-0.5,0.5);
+   TH2F hxykernel("hxykernel","",100,-0.5,0.5,100,-0.5,0.5);
+
+   TFile f("../dat/test_10pvs.root");
+   TTree *t = (TTree*)f.Get("data");
+   Data data;
+   data.init(t);
+   t->GetEntry(event);
+
+   // gets all hits, bins them in phi
+   Hits::instance()->newEvent(data);
+
+   // make triplets
+   Tracks *tracks = Tracks::instance();
+   tracks->newEvent();
+
+   double z = data.pvz->at(which_pv)+zshift;
+   tracks->setRange(z);
+   Point pv;
+   for(int bx=1; bx<=100; bx++){
+     double xval = hbins.GetBinCenter(bx);
+     for(int by=1; by<=100; by++){
+       double yval = hbins.GetBinCenter(by);
+       pv.set(xval,yval,z);
+       hxykernel.SetBinContent(bx,by,kernel(pv));
+     }
+   }
+   hxykernel.SetMinimum(0);
+   //hxykernel.SetMaximum(1000);
+   hxykernel.DrawCopy("colz");
+   // gPad->SetLogz();
+
+   TMarker *marker = new TMarker();
+   marker->SetMarkerStyle(5);
+   marker->SetMarkerSize(10);
+   marker->SetMarkerColor(kMagenta);
+   marker->DrawMarker(data.pvx->at(which_pv),data.pvy->at(which_pv));
+   cout << "pv: " << data.pvx->at(which_pv) << " " << data.pvy->at(which_pv) << " " << data.pvz->at(which_pv) << endl;
+   cout << "cat: " << pvCategory(data,which_pv) << endl;
+
+   marker->SetMarkerColor(kCyan);
+   for(int i=0; i<data.svz->size(); i++){
+     if(data.sv_ipv->at(i) != which_pv) continue;
+     int cat = svCategory(data,i);
+     if(cat < 0) continue;
+     if(cat == 0) marker->SetMarkerStyle(2);
+     else marker->SetMarkerStyle(3);
+     cout << data.svx->at(i) << " " << data.svy->at(i) << " " << data.svz->at(i) << endl;
+     marker->DrawMarker(data.svx->at(i),data.svy->at(i));
+   }
+
+}
