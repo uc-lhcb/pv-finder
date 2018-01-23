@@ -6,4 +6,3 @@ ana: analysis code
 
 dat: data files live here
 
-old: ignore me!
