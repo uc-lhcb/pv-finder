@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os, sys, pythia8, ROOT
 import numpy as np
 #cwd = os.getcwd()
