@@ -18,17 +18,17 @@ print(tree.keys())
 ##  these are the primary vertex (x,y,z) coordinates
 pvr_x = tree["pvr_x"].array()
 pvr_y = tree["pvr_y"].array()
-pvr_y = tree["pvr_z"].array()
+pvr_z = tree["pvr_z"].array()
 
 ##  these are the secondary vertex (x,y,z) coordinates
 svr_x = tree["svr_x"].array()
 svr_y = tree["svr_y"].array()
-svr_y = tree["svr_z"].array()
+svr_z = tree["svr_z"].array()
 
 ##  these are the individual hit (x,y,z) coordinates
 hit_x = tree["hit_x"].array()
 hit_y = tree["hit_y"].array()
-hit_y = tree["hit_z"].array()
+hit_z = tree["hit_z"].array()
 hit_prt = tree["hit_prt"].array()
 
 ##  the following are "particle" (track) quantities
@@ -40,7 +40,7 @@ hit_prt = tree["hit_prt"].array()
 prt_pid = tree["prt_pid"].array()
 prt_px = tree["prt_px"].array()
 prt_py = tree["prt_py"].array()
-prt_py = tree["prt_pz"].array()
+prt_pz = tree["prt_pz"].array()
 prt_e  = tree["prt_e"].array()
 prt_x = tree["prt_x"].array()
 prt_y = tree["prt_y"].array()

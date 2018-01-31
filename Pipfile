@@ -13,3 +13,5 @@ name = "pypi"
 
 numpy = "*"
 uproot = "*"
+numba = "*"
+futures = {version = "*", markers="python_version < '3'"}
