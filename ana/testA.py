@@ -1,12 +1,17 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
 from math import *
 import numpy
 import uproot
+
 tree = uproot.open("../dat/test_100pvs.root")["data"]
 
 ## the keys() method prints out the names of allthe ROOT NTUPLE branches
-tree.keys()
+print(tree.keys())
 
-##  there is probably a more elegant way to create the jagged arrays 
+##  there is probably a more elegant way to create the jagged arrays
 ##  corresponding to the branches of the ROOT Tuple, but brute
 ## force should work here
 
@@ -51,25 +56,25 @@ ntrks_prompt = tree["ntrks_prompt"].array()
 ## the .starts and .stops methods return pointers to the first
 ## an last indices within a jagged array associated with a particular
 ## event.  In the code that follows, the .contents method prints
-## all the elements of the pvr_x array.  The  .starts and .stops 
+## all the elements of the pvr_x array.  The  .starts and .stops
 ## methods provide pointers to the first and last elements of the
 ## pvr_x array associated with an event
-pvr_x.contents
-pvr_x.starts
-pvr_x.stops
+print("pvr_x.contents", pvr_x.contents)
+print("pvr_x.starts", pvr_x.starts)
+print("pvr_x.stop", pvr_x.stops)
 
-## As an example, we can look at the x positions of the primary 
+## As an example, we can look at the x positions of the primary
 ## vertices in the first event
 first_event_start = pvr_x.starts[0]
 first_event_stop = pvr_x.stops[0]
 event_array_of_pvr_x = pvr_x.contents[first_event_start:first_event_stop]
 for x in event_array_of_pvr_x:
-  print "x = ", x
+    print("x =", x)
 
 ##  and now do the same for the second event
-print "now for the second event"
+print("now for the second event")
 second_event_start = pvr_x.starts[1]
 second_event_stop = pvr_x.stops[1]
 event_array_of_pvr_x = pvr_x.contents[second_event_start:second_event_stop]
 for x in event_array_of_pvr_x:
-  print "x = ", x
+    print("x =", x)
