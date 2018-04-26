@@ -1,3 +1,8 @@
 *.pyc
 Pipfile.lock
 */.ipynb_checkpoints/*
+
+Makefile
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
