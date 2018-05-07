@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+
 import os, sys, pythia8, ROOT
+
 import numpy as np
 #cwd = os.getcwd()
 #pre = cwd+'/fastsim'
@@ -132,18 +134,23 @@ writer.init(ttree)
 number_rejected_events = 0
 
 # Fill the events.
-iEvt, tEvt = 0, 1e1
+iEvt = 0
+tEvt = 10
 ipv = 0
 npv = 0
+target_npv = np.random.poisson(7.6)
 while iEvt < tEvt:
-    if not pythia.next(): continue
-    if (npv == 10):
+    if not pythia.next():
+        continue
+    if (npv == target_npv):
         ttree.Fill()
-        print 'size: ', writer.size('pvr_z')
+        print "Number of PVs:", npv
+        print "size: ", writer.size('pvr_z')
         print "Event : ", iEvt, " / ", tEvt, " "
         writer.clear()
         ipv = 0
         npv = 0
+        target_npv = np.random.poisson(7.6)
         iEvt += 1
     # All distance measurements are in units of mm
     xPv, yPv, zPv = random.Gaus(0, 0.055), random.Gaus(0, 0.055), random.Gaus(100, 63) # normal LHCb operation
@@ -198,7 +205,8 @@ while iEvt < tEvt:
     #if number_of_detected_particles < 5: iEvt -= 1; number_rejected_events+=1; continue
     writer.var('ntrks_prompt',number_of_detected_particles)
     ipv += 1
-    if number_of_detected_particles > 0: npv += 1
+    if number_of_detected_particles > 0:
+        npv += 1
 
 # Write and close the TTree and TFile.
 ttree.Print()
