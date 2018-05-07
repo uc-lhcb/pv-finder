@@ -13,23 +13,10 @@ Scatter = ROOT.Scatter
 #os.chdir(cwd)
 
 def prtStable(pid):
-    if abs(pid) == 211: return True
-    if abs(pid) == 321: return True
-    if abs(pid) == 11: return True
-    if abs(pid) == 13: return True
-    if abs(pid) == 2212: return True
-    return False
+    return abs(pid) in (211, 321, 11, 13, 2212)
 
 def heavyFlavor(pid):
-    if abs(pid) == 411: return True
-    if abs(pid) == 421: return True
-    if abs(pid) == 431: return True
-    if abs(pid) == 4122: return True
-    if abs(pid) == 511: return True
-    if abs(pid) == 521: return True
-    if abs(pid) == 531: return True
-    if abs(pid) == 5122: return True
-    return False
+    return abs(pid) in (411, 421, 431, 4122, 511, 521, 531, 5122)
 
 # Writer class.
 class Writer():
@@ -37,9 +24,13 @@ class Writer():
         from collections import OrderedDict
         self.vars = OrderedDict()
         self.null = ROOT.vector('double')(1, 0)
+    
     def init(self, tree):
         for key, val in self.vars.iteritems(): tree.Branch(key, val)
-    def add(self, var): self.vars[var] = ROOT.vector('double')()
+
+    def add(self, var):
+        self.vars[var] = ROOT.vector('double')()
+
     def var(self, var, val = None, idx = -2):
         if not var in self.vars: return self.null.back()
         var = self.vars[var]
@@ -49,7 +40,10 @@ class Writer():
         if idx < 0: return self.null[0]
         if val != None: var[idx] = val
         return var[idx]
-    def size(self, var): return self.vars[var].size()
+    
+    def size(self, var):
+        return self.vars[var].size()
+
     def clear(self):
         for key, val in self.vars.iteritems(): val.clear()
 
@@ -134,79 +128,79 @@ writer.init(ttree)
 number_rejected_events = 0
 
 # Fill the events.
-iEvt = 0
 tEvt = 10
-ipv = 0
-npv = 0
-target_npv = np.random.poisson(7.6)
-while iEvt < tEvt:
-    if not pythia.next():
-        continue
-    if (npv == target_npv):
-        ttree.Fill()
-        print "Number of PVs:", npv
-        print "size: ", writer.size('pvr_z')
-        print "Event : ", iEvt, " / ", tEvt, " "
-        writer.clear()
-        ipv = 0
-        npv = 0
-        target_npv = np.random.poisson(7.6)
-        iEvt += 1
-    # All distance measurements are in units of mm
-    xPv, yPv, zPv = random.Gaus(0, 0.055), random.Gaus(0, 0.055), random.Gaus(100, 63) # normal LHCb operation
 
-    #pvr x and y spead can be found https://arxiv.org/pdf/1410.0149.pdf page 42. z dependent
-    ## [-1000,-750, -500, -250] # mm
+for iEvt in range(tEvt):
+    ipv = 0
+    npv = 0
+    target_npv = np.random.poisson(7.6)
+    iEvt += 1
 
-    writer.var('pvr_x', xPv)
-    writer.var('pvr_y', yPv)
-    writer.var('pvr_z', zPv)
-    number_of_detected_particles = 0
-    # find heavy flavor SVs
-    for prt in pythia.event:
-        if not heavyFlavor(prt.id()): continue
-        # TODO: require particles with hits from the SVs
-        writer.var('svr_x', prt.xDec() + xPv)
-        writer.var('svr_y', prt.yDec() + yPv)
-        writer.var('svr_z', prt.zDec() + zPv)
-        writer.var('svr_pvr', ipv)
+    while npv < target_npv:
+        if not pythia.next():
+            continue
+        
+        # All distance measurements are in units of mm
+        xPv, yPv, zPv = random.Gaus(0, 0.055), random.Gaus(0, 0.055), random.Gaus(100, 63) # normal LHCb operation
 
-    for prt in pythia.event:
-        if not prt.isFinal or prt.charge() == 0: continue
-        if not prtStable(prt.id()): continue
-        if abs(prt.zProd()) > 1000: continue
-        if (prt.xProd()**2 + prt.yProd()**2)**0.5 > 40: continue
-        if prt.pAbs() < 0.1: continue
-        prt.xProd(prt.xProd() + xPv) # Need to change the origin of the event before getting the hits
-        prt.yProd(prt.yProd() + yPv)
-        prt.zProd(prt.zProd() + zPv)
-        hits = Hits(module, rffoil, scatter, prt)
-        if len(hits) == 0: continue
-        if len(hits) > 2 and abs(zPv-prt.zProd()) < 0.001:
-            number_of_detected_particles += 1
-            #if prt.pAbs() < 0.2: print 'slow!', prt.pAbs(), prt.id()
-        writer.var('prt_pid', prt.id())
-        writer.var('prt_px',  prt.px())
-        writer.var('prt_py',  prt.py())
-        writer.var('prt_pz',  prt.pz())
-        writer.var('prt_e',   prt.e())
-        writer.var('prt_x',   prt.xProd())
-        writer.var('prt_y',   prt.yProd())
-        writer.var('prt_z',   prt.zProd())
-        writer.var('prt_pvr',   ipv)
-        writer.var('prt_hits',  len(hits))
-        for xHit, yHit, zHit in hits:
-            #xHit_recorded, yHit_recorded, zHit_recorded = np.random.uniform(-0.0275,0.0275)+xHit, np.random.uniform(-0.0275,0.0275)+yHit, zHit # normal
-            xHit_recorded, yHit_recorded, zHit_recorded = np.random.normal(0,0.012)+xHit, np.random.normal(0,0.012)+yHit, zHit # normal
-            writer.var('hit_x', xHit_recorded)
-            writer.var('hit_y', yHit_recorded)
-            writer.var('hit_z', zHit_recorded)
-            writer.var('hit_prt', writer.size('prt_e') - 1)
-    #if number_of_detected_particles < 5: iEvt -= 1; number_rejected_events+=1; continue
-    writer.var('ntrks_prompt',number_of_detected_particles)
-    ipv += 1
-    if number_of_detected_particles > 0:
-        npv += 1
+        #pvr x and y spead can be found https://arxiv.org/pdf/1410.0149.pdf page 42. z dependent
+        ## [-1000,-750, -500, -250] # mm
+
+        writer.var('pvr_x', xPv)
+        writer.var('pvr_y', yPv)
+        writer.var('pvr_z', zPv)
+        number_of_detected_particles = 0
+        # find heavy flavor SVs
+        for prt in pythia.event:
+            if not heavyFlavor(prt.id()): continue
+            # TODO: require particles with hits from the SVs
+            writer.var('svr_x', prt.xDec() + xPv)
+            writer.var('svr_y', prt.yDec() + yPv)
+            writer.var('svr_z', prt.zDec() + zPv)
+            writer.var('svr_pvr', ipv)
+
+        for prt in pythia.event:
+            if not prt.isFinal or prt.charge() == 0: continue
+            if not prtStable(prt.id()): continue
+            if abs(prt.zProd()) > 1000: continue
+            if (prt.xProd()**2 + prt.yProd()**2)**0.5 > 40: continue
+            if prt.pAbs() < 0.1: continue
+            prt.xProd(prt.xProd() + xPv) # Need to change the origin of the event before getting the hits
+            prt.yProd(prt.yProd() + yPv)
+            prt.zProd(prt.zProd() + zPv)
+            hits = Hits(module, rffoil, scatter, prt)
+            if len(hits) == 0: continue
+            if len(hits) > 2 and abs(zPv-prt.zProd()) < 0.001:
+                number_of_detected_particles += 1
+                #if prt.pAbs() < 0.2: print 'slow!', prt.pAbs(), prt.id()
+            writer.var('prt_pid', prt.id())
+            writer.var('prt_px',  prt.px())
+            writer.var('prt_py',  prt.py())
+            writer.var('prt_pz',  prt.pz())
+            writer.var('prt_e',   prt.e())
+            writer.var('prt_x',   prt.xProd())
+            writer.var('prt_y',   prt.yProd())
+            writer.var('prt_z',   prt.zProd())
+            writer.var('prt_pvr',   ipv)
+            writer.var('prt_hits',  len(hits))
+            for xHit, yHit, zHit in hits:
+                #xHit_recorded, yHit_recorded, zHit_recorded = np.random.uniform(-0.0275,0.0275)+xHit, np.random.uniform(-0.0275,0.0275)+yHit, zHit # normal
+                xHit_recorded, yHit_recorded, zHit_recorded = np.random.normal(0,0.012)+xHit, np.random.normal(0,0.012)+yHit, zHit # normal
+                writer.var('hit_x', xHit_recorded)
+                writer.var('hit_y', yHit_recorded)
+                writer.var('hit_z', zHit_recorded)
+                writer.var('hit_prt', writer.size('prt_e') - 1)
+        #if number_of_detected_particles < 5: iEvt -= 1; number_rejected_events+=1; continue
+        writer.var('ntrks_prompt',number_of_detected_particles)
+        ipv += 1
+        if number_of_detected_particles > 0:
+            npv += 1
+
+    ttree.Fill()
+    print "Number of PVs:", npv
+    print "size: ", writer.size('pvr_z')
+    print "Event : ", iEvt, " / ", tEvt, " "
+    writer.clear()
 
 # Write and close the TTree and TFile.
 ttree.Print()
