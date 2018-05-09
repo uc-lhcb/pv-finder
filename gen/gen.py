@@ -5,7 +5,7 @@ import os, sys, pythia8, ROOT
 import numpy as np
 import velo
 
-tEvt = 10
+tEvt = 5000
 name = '../dat/pv_0.root'
 
 
