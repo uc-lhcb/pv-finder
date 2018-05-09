@@ -475,7 +475,7 @@ bool FoilMaterial::Intersect::check(double t) {
 FoilMaterial::Intersect::Intersect(FoilMaterial *foilIn) : foil(foilIn) {
   stringstream str; str << this;
   fnc = TF1(str.str().c_str(), this, 0, 1000, 0, "");
-  fnc.SetNpx(3);
+  fnc.SetNpx(4);
 }
 
 // Return the distance from the foil along the flight direction.
