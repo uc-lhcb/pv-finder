@@ -3,14 +3,14 @@
 import os, sys, pythia8, ROOT
 
 import numpy as np
-#cwd = os.getcwd()
-#pre = cwd+'/fastsim'
-#sys.path.insert(0, pre)
-#os.chdir(pre)
 import velo
+
+tEvt = 10
+name = '../dat/pv_0.root'
+
+
 ROOT.gROOT.LoadMacro('scatter.C')
 Scatter = ROOT.Scatter
-#os.chdir(cwd)
 
 def prtStable(pid):
     return abs(pid) in (211, 321, 11, 13, 2212)
@@ -24,7 +24,7 @@ class Writer():
         from collections import OrderedDict
         self.vars = OrderedDict()
         self.null = ROOT.vector('double')(1, 0)
-    
+
     def init(self, tree):
         for key, val in self.vars.iteritems(): tree.Branch(key, val)
 
@@ -40,7 +40,7 @@ class Writer():
         if idx < 0: return self.null[0]
         if val != None: var[idx] = val
         return var[idx]
-    
+
     def size(self, var):
         return self.vars[var].size()
 
@@ -96,7 +96,7 @@ rffoil = velo.FoilMaterial('dat/run3.root')
 scatter = Scatter()
 
 # Create the output TFile and TTree.
-tfile = ROOT.TFile('../dat/test_10pvs.root', 'RECREATE')
+tfile = ROOT.TFile(name, 'RECREATE')
 ttree = ROOT.TTree('data', '')
 
 # Create the writer handler, add branches, and initialize.
@@ -128,7 +128,6 @@ writer.init(ttree)
 number_rejected_events = 0
 
 # Fill the events.
-tEvt = 10
 
 for iEvt in range(tEvt):
     ipv = 0
@@ -139,7 +138,7 @@ for iEvt in range(tEvt):
     while npv < target_npv:
         if not pythia.next():
             continue
-        
+
         # All distance measurements are in units of mm
         xPv, yPv, zPv = random.Gaus(0, 0.055), random.Gaus(0, 0.055), random.Gaus(100, 63) # normal LHCb operation
 
