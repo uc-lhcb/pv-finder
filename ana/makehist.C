@@ -20,7 +20,7 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
   // make triplets
   Tracks *tracks = Tracks::instance();
   tracks->newEvent();
-  cout << "Total tracks: " << tracks->n() << " good tracks: " << tracks->ngood() << " bad tracks: " << tracks->nbad() << endl;
+  cout << " Total tracks: " << tracks->n() << " good tracks: " << tracks->ngood() << " bad tracks: " << tracks->nbad();
 
   int nb=hzkernel->GetNbinsX();
   Point pv;
@@ -96,8 +96,9 @@ void makehist() {
     
     for(int i=0; i<ntrack; i++) {
         std::fill(zdata, zdata+4000, 0);
+        cout << "Entry " << i << "/" << ntrack;
         makez(i, t, pv_n, sv_n, pv_cat, pv_loc, sv_cat, sv_loc, zdata);
-        cout << "PVs: " << pv_n << " SVs: " << sv_n << endl;
+        cout << " PVs: " << pv_n << " SVs: " << sv_n << endl;
         tout->Fill();
     }
     tout->Write();
