@@ -5,8 +5,8 @@ import os, sys, pythia8, ROOT
 import numpy as np
 import velo
 
-tEvt = 5000
-name = '../dat/pv_0.root'
+tEvt = 10000
+name = '/data/schreihf/PvFinder/pv_20180510.root'
 
 
 ROOT.gROOT.LoadMacro('scatter.C')

@@ -1,8 +1,11 @@
 Directories:
 
-gen: code to generate events
+`gen`: code to generate events
 
-ana: analysis code
+`ana`: analysis code
 
-dat: data files live here
+`notebooks`: Jupyter notebooks
 
+`dat`: A few sample data files live here
+
+`binned_tracking`: Binned tracking toy code (CMake compile)

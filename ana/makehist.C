@@ -70,10 +70,10 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
 }
 
 void makehist() {
-    TFile f("../dat/test_10pvs.root");
+    TFile f("/data/schreihf/PvFinder/pv_20180509.root");
     TTree *t = (TTree*)f.Get("data");
 
-    TFile out("../dat/kern.root", "RECREATE");
+    TFile out("/data/schreihf/PvFinder/kernel_20180509.root", "RECREATE");
     
     int ntrack = t->GetEntries();
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
@@ -85,7 +85,7 @@ void makehist() {
     float zdata[4000];
     int pv_n, sv_n;
 
-    TTree *tout = new TTree("tout","Output");
+    TTree *tout = new TTree("kernel","Output");
     tout->Branch("pv_n",&pv_n,"pv_n/I");
     tout->Branch("sv_n",&sv_n,"sv_n/I");
     tout->Branch("pv_cat",pv_cat,"pv_cat[pv_n]/I");
@@ -98,7 +98,6 @@ void makehist() {
         std::fill(zdata, zdata+4000, 0);
         makez(i, t, pv_n, sv_n, pv_cat, pv_loc, sv_cat, sv_loc, zdata);
         cout << "PVs: " << pv_n << " SVs: " << sv_n << endl;
-        cout << zdata[0] << " " << zdata[1] << endl;
         tout->Fill();
     }
     tout->Write();
