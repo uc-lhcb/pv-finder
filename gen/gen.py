@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 
-import os, sys, pythia8, ROOT
+from __future__ import print_function
+import argparse
+import sys
 
+parser = argparse.ArgumentParser(description='Generate some traks')
+parser.add_argument('--num', type=int, default=10000,
+                            help='an integer for the accumulator')
+parser.add_argument('name',
+                            help='The name of the file to produce: .../pv_name.root')
+args = parser.parse_args()
+tEvt = args.num
+name = '/data/schreihf/PvFinder/pv_{}.root'.format(args.name)
+print('Producing', tEvt, 'tracks to', name)
+
+import os
+import pythia8
+import ROOT
 import numpy as np
 import velo
-
-tEvt = 10000
-name = '/data/schreihf/PvFinder/pv_20180510.root'
-
 
 ROOT.gROOT.LoadMacro('scatter.C')
 Scatter = ROOT.Scatter
@@ -196,9 +207,9 @@ for iEvt in range(tEvt):
             npv += 1
 
     ttree.Fill()
-    print "Number of PVs:", npv
-    print "size: ", writer.size('pvr_z')
-    print "Event : ", iEvt, " / ", tEvt, " "
+    print("Number of PVs:", npv)
+    print("size: ", writer.size('pvr_z'))
+    print("Event : ", iEvt, " / ", tEvt, " ")
     writer.clear()
 
 # Write and close the TTree and TFile.
