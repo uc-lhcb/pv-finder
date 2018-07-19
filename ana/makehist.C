@@ -69,11 +69,14 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
     delete hzkernel;
 }
 
-void makehist() {
-    TFile f("/data/schreihf/PvFinder/pv_20180509.root");
+
+/// Run with root -b -q 'makehist.C("20180719a")'
+void makehist(TString input) {
+
+    TFile f("/data/schreihf/PvFinder/pv_"+input+".root");
     TTree *t = (TTree*)f.Get("data");
 
-    TFile out("/data/schreihf/PvFinder/kernel_20180509.root", "RECREATE");
+    TFile out("/data/schreihf/PvFinder/kernel_"+input+".root", "RECREATE");
     
     int ntrack = t->GetEntries();
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
