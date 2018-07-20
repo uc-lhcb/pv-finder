@@ -9,10 +9,20 @@ Code to analyze events.
 * `tracks.h`: Tracks hold triplets
 * `utils.h`: FCN, kernel, kernelMax, pvCategory, svCategory
 * `plot.c`: Contains plotz, plotxy
+* `makehist.c`: Convert a hit file into a z-histogram file
 
 You need Pythia installed to generate events, but there is a file there with 10 events with 10 (visible) collisions each to play with. Obviously we’ll need to generate more events, but this is fast (just want to finalize the file format first).
 
 Under the this dir, you can do:
+
+## Converting data
+
+Use:
+
+```bash
+root -b -q 'makehist.c("2018xxxx")'
+```
+
 
 ```cpp
 .L plot.C

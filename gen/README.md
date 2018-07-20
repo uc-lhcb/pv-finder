@@ -6,3 +6,10 @@ Generator code.
 * `velo.py`: Loads the C++ classes into Python (3 materials)
 * `gen.py`: Loads scatter, velo; generates and writes out events
 
+To run generator:
+
+```bash
+./gen.py 2018xxxx
+```
+
+See options with -h.
