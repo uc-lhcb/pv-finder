@@ -1,6 +1,11 @@
 *.pyc
 Pipfile.lock
 */.ipynb_checkpoints/*
+*.png
+*.jpg
+*.pyt
+*.npy
+*.npz
 
 Makefile
 CMakeCache.txt
