@@ -6,15 +6,16 @@ import torch
 from torch.utils.data import TensorDataset
 import numpy as np
 
-def collect_data(X_file, Y_file, training, validation, device):
+def collect_data(XY_file, training, validation, device):
     "Load a pair of files into three tensor datasets"
     
     # We devide the input X by 2500, so most of the values are between 0 and 1.
     # Also we want (N,1,4000) as our shape for X and (N,4000) for Y
     
-    print("Loading", X_file, Y_file)
-    X=np.load(X_file).astype(np.float32)[:,np.newaxis,:] / 2500.
-    Y=np.load(Y_file).astype(np.float32)
+    print("Loading", XY_file)
+    with np.load(XY_file) as XY:
+        X=XY['X'].astype(np.float32)[:,np.newaxis,:] / 2500.
+        Y=XY['Y'].astype(np.float32)
     
     if training <= 1:
         training = int(len(X) * training)
