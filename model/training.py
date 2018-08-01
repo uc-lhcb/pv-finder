@@ -2,6 +2,7 @@ import torch
 import torch.optim as optim
 from collections import namedtuple
 import time
+from tqdm import tqdm as progress_bar
 
 Results = namedtuple("Results", ['cost','val','time'])
 
@@ -29,14 +30,12 @@ def trainNet(model, dataset_train, dataset_val, loss, batch_size, n_epochs, *,
     val_epoch=torch.zeros(n_epochs)
     
     print("Number of batches:", len(train_loader))
-    print_every = len(train_loader) // 10
         
     #Loop for n_epochs
-    for epoch in range(n_epochs):
+    progress = progress_bar(range(n_epochs))
+    for epoch in progress:
         
         total_train_loss = 0
-        
-        start_time = time.time()
         running_loss = 0.0
         
         for i, data in enumerate(train_loader):
@@ -53,23 +52,10 @@ def trainNet(model, dataset_train, dataset_val, loss, batch_size, n_epochs, *,
             optimizer.step()
             
             #Print statistics
-            running_loss += loss_size.data.item()
             total_train_loss += loss_size.data.item()
-            
-            
-            #Print every 10th batch of an epoch
-            if (i + 1) % (print_every + 1) == 0:
-                print("Epoch {}, {:d}% \t train_loss: {:.20f} took: {:.2f}s".format(
-                    epoch+1,
-                    int(100 * (i+1) / len(train_loader)),
-                    running_loss / print_every,
-                    time.time() - start_time))
-                #Reset running loss and time
-                running_loss = 0.0
-                start_time = time.time()
                 
         every_batch_loss = total_train_loss / len(train_loader)
-        print("Train loss = {:.20f}".format(every_batch_loss))
+        progress.set_description(f"Current loss {every_batch_loss:.10f}")
         
         cost_epoch[epoch] = every_batch_loss            
         #At the end of the epoch, do a pass on the validation set
@@ -82,12 +68,8 @@ def trainNet(model, dataset_train, dataset_val, loss, batch_size, n_epochs, *,
             val_loss_size = loss(val_outputs, labels)
             total_val_loss += val_loss_size.data.item()
             
-        print("Validation loss = {:.20f}".format(total_val_loss / len(val_loader)))
         val_epoch[epoch] =  total_val_loss / len(val_loader)
         # time so far
-        time_so_far = time.time() - training_start_time
-        print("Time so far = {:.2f}s".format(time_so_far))
-        print("#########################################")
         
         if name:
             torch.save(model.state_dict(), f'{name}_{epoch}.pyt')
