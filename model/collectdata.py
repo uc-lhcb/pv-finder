@@ -19,7 +19,7 @@ class Timer(object):
         if self.verbose:
             print(self.message.format(time=self.end_time - self.start_time))
 
-def collect_data(XY_file, training, validation, device, verbose=False):
+def collect_data(XY_file, training, validation, device, verbose=True):
     "Load a pair of files into three tensor datasets"
     
     # We devide the input X by 2500, so most of the values are between 0 and 1.
