@@ -59,21 +59,25 @@ Currently, you simply pass a loss object `Loss()` to the `trainNet` function des
 ```python
 from training import trainNet
 
-results = trainNet(model, dataset_train, dataset_val, Loss(), 32, n_epochs, learning_rate=1e-3)
+for results in trainNet(model, dataset_train, dataset_val, Loss(), batch, range(n_epochs), learning_rate=1e-3):
+    pass
 ```
 
-This will train on the dataset. Pass `name=name` to save a model file each epoch. The return value is a named tuple, with `.time`, `.cost`, and `.val`. The latter two are arrays with the training and validation loss per epoch, respectively. The original model will be updated, so you should do:
+This will train on the dataset. . The return value is a named tuple, with per epoch lists `.time`, `.cost`, and `.val`. The latter two are the training and validation loss per epoch, respectively. The original model will be updated, so you should do:
 
 ```python
 torch.save(model.state_dict(), f'{name}_final.pyt')
 ```
 
-to save the final model parameters (at least if you didn't set a name).
+to save the parameters inside or after the loop.
 
-## runmodel.py
+In the actual code, a nice progress bar is added as a wrapper around the `n_epoch` iterator.
 
-This file runs models directly, without using jupyter notebooks.
+## RunModel.py
 
+This file runs models directly, without using jupyter notebooks. Use `./RunModel.py -h` to view the usage. You *must* set `CUDA_VISIBLE_DEVICES` to use this script!
+
+The notebook form may be perferred, in `notebooks/RunModel.ipynb`.
 
 
 ## Loading a model
@@ -89,3 +93,9 @@ model.load_state_dict(torch.load(filename))
 # Prepare for inference
 model.eval()
 ```
+
+See the plethora of notebooks that do this: 
+
+* `PlotEachPV`
+* `FalsePositives`
+* `PlotModel` (only partially load the model)
