@@ -19,7 +19,7 @@ class Timer(object):
         if self.verbose:
             print(self.message.format(time=self.end_time - self.start_time))
 
-def collect_data(XY_file, training, validation, device, verbose=False):
+def collect_data(XY_file, training, validation, device = None, verbose=False):
     "Load a pair of files into three tensor datasets"
     
     # We devide the input X by 2500, so most of the values are between 0 and 1.
@@ -47,13 +47,22 @@ def collect_data(XY_file, training, validation, device, verbose=False):
     
     print("Samples in Training:", training, "Validation:", validation, "Test:", len(X) - training - validation)
     
-    with Timer("Constructed datasets on device in {time:.4} s"):
-        train_ds = TensorDataset(torch.tensor(X[train]).to(device),
-                                 torch.tensor(Y[train]).to(device))
-        valid_ds = TensorDataset(torch.tensor(X[val]).to(device),
-                                 torch.tensor(Y[val]).to(device))
-        tests_ds = TensorDataset(torch.tensor(X[test]).to(device),
-                                 torch.tensor(Y[test]).to(device))
+    if device is None:
+        with Timer("Constructed datasets on CPU in {time:.4} s"):
+            train_ds = TensorDataset(torch.tensor(X[train]),
+                                     torch.tensor(Y[train]))
+            valid_ds = TensorDataset(torch.tensor(X[val]),
+                                     torch.tensor(Y[val]))
+            tests_ds = TensorDataset(torch.tensor(X[test]),
+                                     torch.tensor(Y[test]))
+    else:
+        with Timer("Constructed datasets on device in {time:.4} s"):
+            train_ds = TensorDataset(torch.tensor(X[train]).to(device),
+                                     torch.tensor(Y[train]).to(device))
+            valid_ds = TensorDataset(torch.tensor(X[val]).to(device),
+                                     torch.tensor(Y[val]).to(device))
+            tests_ds = TensorDataset(torch.tensor(X[test]).to(device),
+                                     torch.tensor(Y[test]).to(device))
     
     return train_ds, valid_ds, tests_ds
 

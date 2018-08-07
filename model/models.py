@@ -1,76 +1,105 @@
-import torch
-from torch.autograd import Variable
-import torch.nn.functional as F
+from torch import nn
 
-class SimpleCNN2Layer(torch.nn.Module):
+class SimpleCNN2Layer(nn.Module):
     def __init__(self):
         super(SimpleCNN2Layer, self).__init__()
-        # input channel size 1, output channel size 15
-        self.nChan_out_layer1 = 5
-        kernel_size_layer1 = 25
-        stride_layer1 = 1
-        padding_layer1 = 12
-        self.conv1=torch.nn.Conv1d(1, self.nChan_out_layer1, kernel_size_layer1, stride_layer1, padding_layer1)
         
-        self.nChan_out_layer2 = 1
-        kernel_size_layer2 = 15
-        stride_layer2 = 1
-        padding_layer2 = 7
-        self.conv2=torch.nn.Conv1d(self.nChan_out_layer1, self.nChan_out_layer2, kernel_size_layer2, stride_layer2, padding_layer2)        
-
-        self.fc1 = torch.nn.Linear(4000*self.nChan_out_layer2, 4000)
+        self.conv1 = nn.Conv1d(
+            in_channels = 1,
+            out_channels = 5,
+            kernel_size = 25,
+            stride = 1,
+            padding = 12
+        )
+        
+        self.conv2 = nn.Conv1d(
+            in_channels = self.conv1.out_channels,
+            out_channels = 1,
+            kernel_size = 15,
+            stride = 1,
+            padding = 7
+        )
+            
+        self.fc1 = nn.Linear(
+            in_features = 4000*self.conv2.out_channels,
+            out_features = 4000
+        )
+        
+        self.conv1 = nn.DataParallel(self.conv1)
+        self.conv2 = nn.DataParallel(self.conv2)
+        self.fc1 = nn.DataParallel(self.fc1)
+        
        
     def forward(self, x):
-        leaky = torch.nn.LeakyReLU(0.01)
-        x= leaky(self.conv1(x))
-        x= leaky(self.conv2(x))
-        x= x.view(-1, 4000*self.nChan_out_layer2)
-        x = F.sigmoid(self.fc1(x))
-        return(x)
+        leaky = nn.LeakyReLU(0.01)
+        
+        x = leaky(self.conv1(x))
+        x = leaky(self.conv2(x))
+        
+        # Remove empty middle shape diminsion
+        x = x.view(x.shape[0], x.shape[-1])
+        
+        x = nn.functional.sigmoid(self.fc1(x))
+        
+        return x
     
-class SimpleCNN3Layer(torch.nn.Module):
+    
+class SimpleCNN3Layer(nn.Module):
     def __init__(self):
         super(SimpleCNN3Layer, self).__init__()
-        # input channel size 1, output channel size 15
-        self.nChan_out_layer1 = 10
-        kernel_size_layer1 = 25
-        stride_layer1 = 1
-        assert kernel_size_layer1 % 2 == 1, \
-            "Kernel size should be odd for 'same' conv."
-        padding_layer1 = (kernel_size_layer1 - 1) // 2
-        self.conv1=torch.nn.Conv1d(1, self.nChan_out_layer1, kernel_size_layer1, stride_layer1, padding_layer1)
         
-        self.nChan_out_layer2 = 5
-        kernel_size_layer2 = 15
-        stride_layer2 = 1
-        assert kernel_size_layer2 % 2 == 1, \
-            "Kernel size should be odd for 'same' conv."
-        padding_layer2 = (kernel_size_layer2 - 1) // 2
-        self.conv2=torch.nn.Conv1d(self.nChan_out_layer1, self.nChan_out_layer2, kernel_size_layer2, stride_layer2, padding_layer2)        
+        self.conv1=nn.Conv1d(
+            in_channels = 1,
+            out_channels = 10,
+            kernel_size = 25,
+            stride = 1,
+            padding = (25 - 1) // 2
+        )
+        
+        assert self.conv1.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+        
+        
+        self.conv2=nn.Conv1d(
+            in_channels = self.conv1.out_channels,
+            out_channels = 5,
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+        
+        assert self.conv2.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+        
+        
+        self.conv3=nn.Conv1d(
+            in_channels = self.conv2.out_channels,
+            out_channels = 1,
+            kernel_size = 5,
+            stride = 1,
+            padding = (5 - 1) // 2
+        )
+        
+        assert self.conv3.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+        
 
-        self.nChan_out_layer3 = 1
-        kernel_size_layer3 = 5
-        stride_layer3 = 1
-        assert kernel_size_layer3 % 2 == 1, \
-            "Kernel size should be odd for 'same' conv."
-        padding_layer3 = (kernel_size_layer3 - 1) // 2
-        self.conv3=torch.nn.Conv1d(self.nChan_out_layer2, self.nChan_out_layer3, kernel_size_layer3, stride_layer3, padding_layer3) 
-        self.conv3OutputDropout = torch.nn.Dropout(0.35)
+        self.conv3dropout = nn.Dropout(0.35)
         
-        self.fc1 = torch.nn.Linear(4000*self.nChan_out_layer3, 4000)
+        self.fc1 = nn.Linear(
+            in_features = 4000 * self.conv2.out_channels,
+            out_features = 4000)
        
     def forward(self, x):
-        leaky = torch.nn.LeakyReLU(0.01)
+        leaky = nn.LeakyReLU(0.01)
+        
         x = leaky(self.conv1(x))
         x = leaky(self.conv2(x))
         x = leaky(self.conv3(x))
-        x= x.view(-1, 4000*self.nChan_out_layer3)
-        x = self.conv3OutputDropout(x)
+        
+        # Remove empty middle shape diminsion
+        x = x.view(x.shape[0], x.shape[-1])
+        
+        x = self.conv3dropout(x)
         x = self.fc1(x)
-        x = F.sigmoid(x)
-        return(x)
-    
-    
-def outputSize(in_size, kernel_size, stride, padding):
-    output = int((in_size - kernel_size + 2*(padding)) / stride) + 1
-    return output
+        
+        x = nn.functional.sigmoid(x)
+        
+        return x
