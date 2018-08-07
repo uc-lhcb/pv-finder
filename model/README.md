@@ -77,7 +77,7 @@ In the actual code, a nice progress bar is added as a wrapper around the `n_epoc
 
 This file runs models directly, without using jupyter notebooks. Use `./RunModel.py -h` to view the usage. You *must* set `CUDA_VISIBLE_DEVICES` to use this script!
 
-The notebook form may be perferred, in `notebooks/RunModel.ipynb`.
+The notebook form may be perferred, in [`notebooks/RunModel.ipynb`](../notebooks/RunModel.ipynb) (go up to the main directory, then into notebooks, then RunModel.ipynb).
 
 
 ## Loading a model

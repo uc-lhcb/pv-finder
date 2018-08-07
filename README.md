@@ -1,6 +1,10 @@
 # PV Finder
 
+To download this repository:
 
+```bash
+git clone git@gitlab.cern.ch:7999/LHCb-Reco-Dev/pv-finder.git
+```
 
 ## Directories:
 
@@ -31,4 +35,4 @@ This should be run in Jupyter on Anaconda using Python 3.6, with PyTorch availab
 
 * tqdm : Nice progress bar
 
- See readme in `model` and/or `notebooks`.
+ See readme in [`model`](./model) and/or [`notebooks`](./notebooks).
