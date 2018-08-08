@@ -17,7 +17,10 @@ def trainNet(model, dataset_train, dataset_val, loss, batch_size, epoch_iterator
         print("="*80)
 
     # Get the current device
-    layer = list(model.children())[0]
+    layer = model
+    if isinstance(layer, torch.nn.DataParallel):
+        layer = list(layer.children())[0]
+    layer = list(layer.children())[0]
     if isinstance(layer, torch.nn.DataParallel):
         layer = list(layer.children())[0]
     device = layer.weight.device

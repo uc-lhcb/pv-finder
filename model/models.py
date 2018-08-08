@@ -24,11 +24,6 @@ class SimpleCNN2Layer(nn.Module):
             in_features = 4000*self.conv2.out_channels,
             out_features = 4000
         )
-        
-        self.conv1 = nn.DataParallel(self.conv1)
-        self.conv2 = nn.DataParallel(self.conv2)
-        self.fc1 = nn.DataParallel(self.fc1)
-        
        
     def forward(self, x):
         leaky = nn.LeakyReLU(0.01)
@@ -84,7 +79,7 @@ class SimpleCNN3Layer(nn.Module):
         self.conv3dropout = nn.Dropout(0.35)
         
         self.fc1 = nn.Linear(
-            in_features = 4000 * self.conv2.out_channels,
+            in_features = 4000 * self.conv3.out_channels,
             out_features = 4000)
        
     def forward(self, x):
