@@ -44,9 +44,9 @@ def main(n_epochs, name, data, batch, learning_rate, model, output, copyeach):
     torch.manual_seed(seed);
 
     model = Model()
-
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
     model = model.to(device)
 
     if output:
