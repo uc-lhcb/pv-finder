@@ -3,23 +3,25 @@
 
 # Please see RunModel.ipynb in notebooks for more descriptions.
 
+# Get the current script and currrent working directory
+from pathlib import Path
+DIR = Path(__file__).parent.resolve()
+CURDIR = Path('.').resolve()
+
 # Plotting
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["font.size"] = "18"
-plt.rcParams["axes.labelweight"] = "bold"
+plt.style.use(str(DIR / 'pvfinder.mplstyle'))
+# See https://matplotlib.org/gallery/style_sheets/style_sheets_reference.html
 
 import os
 import numpy as np
 import torch
-from pathlib import Path
 
 # Model parameters
-output = Path('output')
-name = '20180808_2Layer_75000'
+output = CURDIR / 'output' # output folder
+name = '20180808_2Layer_75000' # output name
 data = Path('/data/schreihf/PvFinder/July_31_75000.npz')
 n_epochs = 200
 batch = 32
@@ -43,18 +45,20 @@ dataset_train, dataset_val, _ = collect_data(
     device=device, verbose=True)
 
 model = Model()
+loss = Loss()
+
 # Copy model weights to device
 if torch.cuda.device_count() > 1:
     print("Running on", torch.cuda.device_count(), "GPUs")
     model = torch.nn.DataParallel(model)
 model = model.to(device)
 
+# Make the output directory if it does not exist
 output.mkdir(exist_ok=True)
-
 
 # Run the epochs
 for results in trainNet(model, dataset_train, dataset_val,
-                        Loss(), batch, range(n_epochs),
+                        loss, batch, n_epochs,
                         learning_rate=learning_rate,
                         verbose = True):
 
@@ -64,15 +68,11 @@ for results in trainNet(model, dataset_train, dataset_val,
 torch.save(model.state_dict(), output / f'{name}_final.pyt')
 
 fig=plt.figure()
-fig.set_figheight(10)
-fig.set_figwidth(15)
-plt.plot(np.arange(len(results.cost))+1, results.cost, 'o-',color='r',label='Train')
-plt.plot(np.arange(len(results.val))+1, results.val, 'o-' , color='b', label='Validation')
-plt.xlabel('Number of epoch', weight='bold', size= 20)
-plt.ylabel('Average cost per bin of a batch',  weight='bold', size= 20)
+plt.plot(np.arange(len(results.cost))+1, results.cost, 'o-',label='Train')
+plt.plot(np.arange(len(results.val))+1, results.val, 'o-' , label='Validation')
+plt.xlabel('Number of epoch')
+plt.ylabel('Average cost per bin of a batch')
 plt.yscale('log')
-plt.tick_params('y', colors = 'k',labelsize=16 )
-plt.tick_params('x', colors = 'k',labelsize=16 )
 plt.legend()
 fig.savefig(output / f'{name}.png')
 
