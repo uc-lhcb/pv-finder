@@ -21,31 +21,31 @@ import torch
 
 # Model parameters
 output = CURDIR / 'output' # output folder
-name = '20180808_2Layer_75000' # output name
-data = Path('/data/schreihf/PvFinder/July_31_75000.npz')
+name = '20180810_2Layer_30000' # output name
+datafile = Path('/data/schreihf/PvFinder/Aug_10_30000.npz')
 n_epochs = 200
-batch = 32
-learning_rate = 1E-3
+batch_size = 32
+learning_rate = 1e-3
 
 # This is in the same directory as the helper files, so no special path
 # manipulation is needed
-from collectdata import collect_data
+from collectdata import DataCollector
 from loss import Loss
 from training import trainNet
-from models import ModelCNN2Layer as Model
+from models import SimpleCNN2Layer as Model
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0" # 0 is P100 on Goofy
+os.environ['CUDA_VISIBLE_DEVICES'] = "1" # 0 is P100 on Goofy
 
 # Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-
-dataset_train, dataset_val, _ = collect_data(
-    data, 55_000, 10_000,
-    device=device, verbose=True)
+collector = DataCollector(datafile, 20_000, 5_000)
+train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
+val_loader = collector.get_training(batch_size, 5_000, device=device, shuffle=False)
 
 model = Model()
 loss = Loss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Copy model weights to device
 if torch.cuda.device_count() > 1:
@@ -57,10 +57,10 @@ model = model.to(device)
 output.mkdir(exist_ok=True)
 
 # Run the epochs
-for results in trainNet(model, dataset_train, dataset_val,
-                        loss, batch, n_epochs,
-                        learning_rate=learning_rate,
-                        verbose = True):
+for results in trainNet(model, optimizer, loss,
+                        train_loader, val_loader,
+                        n_epochs,
+                        notebook = False):
 
     # Save each model state dictionary
     torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
