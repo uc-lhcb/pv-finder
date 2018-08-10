@@ -1,6 +1,7 @@
 *.pyc
 Pipfile.lock
 */.ipynb_checkpoints/*
+*/logs
 *.ipynb_checkpoints/*
 *.png
 *.jpg

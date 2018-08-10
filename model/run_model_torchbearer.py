@@ -24,7 +24,7 @@ output = CURDIR / 'output' # output folder
 name = '20180810_2Layer_30000' # output name
 datafile = Path('/data/schreihf/PvFinder/Aug_10_30000.npz')
 n_epochs = 200
-batch_size = 32*2
+batch_size = 32
 learning_rate = 1e-3
 
 # This is in the same directory as the helper files, so no special path
@@ -35,7 +35,7 @@ from models import SimpleCNN2Layer as OurModel
 import torchbearer
 from torchbearer.callbacks import TensorBoard
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "1" # 0 is P100 on Goofy
+os.environ['CUDA_VISIBLE_DEVICES'] = "0" # 0 is P100 on Goofy
 
 # Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -48,15 +48,10 @@ model = OurModel()
 loss = Loss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-# MultiGPU
-if torch.cuda.device_count() > 1:
-    print("Using", torch.cuda.device_count(), "GPUs")
-    model = torch.nn.DataParallel(model)
-
 # Make the output directory if it does not exist
 output.mkdir(exist_ok=True)
 
 # Make a TorchBearer model
 torchbearer_model = torchbearer.Model(model, optimizer, loss, metrics=("loss",)).to(device)
-torchbearer_model.fit_generator(train_loader, epochs=10, validation_generator=val_loader)
-                               #callbacks=[TensorBoard(write_graph=True, write_batch_metrics=True, write_epoch_metrics=True)])
+torchbearer_model.fit_generator(train_loader, epochs=n_epochs, validation_generator=val_loader,
+                                callbacks=[TensorBoard(write_graph=True, write_batch_metrics=True, write_epoch_metrics=True)])
