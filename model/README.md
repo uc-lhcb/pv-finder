@@ -99,3 +99,11 @@ See the plethora of notebooks that do this:
 * `PlotEachPV`
 * `FalsePositives`
 * `PlotModel` (only partially load the model)
+
+## Running on Heimdall
+
+To run on Heimdall, assuming you have made the correct folders:
+
+```bash
+nvidia-docker run --ipc=host -it --rm -v ~/git/ml:/work -v ~/pv-finder-data:/data nvcr.io/nvidia/pytorch:18.07-py3
+```
