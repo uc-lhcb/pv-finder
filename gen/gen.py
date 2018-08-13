@@ -22,10 +22,9 @@ import time
 import numpy as np
 import ROOT
 import pythia8
-import velo
 
-ROOT.gROOT.LoadMacro('scatter.C')
-Scatter = ROOT.Scatter
+import velo
+from scatter import Scatter
 
 def prtStable(pid):
     return abs(pid) in (211, 321, 11, 13, 2212)
