@@ -1,5 +1,6 @@
-#ifndef DATA_H
-#define DATA_H
+#pragma once
+
+#include <TTree.h>
 
 using namespace std;
 
@@ -96,5 +97,3 @@ public:
   }
 
 };
-
-#endif

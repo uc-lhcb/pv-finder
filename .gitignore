@@ -9,6 +9,9 @@ Pipfile.lock
 *.npy
 *.npz
 *.gif
+*.pcm
+*.d
+*.so
 
 nohup.out
 Makefile

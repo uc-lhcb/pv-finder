@@ -20,7 +20,7 @@ Under the this dir, you can do:
 Use:
 
 ```bash
-root -b -q 'makehist.c("2018xxxx")'
+root -b -q 'makehist.C+("2018xxxx")'
 ```
 
 
@@ -46,7 +46,7 @@ To run on Goofy:
 ssh goofy -L 8888:localhost:8888
 ml anaconda
 cd <the ana directory>
-jupyter notebook --no-browser
+jupyter lab --no-browser
 ```
 
 Copy and paste the `http://localhost:8888/...` link into your browser on your local computer.

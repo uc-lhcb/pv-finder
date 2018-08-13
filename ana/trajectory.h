@@ -1,7 +1,6 @@
-#ifndef TRAJECTORY_H
-#define TRAJECTORY_H
+#pragma once
 
-#include "TVector3.h"
+#include <TVector3.h>
 
 using namespace std;
 
@@ -115,5 +114,3 @@ public:
     return Trajectory::poca(*this,beamline);
   }
 };
-
-#endif /* TRAJECTORY_H */
