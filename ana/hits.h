@@ -4,7 +4,7 @@
 #include "data.h"
 
 #define PHI_BINS 314
-#define MAX_HITS_PHI_BIN 100 // typically about max of ~50 in a 10-pv event
+#define MAX_HITS_PHI_BIN 150 // typically about max of ~50 in a 10-pv event
 
 #include <iostream>
 
