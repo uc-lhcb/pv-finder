@@ -19,29 +19,29 @@ import torch
 import os
 
 
-from collectdata import collect_data
+from collectdata import DataCollector
 from loss import Loss
 from training import trainNet
-import models_mds
+import models_mds as models
 
-MODELS = {'SimpleCNN2Layer', 'SimpleCNN3Layer', 'SimpleCNN3Layer_A'}
+# This bit of black magic pulls out all the Torch Models by name from the loaded models file.
+MODELS = {x for x in dir(models)
+              if not x.startswith("_")
+                 and isinstance(getattr(models, x), type)
+                 and torch.nn.Module in getattr(models, x).mro()}
 
-def main(n_epochs, name, data, batch, learning_rate, model, output, copyeach):
-    
+def main(n_epochs, name, datafile, batch_size, learning_rate, model, output):
+
     if torch.cuda.is_available() and not 'CUDA_VISIBLE_DEVICES' in os.environ:
         raise RuntimeError('CUDA_VISIBLE_DEVICES is *required* when running with CUDA available')
     # Device configuration
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
-    Model = getattr(models_mds, model)
 
-    dataset_train, _, dataset_val = collect_data(
-        data, 40_000, 30_000,
-        device=None if copyeach else device, verbose=True)
+    Model = getattr(models, model)
 
-    seed = 42
-    np.random.seed(seed)
-    torch.manual_seed(seed);
+    collector = DataCollector(datafile, 20_000, 5_000)
+    train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
+    val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -50,15 +50,21 @@ def main(n_epochs, name, data, batch, learning_rate, model, output, copyeach):
     model = model.to(device)
 
     output.mkdir(exist_ok=True)
-    
+
+    # Create our optimizer function
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Create our loss function
+    loss = Loss()
+
     # Run the epochs
-    for results in trainNet(model, dataset_train, dataset_val,
-                            Loss(), batch, n_epochs,
-                            notebook = False,
-                            learning_rate=learning_rate):
-        
+    for results in trainNet(model, optimizer, loss,
+                            train_loader, val_loader,
+                            n_epochs,
+                            notebook = False):
+
         # Any prints in here are per iteration
-        
+
         # Save each model state dictionary
         if output:
             torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
@@ -74,21 +80,20 @@ def main(n_epochs, name, data, batch, learning_rate, model, output, copyeach):
     ax.legend()
     fig.savefig(str(output / f'{name}.png'))
 
-    
+
 if __name__ == '__main__':
     # Handy: https://gist.github.com/dsc/3855240
-    
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     description="Run example: CUDA_VISIBLE_DEVICES=0 ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
     parser.add_argument('name', help="The name, such as date_numevents_model or similar")
-    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/July_31_75000.npz',
+    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_10_30000.npz',
                         help="The data to read in, in npz format (for now)")
     parser.add_argument('-b', '--batch-size', type=int, default=32, dest='batch', help="The batch size")
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
-    parser.add_argument('--model', default='SimpleCNN2Layer', choices=MODELS, help="Model to train on")
+    parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
     parser.add_argument('--output', type=Path, default=Path('output'), help="Output directory")
-    parser.add_argument('--copy-each-time', dest='copyeach', action='store_true',
-                        help='Copy the memory to the GPU each time')
-    
+
     args = parser.parse_args()
-    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output, args.copyeach)
+    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output)

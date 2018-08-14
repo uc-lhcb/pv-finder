@@ -31,17 +31,17 @@ MODELS = {x for x in dir(models)
                  and torch.nn.Module in getattr(models, x).mro()}
 
 def main(n_epochs, name, datafile, batch_size, learning_rate, model, output):
-    
+
     if torch.cuda.is_available() and not 'CUDA_VISIBLE_DEVICES' in os.environ:
         raise RuntimeError('CUDA_VISIBLE_DEVICES is *required* when running with CUDA available')
     # Device configuration
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
+
     Model = getattr(models, model)
 
     collector = DataCollector(datafile, 20_000, 5_000)
     train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
-    val_loader = collector.get_training(batch_size, 5_000, device=device, shuffle=False)
+    val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -50,21 +50,21 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output):
     model = model.to(device)
 
     output.mkdir(exist_ok=True)
-    
+
     # Create our optimizer function
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    
+
     # Create our loss function
     loss = Loss()
-    
+
     # Run the epochs
     for results in trainNet(model, optimizer, loss,
                             train_loader, val_loader,
                             n_epochs,
                             notebook = False):
-        
+
         # Any prints in here are per iteration
-        
+
         # Save each model state dictionary
         if output:
             torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
@@ -80,10 +80,10 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output):
     ax.legend()
     fig.savefig(str(output / f'{name}.png'))
 
-    
+
 if __name__ == '__main__':
     # Handy: https://gist.github.com/dsc/3855240
-    
+
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description="Run example: CUDA_VISIBLE_DEVICES=0 ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
@@ -94,6 +94,6 @@ if __name__ == '__main__':
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
     parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
     parser.add_argument('--output', type=Path, default=Path('output'), help="Output directory")
-    
+
     args = parser.parse_args()
     main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output)
