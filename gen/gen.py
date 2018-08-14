@@ -11,6 +11,9 @@ parser.add_argument('--events', type=int, default=10000,
 parser.add_argument('--threads', type=int, default=1,
         help='Number of processes to run')
 
+parser.add_argument('--start', type=int, default=1,
+        help='The integer to start counting threads from')
+
 parser.add_argument('name',
         help='The name of the file to produce: .../pv_name.root')
 
@@ -230,14 +233,17 @@ def run(lname, tEvt):
     return ttime
 
 if __name__ == "__main__":
+    start = time.time()
     if args.threads == 1:
         stime = run(args.name, args.events)
     else:
         from concurrent.futures import ProcessPoolExecutor as PoolExecutor
         with PoolExecutor(max_workers=args.threads) as pool:
-            futures = [pool.submit(run, "{}_{}".format(args.name, i), args.events) for i in range(args.threads)]
+            futures = [pool.submit(run, "{}_{}".format(args.name, i), args.events) for i in range(args.start, args.start+args.threads)]
             stime = sum(f.result() for f in futures)
 
-    print("Computed {} events in {:.5} s ({:.4} event/s)".format(
-        args.events*args.threads, stime, args.events*args.threads/stime))
+    print("Computed {} events in {:.5} s (Real time: {:.5} s) ({:.4} event/s)".format(
+        args.events*args.threads,
+        stime, time.time() - start,
+        args.events*args.threads/stime))
 

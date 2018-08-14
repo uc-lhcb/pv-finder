@@ -9,12 +9,18 @@
 
 using namespace std;
 
+inline double bin_center(int nbins, double min, double max, int i) {
+    return (i + 0.5) / nbins * (max - min) + min;
+}
+
 void makez(int event, TTree* t, int& pv_n, int& sv_n,
                                 int* pv_cat, float* pv_loc, int* pv_ntrks,
                                 int* sv_cat, float* sv_loc, int* sv_ntrks,
                                 float* zdata, float* xmaxdata, float* ymaxdata){
-    
-  auto hzkernel = new TH1F("hzkernel", "", 4000, -100, 300);
+
+  constexpr int nb = 4000;
+  constexpr double zmin = -100.;
+  constexpr double zmax = 300.;
 
   Data data;
   data.init(t);
@@ -28,21 +34,22 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
   tracks->newEvent();
   cout << " Total tracks: " << tracks->n() << " good tracks: " << tracks->ngood() << " bad tracks: " << tracks->nbad();
 
-  int nb=hzkernel->GetNbinsX();
   Point pv;
 
   // build the kernel vs z profiled in x-y
   // TODO: clearly non-optimal CPU-wise how this search is done
-  for(int b=1; b<=nb; b++){
-    double z = hzkernel->GetBinCenter(b);
-    double kmax=-1, xmax=0, ymax=0;
+  for(int b=0; b<nb; b++){
+    double z = bin_center(nb, zmin, zmax, b); 
+    double kmax = -1.;
+    double xmax = 0.;
+    double ymax = 0.;
 
     // 1st do coarse grid search
     tracks->setRange(z);
     if(!tracks->run()) continue;
 
-    for(double x=-0.4; x<=0.4; x+=0.1){
-      for(double y=-0.4; y<=0.4; y+=0.1){
+    for(double x=-0.4; x<=0.41; x+=0.1){
+      for(double y=-0.4; y<=0.41; y+=0.1){
         pv.set(x,y,z);
         double val = kernel(pv);
         if(val > kmax){
@@ -55,11 +62,9 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
 
     // now do gradient descent from max found
     pv.set(xmax,ymax,z);
-    double kernel = kernelMax(pv);
-    hzkernel->SetBinContent(b,kernel);
-    zdata[b-1] = (float) kernel;
-    xmaxdata[b-1] = (float) pv.x();
-    ymaxdata[b-1] = (float) pv.y();
+    zdata[b] = (float) kernelMax(pv);
+    xmaxdata[b] = (float) pv.x();
+    ymaxdata[b] = (float) pv.y();
   }
     
     pv_n = data.pvz->size();
@@ -75,12 +80,10 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
         sv_loc[i] = data.svz->at(i);
         sv_ntrks[i] = nSVPrt(data, i);
     }
-    
-    delete hzkernel;
 }
 
 
-/// Run with root -b -q 'makehist.C+("20180719a")'
+/// Run with root -b -q 'makehist.C+("20180814")'
 void makehist(TString input) {
 
     TFile f("/data/schreihf/PvFinder/pv_"+input+".root");
@@ -105,9 +108,9 @@ void makehist(TString input) {
     
     int pv_n, sv_n;
 
-    TTree *tout = new TTree("kernel","Output");
-    tout->Branch("pv_n",&pv_n,"pv_n/I");
-    tout->Branch("sv_n",&sv_n,"sv_n/I");
+    TTree *tout = new TTree("kernel", "Output");
+    tout->Branch("pv_n", &pv_n, "pv_n/I");
+    tout->Branch("sv_n", &sv_n, "sv_n/I");
     
     tout->Branch("pv_cat", pv_cat, "pv_cat[pv_n]/I");
     tout->Branch("pv_loc", pv_loc, "pv_loc[pv_n]/F");
@@ -118,6 +121,8 @@ void makehist(TString input) {
     tout->Branch("sv_ntrks", sv_ntrks, "sv_ntrks[sv_n]/I");
     
     tout->Branch("zdata",zdata,"zdata[4000]/F");
+    tout->Branch("xmax", xmax, "xmax[4000]/F");
+    tout->Branch("ymax", ymax, "ymax[4000]/F");
     
     for(int i=0; i<ntrack; i++) {
         std::fill(zdata, zdata+4000, 0);
