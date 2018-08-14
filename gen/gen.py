@@ -242,8 +242,9 @@ if __name__ == "__main__":
             futures = [pool.submit(run, "{}_{}".format(args.name, i), args.events) for i in range(args.start, args.start+args.threads)]
             stime = sum(f.result() for f in futures)
 
-    print("Computed {} events in {:.5} s (Real time: {:.5} s) ({:.4} event/s)".format(
+    fulltime = time.time() - start
+    print("Computed {} events in {:.5} s (Threads time: {:.6} s) ({:.4} event/s)".format(
         args.events*args.threads,
-        stime, time.time() - start,
-        args.events*args.threads/stime))
+        stime, fulltime,
+        args.events*args.threads/fulltime))
 

@@ -10,6 +10,8 @@ from concurrent.futures import ProcessPoolExecutor
 
 def main(output, files):
     Xs = []
+    Xmaxs = []
+    Ymaxs = []
     Ys = []
 
     futures = []
@@ -22,18 +24,22 @@ def main(output, files):
             futures.append(executor.submit(process_root_file, f, notebook=False, position=i))
 
     for future in futures:
-        X, Y = future.result()
+        X, Y, Xmax, Ymax = future.result()
         Xs.append(X)
         Ys.append(Y)
+        Xmaxs.append(Xmax)
+        Ymaxs.append(Ymax)
         
     print()
     
     with Timer(start="Concatinating..."):
         X = np.concatenate(Xs)
         Y = np.concatenate(Ys, 1)
+        Xmax = np.concatenate(Xmaxs)
+        Ymax = np.concatenate(Xmaxs)
     
     with Timer(start=f"Saving to {output}..."):
-        np.savez_compressed(output, kernel=X, pv=Y[0], sv=Y[2], pv_other=Y[1], sv_other=Y[3])
+        np.savez_compressed(output, Xmax=Xmax, Ymax=Ymax, kernel=X, pv=Y[0], sv=Y[2], pv_other=Y[1], sv_other=Y[3])
 
     
 if __name__ == '__main__':

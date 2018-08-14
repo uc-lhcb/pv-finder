@@ -18,10 +18,14 @@ def process_root_file(filepath,
     tree = uproot.open(str(filepath))['kernel']
          
     X = (tree['zdata'].array() / 2500.).astype(dtype_X)
+    Xmax = (tree['xmax'].array() / 2500.).astype(dtype_X)
+    Ymax = (tree['ymax'].array() / 2500.).astype(dtype_X)
     pv_loc = tree['pv_loc'].array()
     pv_cat = tree['pv_cat'].array()
+    pv_ntrks = tree['pv_ntrks'].array()
     sv_loc = tree['sv_loc'].array()
     sv_cat = tree['sv_cat'].array()
+    sv_ntrks = tree['sv_ntrks'].array()
     
     N_vals = len(X)
     zvals_range = (-99.95, 299.95)
@@ -64,4 +68,4 @@ def process_root_file(filepath,
                 except IndexError:
                     print(f"{name}: ignoring one hit at bin {N_bin} at {mean} in event {i}, column {n}")
                 
-    return X, Y
+    return X, Y, Xmax, Ymax
