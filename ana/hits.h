@@ -1,11 +1,12 @@
-#ifndef HITS_H
-#define HITS_H
+#pragma once
 
 #include "trajectory.h"
 #include "data.h"
 
 #define PHI_BINS 314
-#define MAX_HITS_PHI_BIN 100 // typically about max of ~50 in a 10-pv event
+#define MAX_HITS_PHI_BIN 150 // typically about max of ~50 in a 10-pv event
+
+#include <iostream>
 
 class Hit {
 
@@ -94,7 +95,7 @@ public:
         if(abs(h3.DeltaPhi(_phi_centroids[i])) < 2*3.14159/PHI_BINS) {
           if(_n_phi[i]<MAX_HITS_PHI_BIN)
           _hits_phi[i][_n_phi[i]] = Hit(h,h3.X(),h3.Y(),h3.Z(),data.hid->at(h));
-          else cout << "> " << MAX_HITS_PHI_BIN << " hits in phi bin!" << endl;
+          else std::cout << "> " << MAX_HITS_PHI_BIN << " hits in phi bin!" << std::endl;
           _n_phi[i]++;
         }
       }
@@ -112,5 +113,3 @@ public:
 };
 
 Hits* Hits::_instance = 0;
-
-#endif /* HITS_H */

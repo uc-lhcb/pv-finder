@@ -4,6 +4,8 @@
 #include "trajectory.h"
 #include "hits.h"
 
+#include <TSpline.h>
+
 // more general than needed ATM
 void getTrackPars(int nhits, Hit hits[], double &x0, double &y0, double &z0,
   double &tx, double &ty, double &chi2){

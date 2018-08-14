@@ -1,14 +1,26 @@
-#include "lhcbStyle.h"
-
 #include "utils.h"
 #include "data.h"
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1.h>
+
+#include <iostream>
+
+using namespace std;
+
+inline double bin_center(int nbins, double min, double max, int i) {
+    return (i + 0.5) / nbins * (max - min) + min;
+}
+
 void makez(int event, TTree* t, int& pv_n, int& sv_n,
-                                int* pv_cat, float* pv_loc,
-                                int* sv_cat, float* sv_loc,
-                                float* zdata){
-    
-  auto hzkernel = new TH1F("hzkernel","",4000,-100,300);
+                                int* pv_cat, float* pv_loc, int* pv_ntrks,
+                                int* sv_cat, float* sv_loc, int* sv_ntrks,
+                                float* zdata, float* xmaxdata, float* ymaxdata){
+
+  constexpr int nb = 4000;
+  constexpr double zmin = -100.;
+  constexpr double zmax = 300.;
 
   Data data;
   data.init(t);
@@ -22,21 +34,22 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
   tracks->newEvent();
   cout << " Total tracks: " << tracks->n() << " good tracks: " << tracks->ngood() << " bad tracks: " << tracks->nbad();
 
-  int nb=hzkernel->GetNbinsX();
   Point pv;
 
   // build the kernel vs z profiled in x-y
   // TODO: clearly non-optimal CPU-wise how this search is done
-  for(int b=1; b<=nb; b++){
-    double z = hzkernel->GetBinCenter(b);
-    double kmax=-1,xmax,ymax;
+  for(int b=0; b<nb; b++){
+    double z = bin_center(nb, zmin, zmax, b); 
+    double kmax = -1.;
+    double xmax = 0.;
+    double ymax = 0.;
 
     // 1st do coarse grid search
     tracks->setRange(z);
     if(!tracks->run()) continue;
 
-    for(double x=-0.4; x<=0.4; x+=0.1){
-      for(double y=-0.4; y<=0.4; y+=0.1){
+    for(double x=-0.4; x<=0.41; x+=0.1){
+      for(double y=-0.4; y<=0.41; y+=0.1){
         pv.set(x,y,z);
         double val = kernel(pv);
         if(val > kmax){
@@ -49,28 +62,28 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
 
     // now do gradient descent from max found
     pv.set(xmax,ymax,z);
-    double kernel = kernelMax(pv);
-    hzkernel->SetBinContent(b,kernel);
-    zdata[b-1] = (float) kernel;
+    zdata[b] = (float) kernelMax(pv);
+    xmaxdata[b] = (float) pv.x();
+    ymaxdata[b] = (float) pv.y();
   }
     
     pv_n = data.pvz->size();
-  for(int i=0; i<pv_n; i++){
-    pv_cat[i] = pvCategory(data,i);
-    pv_loc[i] = data.pvz->at(i);
-  }
+    for(int i=0; i<pv_n; i++){
+      pv_cat[i] = pvCategory(data, i);
+      pv_loc[i] = data.pvz->at(i);
+      pv_ntrks[i] = ntrkInAcc(data, i);
+    }
     
     sv_n = data.svz->size();
     for(int i=0; i<sv_n; i++){
         sv_cat[i] = svCategory(data,i);
         sv_loc[i] = data.svz->at(i);
+        sv_ntrks[i] = nSVPrt(data, i);
     }
-    
-    delete hzkernel;
 }
 
 
-/// Run with root -b -q 'makehist.C("20180719a")'
+/// Run with root -b -q 'makehist.C+("20180814")'
 void makehist(TString input) {
 
     TFile f("/data/schreihf/PvFinder/pv_"+input+".root");
@@ -81,26 +94,44 @@ void makehist(TString input) {
     int ntrack = t->GetEntries();
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
     
-    int pv_cat[MAX_TRACKS];
     float pv_loc[MAX_TRACKS];
-    int sv_cat[MAX_TRACKS];
+    int pv_cat[MAX_TRACKS];
+    int pv_ntrks[MAX_TRACKS];
+    
     float sv_loc[MAX_TRACKS];
+    int sv_cat[MAX_TRACKS];
+    int sv_ntrks[MAX_TRACKS];
+    
     float zdata[4000];
+    float xmax[4000];
+    float ymax[4000];
+    
     int pv_n, sv_n;
 
-    TTree *tout = new TTree("kernel","Output");
-    tout->Branch("pv_n",&pv_n,"pv_n/I");
-    tout->Branch("sv_n",&sv_n,"sv_n/I");
-    tout->Branch("pv_cat",pv_cat,"pv_cat[pv_n]/I");
-    tout->Branch("pv_loc",pv_loc,"pv_loc[pv_n]/F");
-    tout->Branch("sv_cat",sv_cat,"sv_cat[sv_n]/I");
-    tout->Branch("sv_loc",sv_loc,"sv_loc[sv_n]/F");
+    TTree *tout = new TTree("kernel", "Output");
+    tout->Branch("pv_n", &pv_n, "pv_n/I");
+    tout->Branch("sv_n", &sv_n, "sv_n/I");
+    
+    tout->Branch("pv_cat", pv_cat, "pv_cat[pv_n]/I");
+    tout->Branch("pv_loc", pv_loc, "pv_loc[pv_n]/F");
+    tout->Branch("pv_ntrks", pv_ntrks, "pv_ntrks[pv_n]/I");
+    
+    tout->Branch("sv_cat", sv_cat, "sv_cat[sv_n]/I");
+    tout->Branch("sv_loc", sv_loc, "sv_loc[sv_n]/F");
+    tout->Branch("sv_ntrks", sv_ntrks, "sv_ntrks[sv_n]/I");
+    
     tout->Branch("zdata",zdata,"zdata[4000]/F");
+    tout->Branch("xmax", xmax, "xmax[4000]/F");
+    tout->Branch("ymax", ymax, "ymax[4000]/F");
     
     for(int i=0; i<ntrack; i++) {
         std::fill(zdata, zdata+4000, 0);
         cout << "Entry " << i << "/" << ntrack;
-        makez(i, t, pv_n, sv_n, pv_cat, pv_loc, sv_cat, sv_loc, zdata);
+        makez(i, t,
+              pv_n, sv_n,
+              pv_cat, pv_loc, pv_ntrks,
+              sv_cat, sv_loc, sv_ntrks,
+              zdata, xmax, ymax);
         cout << " PVs: " << pv_n << " SVs: " << sv_n << endl;
         tout->Fill();
     }

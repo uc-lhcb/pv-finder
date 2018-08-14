@@ -1,8 +1,9 @@
 #ifndef SCATTER2_H
 #define SCATTER2_H
 
-#include "TLorentzVector.h"
-#include "TRandom3.h"
+#include <TLorentzVector.h>
+#include <TRandom3.h>
+#include <TF1.h>
 
 using namespace std;
 

@@ -5,65 +5,88 @@
 import torch
 from torch.utils.data import TensorDataset
 import numpy as np
-import time
+from utilities import Timer
 
-class Timer(object):
-    def __init__(self, message, verbose=True):
-        self.message = message
-        self.verbose = verbose
-    def __enter__(self):
-        self.start_time = time.time()
-        return self
-    def __exit__(self, *args):
-        self.end_time = time.time()
-        if self.verbose:
-            print(self.message.format(time=self.end_time - self.start_time))
+class DataCollector:
+    """
+    This class loads data, and produces dataloaders from it.
+    """
+    
+    __slots__ = "X Y train val test dtype".split()
+    
+    def __init__(self, XY_file, training, validation, *, dtype=np.float32):
+        """
+        Give this class a file name, and the training/validation sizes (test computed automatically).
+        """
+        
+        self.dtype = dtype
+        
+        msg = f"Loaded {XY_file} in {{time:.4}} s"
+        with Timer(msg), np.load(XY_file) as XY:
+            self.X = XY['kernel'][:,np.newaxis,:] 
+            self.Y = XY['pv']
+            
+        if training <= 1:
+            training = int(len(self.X) * training)
 
-def collect_data(XY_file, training, validation, device = None, verbose=True):
-    "Load a pair of files into three tensor datasets"
+        if validation <= 1:
+            validation = int(len(self.X) * validation)
 
-    # We devide the input X by 2500, so most of the values are between 0 and 1.
-    # Also we want (N,1,4000) as our shape for X and (N,4000) for Y
+        assert len(self.X) == len(self.Y), 'Lengths of X and Y must match'
+        assert len(self.X) >= training + validation, 'Must have two or three parts'
+        
+        self.train = slice(0, training)
+        self.val = slice(training, training + validation)
+        self.test = slice(training + validation, len(self.X))
+        
+        print("Samples in Training:", training, "Validation:", validation, "Test:", len(self.X) - training - validation)
+        
+    def _get_dataset(self, slice_ds, batch_size, events=None, device=None, **kargs):
+        """
+        Internal function that loads a dataset. Keyword arguments are passed on to DataLoader.
+        """
+        
+        if events is not None:
+            length = slice_ds.stop - slice_ds.start
+            assert events <= length, f'You asked for too many events, max is {length}'
+            slice_ds = slice(slice_ds.start, slice_ds.start + events)
+        
+        if device is None:
+            device = torch.device('cpu')
+            
+        with Timer(start=f"Constructing dataset on {device}"):
+            dataset = TensorDataset(torch.tensor(self.X[slice_ds].astype(self.dtype)).to(device),
+                                    torch.tensor(self.Y[slice_ds].astype(self.dtype)).to(device))
 
-    if verbose:
-        print("Loading", XY_file)
-
-    with Timer("Loaded files in {time:.4} s", verbose), np.load(XY_file) as XY:
-        X=XY['X'].astype(np.float32)[:,np.newaxis,:] / 2500.
-        Y=XY['Y'].astype(np.float32)
-
-    if training <= 1:
-        training = int(len(X) * training)
-
-    if validation <= 1:
-        validation = int(len(X) * validation)
-
-    assert len(X) == len(Y), 'Lengths must match'
-    assert len(X) >= training + validation, 'Must have two or three parts'
-
-    train = slice(0, training)
-    val = slice(training, training + validation)
-    test = slice(training + validation, len(X))
-
-    print("Samples in Training:", training, "Validation:", validation, "Test:", len(X) - training - validation)
-
-    if device is None:
-        with Timer("Constructed datasets on CPU in {time:.4} s"):
-            train_ds = TensorDataset(torch.tensor(X[train]),
-                                     torch.tensor(Y[train]))
-            valid_ds = TensorDataset(torch.tensor(X[val]),
-                                     torch.tensor(Y[val]))
-            tests_ds = TensorDataset(torch.tensor(X[test]),
-                                     torch.tensor(Y[test]))
-    else:
-        with Timer("Constructed datasets on device in {time:.4} s"):
-            train_ds = TensorDataset(torch.tensor(X[train]).to(device),
-                                     torch.tensor(Y[train]).to(device))
-            valid_ds = TensorDataset(torch.tensor(X[val]).to(device),
-                                     torch.tensor(Y[val]).to(device))
-            tests_ds = TensorDataset(torch.tensor(X[test]).to(device),
-                                     torch.tensor(Y[test]).to(device))
-
-    return train_ds, valid_ds, tests_ds
-
+        loader = torch.utils.data.DataLoader(dataset,
+                                             batch_size=batch_size,
+                                             **kargs)
+        return loader
+        
+    def get_training(self, batch_size, events=None, device=None, **kargs):
+        """
+        batch_size: The number of events per batch
+        events: The number of training events to load (all by default)
+        device: The device to load onto (CPU by default)
+        **kargs: Any other keyword arguments go to dataloader
+        """
+        return self._get_dataset(self.train, batch_size, events, device, **kargs)
+        
+    def get_validation(self, batch_size, events=None, device=None, **kargs):
+        """
+        batch_size: The number of events per batch
+        events: The number of validation events to load (all by default)
+        device: The device to load onto (CPU by default)
+        **kargs: Any other keyword arguments go to dataloader
+        """
+        return self._get_dataset(self.val, batch_size, events, device, **kargs)
+    
+    def get_testing(self, batch_size, events=None, device=None, **kargs):
+        """
+        batch_size: The number of events per batch
+        events: The number of testing events to load (all by default)
+        device: The device to load onto (CPU by default)
+        **kargs: Any other keyword arguments go to dataloader
+        """
+        return self._get_dataset(self.test, batch_size, events, device, **kargs)
 
