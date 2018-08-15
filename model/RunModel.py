@@ -36,9 +36,9 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu
 
     Model = getattr(models, model)
 
-    collector = DataCollector(datafile, 20_000, 5_000)
-    train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
-    val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
+    collector = DataCollector(datafile, 120_000, 10_000)
+    train_loader = collector.get_training(batch_size, 120_000, device=device, shuffle=True)
+    val_loader = collector.get_validation(batch_size, 10_000, device=device, shuffle=False)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -85,7 +85,7 @@ if __name__ == '__main__':
                                      description="Run example: CUDA_VISIBLE_DEVICES=0 ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
     parser.add_argument('name', help="The name, such as date_numevents_model or similar")
-    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_10_30000.npz',
+    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_15_140000.npz',
                         help="The data to read in, in npz format (for now)")
     parser.add_argument('-b', '--batch-size', type=int, default=32, dest='batch', help="The batch size")
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
