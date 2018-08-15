@@ -31,13 +31,11 @@ learning_rate = 1e-3
 # manipulation is needed
 from collectdata import DataCollector
 from loss import Loss
-from training import trainNet
+from training import trainNet, select_gpu
 from models import SimpleCNN2Layer as Model
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "1" # 0 is P100 on Goofy
-
 # Device configuration
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = select_gpu() # You can set a GPU number here or in CUDA_VISIBLE_DEVICES
 
 collector = DataCollector(datafile, 20_000, 5_000)
 train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)

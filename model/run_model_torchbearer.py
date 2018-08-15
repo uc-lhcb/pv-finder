@@ -32,13 +32,14 @@ learning_rate = 1e-3
 from collectdata import DataCollector
 from loss import Loss
 from models import SimpleCNN2Layer as OurModel
+from training import select_gpu
 import torchbearer
 from torchbearer.callbacks import TensorBoard
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0" # 0 is P100 on Goofy
 
 # Device configuration
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = select_gpu()
 
 collector = DataCollector(datafile, 20_000, 5_000)
 train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)

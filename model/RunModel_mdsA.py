@@ -21,7 +21,7 @@ import os
 
 from collectdata import DataCollector
 from loss import Loss
-from training import trainNet
+from training import trainNet, select_gpu
 import models_mds as models
 
 # This bit of black magic pulls out all the Torch Models by name from the loaded models file.
@@ -30,12 +30,9 @@ MODELS = {x for x in dir(models)
                  and isinstance(getattr(models, x), type)
                  and torch.nn.Module in getattr(models, x).mro()}
 
-def main(n_epochs, name, datafile, batch_size, learning_rate, model, output):
+def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu=None):
 
-    if torch.cuda.is_available() and not 'CUDA_VISIBLE_DEVICES' in os.environ:
-        raise RuntimeError('CUDA_VISIBLE_DEVICES is *required* when running with CUDA available')
-    # Device configuration
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = select_gpu(gpu)
 
     Model = getattr(models, model)
 
@@ -94,6 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
     parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
     parser.add_argument('--output', type=Path, default=Path('output'), help="Output directory")
+    parser.add_argument('--gpu', help="Pick a GPU by bus order (you can use CUDA_VISIBLE_DEVICES instead)")
 
     args = parser.parse_args()
-    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output)
+    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output, args.gpu)
