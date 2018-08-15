@@ -41,7 +41,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 collector = DataCollector(datafile, 20_000, 5_000)
 train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
-val_loader = collector.get_training(batch_size, 5_000, device=device, shuffle=False)
+val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
 
 model = Model()
 loss = Loss()
