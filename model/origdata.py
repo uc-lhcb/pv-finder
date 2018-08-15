@@ -21,9 +21,13 @@ def process_root_file(filepath,
     Xmax = (tree['xmax'].array() / 2500.).astype(dtype_X)
     Ymax = (tree['ymax'].array() / 2500.).astype(dtype_X)
     pv_loc = tree['pv_loc'].array()
+    #pv_loc_x = tree['pv_loc_x'].array()
+    #pv_loc_y = tree['pv_loc_y'].array()
     pv_cat = tree['pv_cat'].array()
     pv_ntrks = tree['pv_ntrks'].array()
     sv_loc = tree['sv_loc'].array()
+    #sv_loc_x = tree['sv_loc_x'].array()
+    #sv_loc_y = tree['sv_loc_y'].array()
     sv_cat = tree['sv_cat'].array()
     sv_ntrks = tree['sv_ntrks'].array()
     
