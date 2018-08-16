@@ -11,6 +11,7 @@ class ValueSet(NamedTuple):
     Sp : int
     MT : int
     FP : int
+    events : int = 1
 
     @property
     def real_pvs(self):
@@ -22,16 +23,18 @@ class ValueSet(NamedTuple):
 
     @property
     def fp_rate(self):
-        return self.FP / self.real_pvs
+        return self.FP / self.events
 
     def __str__(self):
-        message = f"Total: {self.real_pvs}, Successes: {self.S}, MT: {self.MT} ({self.eff_rate:.2%}), FP: {self.FP} ({self.fp_rate:.2%})"
-        if self.S != self.Sp:
-            message += f" (Sp: {self.Sp})"
+        message = f"Found {self.S} of {self.real_pvs}, added {self.FP} (eff {self.eff_rate:.2%})"
+        if self.events > 1:
+            message += f" ({self.fp_rate:.3} FP/event)"
+        #if self.S != self.Sp:
+        #    message += f" ({self.S} != {self.Sp})"
         return message
 
     def __add__(self, other):
-        return self.__class__(self[0]+other[0], self[1]+other[1], self[2]+other[2], self[3]+other[3])
+        return self.__class__(self[0]+other[0], self[1]+other[1], self[2]+other[2], self[3]+other[3], self[4]+other[4])
 
     def pretty(self):
         if self.S != self.Sp:
@@ -44,28 +47,40 @@ Real PVs in validation set: {self.real_pvs:,}
 {s_message}
 Missed true PVs: {self.MT:,}
 False positives: {self.FP:,}
-Efficency of detecting real PVs: {self.eff_rate:.2%}
-False positive rate: {self.fp_rate:.2%}"""
+Efficiency of detecting real PVs: {self.eff_rate:.2%}
+False positive rate: {self.fp_rate:.3}"""
 
     
-@numba.jit(numba.float32[:](numba.float32[:], numba.float32), nopython=True)
-def pv_locations(targets, threshold):
-    state = False
-    start = 0
+@numba.jit(numba.float32[:](numba.float32[:], numba.float32, numba.float32, numba.int32),
+           locals={'integral':numba.float32, 'sum_weights_locs':numba.float32},
+           nopython=True)
+def pv_locations(targets, threshold, integral_threshold, min_width):
+    state = 0
+    integral = 0.0
+    sum_weights_locs = 0.0
 
     # Make an empty array and manually track the size (faster than python array)
     items = np.empty(150, np.float32)
     nitems = 0
 
     for i in range(len(targets)):
-        if targets[i] >= threshold and not state:
-            state = True
-            start = i
-        elif (targets[i] < threshold or i == len(targets)-1) and state:
-            state = False
-            items[nitems] = (i + start) / 2.
-            nitems += 1
-        # otherwise, keep going
+        if targets[i] >= threshold:
+            state += 1
+            integral += targets[i]
+            sum_weights_locs += i * targets[i] # weight times location
+        
+        if (targets[i] < threshold or i == len(targets)-1) and state > 0:
+            
+            # Record only if 
+            if state > min_width and integral > integral_threshold:
+                items[nitems] = sum_weights_locs / integral
+                nitems += 1
+                
+            #reset state
+            state = 0
+            integral = 0.0
+            sum_weights_locs = 0.0
+
 
     # Special case for final item (very rare or never occuring)
     # handled by above if len
@@ -99,11 +114,13 @@ def compare(a, b, diff):
 @numba.jit(numba.types.UniTuple(numba.int32,4)(numba.float32[:],
                                                numba.float32[:],
                                                numba.float32,
-                                               numba.float32), nopython=True)
-def numba_efficiency(truth, predict, threshold, difference):
+                                               numba.float32,
+                                               numba.float32,
+                                               numba.int32), nopython=True)
+def numba_efficiency(truth, predict, difference, threshold, integral_threshold, min_width):
 
-    true_values = pv_locations(truth, threshold)
-    predict_values = pv_locations(predict, threshold)
+    true_values = pv_locations(truth, threshold, integral_threshold, min_width)
+    predict_values = pv_locations(predict, threshold, integral_threshold, min_width)
 
     S, MT = compare(true_values, predict_values, difference)
     Sp, FP = compare(predict_values, true_values, difference)
@@ -111,7 +128,7 @@ def numba_efficiency(truth, predict, threshold, difference):
 
     return S, Sp, MT, FP
 
-def efficiency(truth, predict, threshold, difference):
+def efficiency(truth, predict, difference, threshold, integral_threshold, min_width):
     """
     Compute three values: The number of succeses (S), the number of missed true
     values (MT), and the number of missed false values (FP). Note that the number of successes
@@ -120,17 +137,20 @@ def efficiency(truth, predict, threshold, difference):
     Accepts:
       * truth: Numpy array of truth values
       * predict: Numpy array of predictions
-      * threshold: The threshold for considering an "on" value
-      * difference: The maximum difference to count a success, in bin widths (successes
-                    and failures are to the nearest half bin, currently)
+      * difference: The maximum difference to count a success, in bin widths - such as 5
+      * threshold: The threshold for considering an "on" value - such as 1e-2
+      * integral_threshold: The total integral required to trigger a hit - such as 0.2
+      * min_width: The minimum width (in bins) of a feature - such as 2
+
 
     Returns: ValueSet(S, Sp, MT, FP)
 
-    A future advancement of this algorithm would be to compute the weighted mean, and use that.
-    Also, this will currently be triggered by small fluctionations in the input array.
-    It should have a minium total integrated value required to "turn it on" (int=0.2) and 3 bins wide.
+    This algorithm computes the weighted mean, and uses that.
+    This avoids small fluctionations in the input array by requiring .
+    a minium total integrated value required to "turn it on"
+    (integral_threshold=0.2) and min_width of 3 bins wide.
     """
 
-    return ValueSet(*numba_efficiency(truth, predict, threshold, difference))
+    return ValueSet(*numba_efficiency(truth, predict, difference, threshold, integral_threshold, min_width))
 
 
