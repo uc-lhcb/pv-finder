@@ -10,6 +10,13 @@ from efficiency import efficiency, ValueSet
 
 Results = namedtuple("Results", ['cost','val','time','epoch', 'eff_val'])
 
+PARAM_EFF = {
+    "difference": 5.0,
+    "threshold": 1e-2,
+    "integral_threshold": .2,
+    "min_width": 3
+}
+
 def select_gpu(selection = None):
     """
     Select a GPU if availale.
@@ -163,5 +170,5 @@ def validate(model, loss, loader, device):
             total_loss += loss_output.data.item()
 
             for label, output in zip(labels.cpu().numpy(), val_outputs.cpu().numpy()):
-                eff += efficiency(label, output, 1e-2, 5.)
+                eff += efficiency(label, output, **PARAM_EFF)
     return total_loss, eff

@@ -7,14 +7,13 @@ from pathlib import Path
 import models
 from efficiency import efficiency, ValueSet
 from collectdata import DataCollector
-from training import select_gpu
+from training import select_gpu, PARAM_EFF
 
 # This bit of black magic pulls out all the Torch Models by name from the loaded models file.
 MODELS = {x for x in dir(models)
               if not x.startswith("_")
                  and isinstance(getattr(models, x), type)
                  and torch.nn.Module in getattr(models, x).mro()}
-
 
 
 def main(model, dataset):
@@ -27,7 +26,7 @@ def main(model, dataset):
     total = ValueSet(0,0,0,0)
 
     for label, output in zip(labels, outputs):
-        total += efficiency(label, output, 1e-2, 5.)
+        total += efficiency(label, output, **PARAM_EFF)
 
     return total
 
