@@ -21,8 +21,8 @@ import torch
 
 # Model parameters
 output = CURDIR / 'output' # output folder
-name = '20180810_2Layer_30000' # output name
-datafile = Path('/data/schreihf/PvFinder/Aug_10_30000.npz')
+name = '20180816_2Layer_120000' # output name
+datafile = Path('/data/schreihf/PvFinder/Aug_15_140000.npz')
 n_epochs = 200
 batch_size = 32
 learning_rate = 1e-3

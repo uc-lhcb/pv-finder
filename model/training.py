@@ -13,8 +13,11 @@ def select_gpu(selection = None):
     """
     Select a GPU if availale.
 
-    selection can be set to get a specific GPU. If left unset, it will REQUIRE that a GPU be selected by environment variable.
+    selection can be set to get a specific GPU. If left unset, it will REQUIRE that a GPU be selected by environment variable. If -1, the CPU will be selected.
     """
+    
+    if str(selection) == "-1":
+        return torch.device('cpu')
 
     # This must be done before any API calls to Torch that touch the GPU
     if selection is not None:

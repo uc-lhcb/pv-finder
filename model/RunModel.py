@@ -68,13 +68,21 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu
 
     torch.save(model.state_dict(), output / f'{name}_final.pyt')
 
+    # Filter first cost epoch point when calculating the plot range (can be really large)
+    max_cost = max(max(results.cost if len(results.cost)<2 else results.cost[1:]), max(results.val))
+    min_cost = min(min(results.cost), min(results.val))
+    
+    # Make a plot
     fig, ax = plt.subplots(figsize=(15, 10))
     ax.plot(np.arange(len(results.cost))+1, results.cost, 'o-',color='r',label='Train')
     ax.plot(np.arange(len(results.val))+1, results.val, 'o-' , color='b', label='Validation')
     ax.set_xlabel('Number of epoch')
     ax.set_ylabel('Average cost per bin of a batch')
     ax.set_yscale('log')
+    ax.set_ylim(min_cost*.9, max_cost*1.1)
     ax.legend()
+    
+    # Save the plot
     fig.savefig(str(output / f'{name}.png'))
 
 
@@ -82,7 +90,7 @@ if __name__ == '__main__':
     # Handy: https://gist.github.com/dsc/3855240
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="Run example: CUDA_VISIBLE_DEVICES=0 ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer")
+                                     description="Run example: ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer --gpu 0")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
     parser.add_argument('name', help="The name, such as date_numevents_model or similar")
     parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_15_140000.npz',
