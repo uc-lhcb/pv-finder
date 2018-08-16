@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_truth_vs_predict(predict, truth, ax=None):
+def plot_truth_vs_predict(truth, predict, ax=None):
     if ax is None:
         fig, ax = plt.subplots(figsize=(18,2))
         

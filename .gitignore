@@ -12,6 +12,7 @@ Pipfile.lock
 *.pcm
 *.d
 *.so
+*.swp
 
 nohup.out
 Makefile

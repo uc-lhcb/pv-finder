@@ -6,8 +6,9 @@ import sys
 import os
 
 from utilities import tqdm_redirect, import_progress_bar
+from efficiency import efficiency, ValueSet
 
-Results = namedtuple("Results", ['cost','val','time','epoch'])
+Results = namedtuple("Results", ['cost','val','time','epoch', 'eff_val'])
 
 def select_gpu(selection = None):
     """
@@ -15,7 +16,7 @@ def select_gpu(selection = None):
 
     selection can be set to get a specific GPU. If left unset, it will REQUIRE that a GPU be selected by environment variable. If -1, the CPU will be selected.
     """
-    
+
     if str(selection) == "-1":
         return torch.device('cpu')
 
@@ -74,13 +75,14 @@ model: {model}""")
     cost_epoch = []
     val_epoch  = []
     time_epoch = []
+    eff_val_epoch = []
 
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
 
 
     epoch_iterator = progress(range(n_epochs), desc="Epochs",
                               postfix='train=start, val=start', dynamic_ncols=True,
-                              position=0, file=sys.stdout)
+                              position=0, file=sys.stderr)
 
 
     # Loop for n_epochs
@@ -88,12 +90,13 @@ model: {model}""")
         training_start_time = time.time()
 
         # Run the training step
-        total_train_loss = train(model, loss, train_loader, optimizer, device, progress=progress)
+        total_train_loss= train(model, loss, train_loader, optimizer, device, progress=progress)
         cost_epoch.append(total_train_loss / len(train_loader))
 
         # At the end of the epoch, do a pass on the validation set
-        total_val_loss = validate(model, loss, val_loader, device)
+        total_val_loss, cur_val_eff = validate(model, loss, val_loader, device)
         val_epoch.append(total_val_loss / len(val_loader))
+        eff_val_epoch.append(cur_val_eff)
 
         # Record total time
         time_epoch.append(time.time() - training_start_time)
@@ -103,10 +106,11 @@ model: {model}""")
             epoch_iterator.postfix = f'train={cost_epoch[-1]:.4}, val={val_epoch[-1]:.4}'
 
         # Redirect stdout if needed to avoid clash with progress bar
-        with tqdm_redirect(progress):
-            if not notebook:
-                print(f'Epoch {epoch}: train={cost_epoch[-1]:.6}, val={val_epoch[-1]:.6}, took {time_epoch[-1]:.5} s')
-            yield Results(cost_epoch, val_epoch, time_epoch, epoch)
+        write = getattr(progress, 'write', print)
+        write(f'Epoch {epoch}: train={cost_epoch[-1]:.6}, val={val_epoch[-1]:.6}, took {time_epoch[-1]:.5} s')
+        write(f"  Validation {cur_val_eff}")
+        
+        yield Results(cost_epoch, val_epoch, time_epoch, epoch, eff_val_epoch)
 
 
 def train(model, loss, loader, optimizer, device, progress):
@@ -117,7 +121,7 @@ def train(model, loss, loader, optimizer, device, progress):
 
     loader = progress(loader, postfix='train=start',
                       desc="Training", mininterval=1.0, dynamic_ncols=True,
-                      position=1, leave=False, file=sys.stdout)
+                      position=1, leave=False, file=sys.stderr)
 
     for inputs, labels in loader:
         if inputs.device != device:
@@ -142,6 +146,7 @@ def train(model, loss, loader, optimizer, device, progress):
 
 def validate(model, loss, loader, device):
     total_loss = 0
+    eff = ValueSet(0,0,0,0)
 
     # switch to evaluate mode
     model.eval()
@@ -156,4 +161,7 @@ def validate(model, loss, loader, device):
             loss_output = loss(val_outputs, labels)
 
             total_loss += loss_output.data.item()
-    return total_loss
+
+            for label, output in zip(labels.cpu().numpy(), val_outputs.cpu().numpy()):
+                eff += efficiency(label, output, 1e-2, 5.)
+    return total_loss, eff

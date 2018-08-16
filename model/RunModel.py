@@ -60,13 +60,14 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu
                             n_epochs,
                             notebook = False):
 
-        # Any prints in here are per iteration
+        # Any prints in here are per iteration (use tqdm.write)
 
         # Save each model state dictionary
-        if output:
-            torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
+        torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
 
+    # Save final model and stats
     torch.save(model.state_dict(), output / f'{name}_final.pyt')
+    np.savez(output / f'{name}_stats.npz', **results._asdict())
 
     # Filter first cost epoch point when calculating the plot range (can be really large)
     max_cost = max(max(results.cost if len(results.cost)<2 else results.cost[1:]), max(results.val))
