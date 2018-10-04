@@ -136,10 +136,12 @@ def numba_efficiency(truth, predict, difference, threshold, integral_threshold, 
     true_values = pv_locations(truth, threshold, integral_threshold, min_width)
     predict_values = pv_locations(predict, threshold, integral_threshold, min_width)
 
-    predict_values = filter_nans(predict_values, truth)
+    filtered_predict_values = filter_nans(predict_values, truth)
 
+    # Using the unfiltered here intentionally - might not make a difference
     S, MT = compare(true_values, predict_values, difference)
-    Sp, FP = compare(predict_values, true_values, difference)
+    
+    Sp, FP = compare(filtered_predict_values, true_values, difference)
 
 
     return S, Sp, MT, FP

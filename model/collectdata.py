@@ -16,7 +16,9 @@ def collect_data(self, XY_file, batch_size, *, dtype=np.float32, device=None, ma
         X = XY['kernel'][:,np.newaxis,:].astype(dtype)
         Y = XY['pv'].astype(dtype)
         if masking:
-            Y[XY['pv_other'] > 0.01] = dtype(np.nan)
+            # Set the result to nan if the "other" array is above threshold
+            # and the current array is below threshold
+            Y[(XY['pv_other'] > 0.01) & (Y < 0.01)] = dtype(np.nan)
             
         if slice:
             X = X[slice]
@@ -51,7 +53,7 @@ class DataCollector:
             self.X = XY['kernel'][:,np.newaxis,:].astype(dtype)
             self.Y = XY['pv'].astype(dtype)
             if masking:
-                self.Y[XY['pv_other'] > 0.01] = dtype(np.nan)
+                self.Y[(XY['pv_other'] > 0.01) & (self.Y < 0.01)] = dtype(np.nan)
 
         if training <= 1:
             training = int(len(self.X) * training)

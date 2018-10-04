@@ -45,7 +45,7 @@ def main(output, files):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = "This processes files, in multiple processes. "
                                      "You should use it something like this: "
-                                     "./ProcessFiles -o /data/schreihf/PvFinder/Aug_10_30000.npz "
+                                     "./ProcessFiles -o /data/schreihf/PvFinder/Aug_10_30000_train.npz "
                                      "/data/schreihf/PvFinder/kernel*")
     
     parser.add_argument('-o', '--output', required=True, help="Set the output file (.npz)")
