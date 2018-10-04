@@ -2,7 +2,7 @@
 
 root -q -b makehist.C++ || true
 
-for file in /data/schreihf/PvFinder/pv_20180* ; do
+for file in /data/schreihf/PvFinder/pv_201810* ; do
     file=$(basename -s .root $file)
     file=${file#pv_}
     echo "Processing: $file" 
