@@ -8,7 +8,7 @@ import os
 from utilities import tqdm_redirect, import_progress_bar
 from efficiency import efficiency, ValueSet
 
-Results = namedtuple("Results", ['cost','val','time','epoch', 'eff_val'])
+Results = namedtuple("Results", ['cost','val','time','epoch', 'eff_val', 'info'])
 
 PARAM_EFF = {
     "difference": 5.0,
@@ -117,7 +117,7 @@ model: {model}""")
         write(f'Epoch {epoch}: train={cost_epoch[-1]:.6}, val={val_epoch[-1]:.6}, took {time_epoch[-1]:.5} s')
         write(f"  Validation {cur_val_eff}")
         
-        yield Results(cost_epoch, val_epoch, time_epoch, epoch, eff_val_epoch)
+        yield Results(cost_epoch, val_epoch, time_epoch, epoch, eff_val_epoch, cur_val_eff)
 
 
 def train(model, loss, loader, optimizer, device, progress):

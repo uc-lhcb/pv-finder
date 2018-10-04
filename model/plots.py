@@ -54,6 +54,11 @@ def plot_ruiplot(zvals, i, inputs, labels, outputs, width=25, ax=None):
 
         ax_prob.set_ylim(0, max(0.8, 1.2*max(y_predicted)))
         ax_prob.set_ylabel('Probability', color='r')
+        
+        if np.any(np.isnan(labels)):
+            grey_y = np.isnan(y_target) * .2
+            ax_prob.bar(x_bins, grey_y,
+               width=0.1, alpha=0.3 ,color='k', label='Masked')
 
         ax_prob.legend(loc='upper right')
 

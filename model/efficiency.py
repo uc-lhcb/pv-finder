@@ -41,7 +41,7 @@ class ValueSet(NamedTuple):
             s_message = f"Successes: Either {self.S:,} or {self.Sp:,}, depending on how you count."
         else:
             s_message = f"Successes: {self.S:,}"
-            
+
         return f"""\
 Real PVs in validation set: {self.real_pvs:,}
 {s_message}
@@ -50,7 +50,7 @@ False positives: {self.FP:,}
 Efficiency of detecting real PVs: {self.eff_rate:.2%}
 False positive rate: {self.fp_rate:.3}"""
 
-    
+
 @numba.jit(numba.float32[:](numba.float32[:], numba.float32, numba.float32, numba.int32),
            locals={'integral':numba.float32, 'sum_weights_locs':numba.float32},
            nopython=True)
@@ -68,14 +68,14 @@ def pv_locations(targets, threshold, integral_threshold, min_width):
             state += 1
             integral += targets[i]
             sum_weights_locs += i * targets[i] # weight times location
-        
+
         if (targets[i] < threshold or i == len(targets)-1) and state > 0:
-            
-            # Record only if 
-            if state > min_width and integral > integral_threshold:
+
+            # Record only if
+            if state >= min_width and integral >= integral_threshold:
                 items[nitems] = sum_weights_locs / integral
                 nitems += 1
-                
+
             #reset state
             state = 0
             integral = 0.0
@@ -87,13 +87,27 @@ def pv_locations(targets, threshold, integral_threshold, min_width):
 
     return items[:nitems]
 
+
+@numba.jit(numba.float32[:](numba.float32[:], numba.float32[:]), nopython=True)
+def filter_nans(items, mask):
+    retval = np.emtpy_like(items)
+    max_index = 0
+    for item in items:
+        index = int(round(item))
+        not_valid = np.isnan(mask[index])
+        if not not_valid:
+            retval[max_index] = item
+            max_index += 1
+
+    return retval[:max_index]
+
 @numba.jit(numba.types.UniTuple(numba.int32,2)(numba.float32[:],
                                                numba.float32[:],
                                                numba.float32), nopython=True)
 def compare(a, b, diff):
     succeed = 0
     fail = 0
-    
+
     if len(b) == 0:
         return 0, len(a)
 
@@ -121,6 +135,8 @@ def numba_efficiency(truth, predict, difference, threshold, integral_threshold, 
 
     true_values = pv_locations(truth, threshold, integral_threshold, min_width)
     predict_values = pv_locations(predict, threshold, integral_threshold, min_width)
+
+    predict_values = filter_nans(predict_values, truth)
 
     S, MT = compare(true_values, predict_values, difference)
     Sp, FP = compare(predict_values, true_values, difference)
