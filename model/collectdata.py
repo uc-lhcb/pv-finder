@@ -6,19 +6,28 @@ import torch
 from torch.utils.data import TensorDataset
 import numpy as np
 from utilities import Timer
+from pathlib import Path
+from functools import partial
 
-def collect_data(self, XY_file, batch_size, *, dtype=np.float32, device=None, masking=False, slice=None, **kargs):
+def collect_data(XY_file, batch_size, *, dtype=np.float32, device=None, masking=False, slice=None, **kargs):
     """
     This function collects data. It does not split it up.
     """
     msg = f"Loaded {XY_file} in {{time:.4}} s"
-    with Timer(msg), np.load(XY_file) as XY:
-        X = XY['kernel'][:,np.newaxis,:].astype(dtype)
-        Y = XY['pv'].astype(dtype)
+    
+    if Path(XY_file).suffix != '.h5':
+        load = np.load
+    else:
+        import h5py
+        load = partial(h5py.File, mode='r')
+    
+    with Timer(msg), load(XY_file) as XY:
+        X = np.asarray(XY['kernel'])[:,np.newaxis,:].astype(dtype)
+        Y = np.asarray(XY['pv']).astype(dtype)
         if masking:
             # Set the result to nan if the "other" array is above threshold
             # and the current array is below threshold
-            Y[(XY['pv_other'] > 0.01) & (Y < 0.01)] = dtype(np.nan)
+            Y[(np.asarray(XY['pv_other']) > 0.01) & (Y < 0.01)] = dtype(np.nan)
             
         if slice:
             X = X[slice]

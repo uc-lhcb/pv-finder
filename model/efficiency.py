@@ -90,7 +90,7 @@ def pv_locations(targets, threshold, integral_threshold, min_width):
 
 @numba.jit(numba.float32[:](numba.float32[:], numba.float32[:]), nopython=True)
 def filter_nans(items, mask):
-    retval = np.emtpy_like(items)
+    retval = np.empty_like(items)
     max_index = 0
     for item in items:
         index = int(round(item))
