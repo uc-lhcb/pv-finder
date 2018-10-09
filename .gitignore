@@ -15,6 +15,7 @@ Pipfile.lock
 *.swp
 *.png
 *.pdf
+*.cache/*
 
 nohup.out
 Makefile
