@@ -7,10 +7,19 @@ class Loss(torch.nn.Module):
         Epsilon is a parameter that can be adjusted.
         '''
 
+        # You must call the original constructor (torch.nn.Module.__init__(self))!
+        super().__init__()
+        
+        # Now you can add things
         self.epsilon = epsilon
 
     def forward(self, x, y):
-        # Make a boolean mask of non-nan values of the target histogram
+        # Make a boolean mask of non-nan values of the target histogram.
+        # This will be used to select items from y:
+        # see https://docs.scipy.org/doc/numpy-1.13.0/user/basics.indexing.html#boolean-or-mask-index-arrays
+        #
+        # Note that if masking was not requested when loading the data, there
+        # will be no NaNs and this will be all Trues and will do nothing special.
         valid = ~torch.isnan(y)
 
         # Compute r, only including non-nan values. r will probably be shorter than x and y.
