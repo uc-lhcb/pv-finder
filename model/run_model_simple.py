@@ -22,14 +22,15 @@ import torch
 # Model parameters
 output = CURDIR / 'output' # output folder
 name = '20180816_2Layer_120000' # output name
-datafile = Path('/data/schreihf/PvFinder/Aug_15_140000.npz')
+trainfile = Path('/share/lazy/schreihf/PvFinder/Aug_14_80K.npz')
+valfile = Path('/share/lazy/schreihf/PvFinder/Oct03_20K_val.npz')
 n_epochs = 200
 batch_size = 32
 learning_rate = 1e-3
 
 # This is in the same directory as the helper files, so no special path
 # manipulation is needed
-from collectdata import DataCollector
+from collectdata import collect_data
 from loss import Loss
 from training import trainNet, select_gpu
 from models import SimpleCNN2Layer as Model
@@ -37,12 +38,12 @@ from models import SimpleCNN2Layer as Model
 # Device configuration
 device = select_gpu() # You can set a GPU number here or in CUDA_VISIBLE_DEVICES
 
-collector = DataCollector(datafile, 20_000, 5_000)
-train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
-val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
+train_loader = collect_data(trainfile, batch_size=batch_size, device=device, shuffle=True)
+val_loader = collect_data(valfile, batch_size=batch_size, device=device, shuffle=False)
 
 model = Model()
 loss = Loss()
+
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Copy model weights to device

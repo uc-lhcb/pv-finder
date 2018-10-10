@@ -19,7 +19,7 @@ import torch
 import os
 
 
-from collectdata import DataCollector
+from collectdata import collect_data
 from loss import Loss
 from training import trainNet, select_gpu
 import models
@@ -30,15 +30,14 @@ MODELS = {x for x in dir(models)
                  and isinstance(getattr(models, x), type)
                  and torch.nn.Module in getattr(models, x).mro()}
 
-def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu=None):
+def main(n_epochs, name, trainfile, valfile, batch_size, learning_rate, model, output, gpu=None):
 
     device = select_gpu(gpu)
 
     Model = getattr(models, model)
 
-    collector = DataCollector(datafile, 120_000, 10_000)
-    train_loader = collector.get_training(batch_size, 120_000, device=device, shuffle=True)
-    val_loader = collector.get_validation(batch_size, 10_000, device=device, shuffle=False)
+    train_loader = collector.get_training(trainfile, batch_size=batch_size, device=device, shuffle=True)
+    val_loader = collector.get_validation(valfile, batch_size=batch_size, device=device, shuffle=False)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -72,7 +71,7 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu
     # Filter first cost epoch point when calculating the plot range (can be really large)
     max_cost = max(max(results.cost if len(results.cost)<2 else results.cost[1:]), max(results.val))
     min_cost = min(min(results.cost), min(results.val))
-    
+
     # Make a plot
     fig, ax = plt.subplots(figsize=(15, 10))
     ax.plot(np.arange(len(results.cost))+1, results.cost, 'o-',color='r',label='Train')
@@ -82,7 +81,7 @@ def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu
     ax.set_yscale('log')
     ax.set_ylim(min_cost*.9, max_cost*1.1)
     ax.legend()
-    
+
     # Save the plot
     fig.savefig(str(output / f'{name}.png'))
 
@@ -94,8 +93,10 @@ if __name__ == '__main__':
                                      description="Run example: ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer --gpu 0")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
     parser.add_argument('name', help="The name, such as date_numevents_model or similar")
-    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_15_140000.npz',
-                        help="The data to read in, in npz format (for now)")
+    parser.add_argument('-t', '--train', default='/share/lazy/schreihf/PvFinder/Aug14_80K_train.npz',
+                        help="The training data to read in, in npz format")
+    parser.add_argument('-v', '--val', default='/share/lazy/schreihf/PvFinder/Oct03_20K_val.npz',
+                        help="The validation data to read in, in npz format")
     parser.add_argument('-b', '--batch-size', type=int, default=32, dest='batch', help="The batch size")
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
     parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
@@ -103,4 +104,4 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', help="Pick a GPU by bus order (you can use CUDA_VISIBLE_DEVICES instead)")
 
     args = parser.parse_args()
-    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output, args.gpu)
+    main(args.epochs, args.name, args.train, args.val, args.batch, args.learning, args.model, args.output, args.gpu)
