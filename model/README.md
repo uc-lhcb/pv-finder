@@ -1,3 +1,24 @@
+# Processing data
+
+You should "gen"erate `pv_*.root` files and "ana"lyze yoru data first to `kernel_*.root`. Then, you need to produce collected and prepared kernel files:
+
+```bash
+./ProcessFiles -o data/Oct03_20K_val.npz /data/schreihf/PvFinder/kernel_20181003_{1,2}.root
+```
+
+The current files are:
+
+|        From       |          To         |         Events          |
+|-------------------|---------------------|-------------------------|
+| `kernel_20181003` | `Oct03_20K_val`     | 1,2                     |
+| `kernel_20181003` | `Oct03_20K_test`    | 3,4                     |
+| `kernel_20181003` | `Oct03_40K_train`   | 5,6,7,8                 |
+| `kernel_20181003` | `Oct03_80K_train`   | 9,10,11,12,13,14,15,16  |
+| `kernel_20181003` | `Oct03_80K2_train`  | 17,18,19,20,21,22,23,24 |
+| `kernel_20180814` | `Aug14_80K_train`   | 1,2,3,4,5,6,7,8         |
+
+It can take about a minute to save an 80K file.
+
 # Model files
 
 The following files are used to run the ML models for finding PVs. Make sure this directory is in your `PYTHONPATH` (see the jupyter notebooks).
@@ -15,11 +36,10 @@ Usage:
 
 ```python
 from collectdata import collect_data
-
-data = '/data/schreihf/PvFinder/July_31_75000.npz'
-dataset_train, dataset_val, _ = collect_data(
-    data, 55_000, 10_000,
-    device=device)
+train = collect_data('data/Oct03_80K_train.npz', masking=True,
+                     batch_size=batch_size, shuffle=True, device=device)
+val = collect_data('data/Oct03_20K_val.npz', masking=True,
+                   batch_size=batch_size, slice=slice(10_000), device=device)
 ```
 
 ## models.py
@@ -52,7 +72,7 @@ Current models include `SimpleCNN2Layer`, `SimpleCNN3Layer`
 from loss import Loss
 ```
 
-Currently, you simply pass a loss object `Loss()` to the `trainNet` function described next.
+Currently, you simply pass a loss object `loss = Loss(epsilon=1e-5)` to the `trainNet` function described next.
 
 ## training.py
 

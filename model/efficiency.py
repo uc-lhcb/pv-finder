@@ -90,7 +90,7 @@ def pv_locations(targets, threshold, integral_threshold, min_width):
 
 @numba.jit(numba.float32[:](numba.float32[:], numba.float32[:]), nopython=True)
 def filter_nans(items, mask):
-    retval = np.emtpy_like(items)
+    retval = np.empty_like(items)
     max_index = 0
     for item in items:
         index = int(round(item))
@@ -136,10 +136,12 @@ def numba_efficiency(truth, predict, difference, threshold, integral_threshold, 
     true_values = pv_locations(truth, threshold, integral_threshold, min_width)
     predict_values = pv_locations(predict, threshold, integral_threshold, min_width)
 
-    predict_values = filter_nans(predict_values, truth)
+    filtered_predict_values = filter_nans(predict_values, truth)
 
+    # Using the unfiltered here intentionally - might not make a difference
     S, MT = compare(true_values, predict_values, difference)
-    Sp, FP = compare(predict_values, true_values, difference)
+    
+    Sp, FP = compare(filtered_predict_values, true_values, difference)
 
 
     return S, Sp, MT, FP

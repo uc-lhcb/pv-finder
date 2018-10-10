@@ -9,15 +9,8 @@ Generator code.
 To run generator:
 
 ```bash
-./gen.py 2018xxxx
+./gen.py --threads=24 2018xxxx
 ```
 
-See options with -h.
+See options with `-h`.
 
-Multiprocessing does not speed up much; use
-
-```bash
-for i in 1 2 3 4; do ./gen.py --events 10 tmp_$i & done
-```
-
-For about .4 events per second rather than .25 or so.

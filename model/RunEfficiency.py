@@ -6,7 +6,7 @@ from pathlib import Path
 
 import models
 from efficiency import efficiency, ValueSet
-from collectdata import DataCollector
+from collectdata import collect_data
 from training import select_gpu, PARAM_EFF
 
 # This bit of black magic pulls out all the Torch Models by name from the loaded models file.
@@ -44,7 +44,6 @@ if __name__ == "__main__":
                         help="The data to read in, in npz format (for now)")
     parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
     parser.add_argument('--gpu', help="Pick a GPU by bus order (you can use CUDA_VISIBLE_DEVICES instead)")
-    parser.add_argument('--training', action='store_true', help="Get training dataset instead of validation")
     parser.add_argument('--events', type=int, help="Limit the maximum number of events to read")
 
     args = parser.parse_args()
@@ -54,11 +53,7 @@ if __name__ == "__main__":
     Model = getattr(models, args.model)
     model = Model().to(device)
 
-    collector = DataCollector(args.data, 120_000, 10_000)
-    if args.training:
-        dataloader = collector.get_training(1, events=args.events, device=device)
-    else:
-        dataloader = collector.get_validation(1, events=args.events, device=device)
+    dataloader = collect_data(args.data, batchsize=1, slice=slice(args.events), device=device)
 
     for item in args.model_dict:
         print()
