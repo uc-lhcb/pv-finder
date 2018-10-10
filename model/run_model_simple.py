@@ -38,8 +38,8 @@ from models import SimpleCNN2Layer as Model
 # Device configuration
 device = select_gpu() # You can set a GPU number here or in CUDA_VISIBLE_DEVICES
 
-train_loader = collect_data(trainfile, batch_size=batch_size, device=device, shuffle=True)
-val_loader = collect_data(valfile, batch_size=batch_size, device=device, shuffle=False)
+train_loader = collect_data(trainfile, batch_size=batch_size, device=device, shuffle=True, masking=True)
+val_loader = collect_data(valfile, batch_size=batch_size, device=device, shuffle=False, masking=True)
 
 model = Model()
 loss = Loss()

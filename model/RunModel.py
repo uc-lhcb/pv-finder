@@ -36,8 +36,10 @@ def main(n_epochs, name, trainfile, valfile, batch_size, learning_rate, model, o
 
     Model = getattr(models, model)
 
-    train_loader = collector.get_training(trainfile, batch_size=batch_size, device=device, shuffle=True)
-    val_loader = collector.get_validation(valfile, batch_size=batch_size, device=device, shuffle=False)
+    train_loader = collect_data(trainfile, batch_size=batch_size,
+            device=device, shuffle=True, masking=True)
+    val_loader = collect_data(valfile, batch_size=batch_size,
+            device=device, shuffle=False, masking=True)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")

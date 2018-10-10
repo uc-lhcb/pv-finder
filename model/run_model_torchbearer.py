@@ -45,6 +45,9 @@ device = select_gpu()
 trainfile = Path('/share/lazy/schreihf/PvFinder/Aug_14_80K.npz')
 valfile = Path('/share/lazy/schreihf/PvFinder/Oct03_20K_val.npz')
 
+train_loader = collect_data(trainfile, batch_size=batch_size, device=device, shuffle=True, masking=True)
+val_loader = collect_data(valfile, batch_size=batch_size, device=device, shuffle=False, masking=True)
+
 model = OurModel()
 loss = Loss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
