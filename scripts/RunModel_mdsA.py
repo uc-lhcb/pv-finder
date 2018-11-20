@@ -19,10 +19,11 @@ import torch
 import os
 
 
-from collectdata import collect_data
-from loss import Loss
-from training import trainNet, select_gpu
-import models
+from model.collectdata import DataCollector
+from model.loss import Loss
+from model.training import trainNet, select_gpu
+import model.models_mds as models
+from model.plots import dual_train_plots
 
 # This bit of black magic pulls out all the Torch Models by name from the loaded models file.
 MODELS = {x for x in dir(models)
@@ -30,16 +31,17 @@ MODELS = {x for x in dir(models)
                  and isinstance(getattr(models, x), type)
                  and torch.nn.Module in getattr(models, x).mro()}
 
-def main(n_epochs, name, trainfile, valfile, batch_size, learning_rate, model, output, gpu=None):
+def main(n_epochs, name, datafile, batch_size, learning_rate, model, output, gpu=None):
 
+    results = pd.DataFrame([], columns=Results._fields)
+    
     device = select_gpu(gpu)
 
     Model = getattr(models, model)
 
-    train_loader = collect_data(trainfile, batch_size=batch_size,
-            device=device, shuffle=True, masking=True)
-    val_loader = collect_data(valfile, batch_size=batch_size,
-            device=device, shuffle=False, masking=True)
+    collector = DataCollector(datafile, 20_000, 5_000)
+    train_loader = collector.get_training(batch_size, 20_000, device=device, shuffle=True)
+    val_loader = collector.get_validation(batch_size, 5_000, device=device, shuffle=False)
 
     model = Model()
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -56,33 +58,29 @@ def main(n_epochs, name, trainfile, valfile, batch_size, learning_rate, model, o
     loss = Loss()
 
     # Run the epochs
-    for results in trainNet(model, optimizer, loss,
+    for result in trainNet(model, optimizer, loss,
                             train_loader, val_loader,
                             n_epochs,
                             notebook = False):
 
-        # Any prints in here are per iteration (use tqdm.write)
+        results = results.append(pd.Series(result._asdict()), ignore_index=True)
+        
+        # Any prints in here are per iteration
 
         # Save each model state dictionary
-        torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
+        if output:
+            torch.save(model.state_dict(), output / f'{name}_{result.epoch}.pyt')
 
-    # Save final model and stats
     torch.save(model.state_dict(), output / f'{name}_final.pyt')
-    np.savez(output / f'{name}_stats.npz', **results._asdict())
-
-    # Filter first cost epoch point when calculating the plot range (can be really large)
-    max_cost = max(max(results.cost if len(results.cost)<2 else results.cost[1:]), max(results.val))
-    min_cost = min(min(results.cost), min(results.val))
 
     # Make a plot
-    fig, ax = plt.subplots(figsize=(15, 10))
-    ax.plot(np.arange(len(results.cost))+1, results.cost, 'o-',color='r',label='Train')
-    ax.plot(np.arange(len(results.val))+1, results.val, 'o-' , color='b', label='Validation')
-    ax.set_xlabel('Number of epoch')
-    ax.set_ylabel('Average cost per bin of a batch')
-    ax.set_yscale('log')
-    ax.set_ylim(min_cost*.9, max_cost*1.1)
-    ax.legend()
+    fig, axs = plt.subplots(1,2,figsize=(10,5))
+    dual_train_plots(results.index,
+                     results.cost, results.val, 
+                     results['eff_val'].apply(lambda x: x.eff_rate),
+                     results['eff_val'].apply(lambda x: x.fp_rate),
+                     axs=axs)
+    plt.tight_layout()
 
     # Save the plot
     fig.savefig(str(output / f'{name}.png'))
@@ -92,13 +90,11 @@ if __name__ == '__main__':
     # Handy: https://gist.github.com/dsc/3855240
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="Run example: ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer --gpu 0")
+                                     description="Run example: CUDA_VISIBLE_DEVICES=0 ./RunModel.py 20180801_30000_2layer --model SimpleCNN2Layer")
     parser.add_argument('-e', '--epochs', type=int, default=200, help="Set the number of epochs to run")
     parser.add_argument('name', help="The name, such as date_numevents_model or similar")
-    parser.add_argument('-t', '--train', default='/share/lazy/schreihf/PvFinder/Aug14_80K_train.npz',
-                        help="The training data to read in, in npz format")
-    parser.add_argument('-v', '--val', default='/share/lazy/schreihf/PvFinder/Oct03_20K_val.npz',
-                        help="The validation data to read in, in npz format")
+    parser.add_argument('-d', '--data', default='/data/schreihf/PvFinder/Aug_10_30000.h5',
+                        help="The data to read in, in npz format (for now)")
     parser.add_argument('-b', '--batch-size', type=int, default=32, dest='batch', help="The batch size")
     parser.add_argument('--learning-rate', type=float, default=1e-3, dest='learning', help="The learning rate")
     parser.add_argument('--model', required=True, choices=MODELS, help="Model to train on")
@@ -106,4 +102,4 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', help="Pick a GPU by bus order (you can use CUDA_VISIBLE_DEVICES instead)")
 
     args = parser.parse_args()
-    main(args.epochs, args.name, args.train, args.val, args.batch, args.learning, args.model, args.output, args.gpu)
+    main(args.epochs, args.name, args.data, args.batch, args.learning, args.model, args.output, args.gpu)

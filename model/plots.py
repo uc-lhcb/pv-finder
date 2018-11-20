@@ -63,3 +63,37 @@ def plot_ruiplot(zvals, i, inputs, labels, outputs, width=25, ax=None):
         ax_prob.legend(loc='upper right')
 
     return ax, ax_prob
+
+def dual_train_plots(x=(), train=(), validation=(), eff=(), FP_rate=(), *, axs=None):
+
+    if axs is None:
+        fig, axs = plt.subplots(1,2,figsize=(10,5))
+        
+    ax, lax = axs
+    tax = lax.twinx()
+
+    lines = dict()
+    lines['train'], = ax.plot(x, train, 'o-', label='Train')
+    lines['val'], = ax.plot(x, validation, 'o-', label='Validation')
+
+    lines['eff'], = lax.plot(x, eff, 'o-b', label="Eff")
+    lines['fp'], = tax.plot(x, FP_rate, 'o-r', label="FP rate")
+
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Cost')
+
+    lax.set_xlabel('Epochs')
+    lax.set_ylabel('Eff', color='b')
+    tax.set_ylabel('FP rate', color='r')
+
+    ax.set_yscale('log') 
+    ax.legend()
+    lax.legend(loc='upper right')
+    tax.legend(loc='lower left')
+    return ax, tax, lax, lines
+
+def replace_in_ax(ax, lines, x_values, y_values):
+    lines.set_data(x_values, y_values)
+    if np.max(y_values) > 0:
+        ax.set_ylim(np.min(y_values)*.9, np.max(y_values)*1.1)  
+    ax.set_xlim(-.5, x_values[-1] + .5)

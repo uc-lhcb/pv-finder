@@ -4,10 +4,10 @@ import argparse
 import torch
 from pathlib import Path
 
-import models
-from efficiency import efficiency, ValueSet
-from collectdata import collect_data
-from training import select_gpu, PARAM_EFF
+from model import models
+from model.efficiency import efficiency, ValueSet
+from model.collectdata import collect_data
+from model.training import select_gpu, PARAM_EFF
 
 # This bit of black magic pulls out all the Torch Models by name from the loaded models file.
 MODELS = {x for x in dir(models)

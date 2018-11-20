@@ -25,7 +25,7 @@ class ValueSet(NamedTuple):
     def fp_rate(self):
         return self.FP / self.events
 
-    def __str__(self):
+    def __repr__(self):
         message = f"Found {self.S} of {self.real_pvs}, added {self.FP} (eff {self.eff_rate:.2%})"
         if self.events > 1:
             message += f" ({self.fp_rate:.3} FP/event)"

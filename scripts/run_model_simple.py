@@ -22,18 +22,21 @@ import torch
 # Model parameters
 output = CURDIR / 'output' # output folder
 name = '20180816_2Layer_120000' # output name
-trainfile = Path('/share/lazy/schreihf/PvFinder/Aug_14_80K.npz')
-valfile = Path('/share/lazy/schreihf/PvFinder/Oct03_20K_val.npz')
+trainfile = Path('/share/lazy/schreihf/PvFinder/Aug_14_80K.h5')
+valfile = Path('/share/lazy/schreihf/PvFinder/Oct03_20K_val.h5')
 n_epochs = 200
 batch_size = 32
 learning_rate = 1e-3
 
 # This is in the same directory as the helper files, so no special path
 # manipulation is needed
-from collectdata import collect_data
-from loss import Loss
-from training import trainNet, select_gpu
-from models import SimpleCNN2Layer as Model
+from model.collectdata import collect_data
+from model.loss import Loss
+from model.training import trainNet, select_gpu
+from model.models import SimpleCNN2Layer as Model
+from model.plots import dual_train_plots
+
+results = pd.DataFrame([], columns=Results._fields)
 
 # Device configuration
 device = select_gpu() # You can set a GPU number here or in CUDA_VISIBLE_DEVICES
@@ -56,23 +59,25 @@ model = model.to(device)
 output.mkdir(exist_ok=True)
 
 # Run the epochs
-for results in trainNet(model, optimizer, loss,
+for result in trainNet(model, optimizer, loss,
                         train_loader, val_loader,
                         n_epochs,
                         notebook = False):
+    
+    results = results.append(pd.Series(result._asdict()), ignore_index=True)
 
     # Save each model state dictionary
-    torch.save(model.state_dict(), output / f'{name}_{results.epoch}.pyt')
+    torch.save(model.state_dict(), output / f'{name}_{result.epoch}.pyt')
 
 torch.save(model.state_dict(), output / f'{name}_final.pyt')
 
-fig=plt.figure()
-plt.plot(np.arange(len(results.cost))+1, results.cost, 'o-',label='Train')
-plt.plot(np.arange(len(results.val))+1, results.val, 'o-' , label='Validation')
-plt.xlabel('Number of epoch')
-plt.ylabel('Average cost per bin of a batch')
-plt.yscale('log')
-plt.legend()
-fig.savefig(output / f'{name}.png')
+fig, axs = plt.subplots(1,2,figsize=(10,5))
+dual_train_plots(results.index,
+                 results.cost, results.val, 
+                 results['eff_val'].apply(lambda x: x.eff_rate),
+                 results['eff_val'].apply(lambda x: x.fp_rate),
+                 axs=axs)
+plt.tight_layout()
+fig.savefig(str(output / f'{name}_stats_a.png'))
 
 
