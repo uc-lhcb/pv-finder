@@ -16,6 +16,9 @@ Pipfile.lock
 *.png
 *.pdf
 *.cache/*
+*old/*
+*.h5
+*.pytest_cache/*
 
 nohup.out
 Makefile

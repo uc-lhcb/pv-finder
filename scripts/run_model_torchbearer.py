@@ -30,10 +30,10 @@ learning_rate = 1e-3
 
 # This is in the same directory as the helper files, so no special path
 # manipulation is needed
-from collectdata import collect_data
-from loss import Loss
-from models import SimpleCNN2Layer as OurModel
-from training import select_gpu
+from model.collectdata import collect_data
+from model.loss import Loss
+from model.models import SimpleCNN2Layer as OurModel
+from model.training import select_gpu
 import torchbearer
 from torchbearer.callbacks import TensorBoard
 
