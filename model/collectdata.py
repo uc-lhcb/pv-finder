@@ -6,6 +6,7 @@ import numpy as np
 from pathlib import Path
 from functools import partial
 import warnings
+from collections import namedtuple
 
 from .utilities import Timer
 from .jagged import concatenate
@@ -17,6 +18,9 @@ with warnings.catch_warnings():
     import h5py
     
 import awkward
+
+VertexInfo = namedtuple(
+    "VertexInfo", ("x", "y", "z", "n", "cat"))
     
 def collect_truth(*files, pvs = True):
     """
@@ -30,6 +34,7 @@ def collect_truth(*files, pvs = True):
     y_list = []
     z_list = []
     n_list = []
+    c_list = []
     
     p = 'p' if pvs else 's'
     
@@ -41,8 +46,14 @@ def collect_truth(*files, pvs = True):
             y_list.append(afile[f"{p}v_loc_y"])
             z_list.append(afile[f"{p}v_loc"])
             n_list.append(afile[f"{p}v_ntracks"])
+            c_list.append(afile[f"{p}v_cat"])
             
-    return concatenate(x_list), concatenate(y_list), concatenate(z_list), concatenate(n_list)
+    return VertexInfo(
+        concatenate(x_list),
+        concatenate(y_list),
+        concatenate(z_list),
+        concatenate(n_list),
+        concatenate(c_list))
     
 
 def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=False, slice=None, **kargs):
