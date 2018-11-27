@@ -8,10 +8,13 @@ name = "pypi"
 [dev-packages]
 
 
-
 [packages]
-
-numpy = "*"
-uproot = "*"
+numpy = ">=1.13"
+uproot = ">=3.2.9"
+awkward = ">=0.4.2"
 numba = "*"
-futures = {version = "*", markers="python_version < '3'"}
+pytorch = ">=0.4"
+plumbum = "*"
+
+[requires]
+python_version = ">=3.6"
