@@ -83,3 +83,10 @@ class Timer(object):
     def __exit__(self, *args):
         if self.verbose:
             print(self.message.format(time=self.elapsed_time()))
+            
+
+def get_device_from_model(model):
+    if hasattr(model, 'weight'):
+        return model.weight.device
+    else:
+        return get_device_from_model(list(model.children())[0])

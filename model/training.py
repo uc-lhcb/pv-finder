@@ -4,7 +4,7 @@ from collections import namedtuple
 import sys
 import os
 
-from .utilities import tqdm_redirect, import_progress_bar
+from .utilities import tqdm_redirect, import_progress_bar, get_device_from_model
 from .efficiency import efficiency, ValueSet
 
 Results = namedtuple("Results", ['epoch', 'cost', 'val', 'time', 'eff_val'])
@@ -70,13 +70,7 @@ model: {model}""")
     progress = import_progress_bar(notebook)
 
     # Get the current device
-    layer = model
-    if isinstance(layer, torch.nn.DataParallel):
-        layer = list(layer.children())[0]
-    layer = list(layer.children())[0]
-    if isinstance(layer, torch.nn.DataParallel):
-        layer = list(layer.children())[0]
-    device = layer.weight.device
+    device = get_device_from_model(model)
 
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
 

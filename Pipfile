@@ -15,6 +15,8 @@ awkward = ">=0.4.2"
 numba = "*"
 pytorch = ">=0.4"
 plumbum = "*"
+pandas = "*"
+matplotlib = "*"
 
 [requires]
 python_version = ">=3.6"

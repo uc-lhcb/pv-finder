@@ -1,101 +1,59 @@
 import torch
 from torch import nn
 
-class SimpleCNN2Layer(nn.Module):
-    def __init__(self):
-        super(SimpleCNN2Layer, self).__init__()
+from .core import PVModel
 
-        self.conv1 = nn.Conv1d(
-            in_channels = 1,
-            out_channels = 5,
-            kernel_size = 25,
-            stride = 1,
-            padding = 12
-        )
+class SimpleCNN2Layer(PVModel):
+    KERNEL_SIZE =   [25, 15]
+    CHANNELS_SIZE = [5,  1 ]
 
-        self.conv2 = nn.Conv1d(
-            in_channels = self.conv1.out_channels,
-            out_channels = 1,
-            kernel_size = 15,
-            stride = 1,
-            padding = 7
-        )
-
-        self.fc1 = nn.Linear(
-            in_features = 4000*self.conv2.out_channels,
-            out_features = 4000
-        )
-
-    def forward(self, x):
-        leaky = nn.LeakyReLU(0.01)
-
-        x = leaky(self.conv1(x))
-        x = leaky(self.conv2(x))
-
-        # Remove empty middle shape diminsion
-        x = x.view(x.shape[0], x.shape[-1])
-
-        x = torch.sigmoid(self.fc1(x))
-
-        return x
-
-
-class SimpleCNN3Layer(nn.Module):
-    def __init__(self):
-        super(SimpleCNN3Layer, self).__init__()
-
-        self.conv1=nn.Conv1d(
-            in_channels = 1,
-            out_channels = 10,
-            kernel_size = 25,
-            stride = 1,
-            padding = (25 - 1) // 2
-        )
-
-        assert self.conv1.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
-
-
-        self.conv2=nn.Conv1d(
-            in_channels = self.conv1.out_channels,
-            out_channels = 5,
-            kernel_size = 15,
-            stride = 1,
-            padding = (15 - 1) // 2
-        )
-
-        assert self.conv2.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
-
-
-        self.conv3=nn.Conv1d(
-            in_channels = self.conv2.out_channels,
-            out_channels = 1,
-            kernel_size = 5,
-            stride = 1,
-            padding = (5 - 1) // 2
-        )
-
-        assert self.conv3.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
-
-
-        self.conv3dropout = nn.Dropout(0.35)
-
-        self.fc1 = nn.Linear(
-            in_features = 4000 * self.conv3.out_channels,
-            out_features = 4000)
-
-    def forward(self, x):
-        leaky = nn.LeakyReLU(0.01)
-
-        x = leaky(self.conv1(x))
-        x = leaky(self.conv2(x))
-        x = leaky(self.conv3(x))
-
-        # Remove empty middle shape diminsion
-        x = x.view(x.shape[0], x.shape[-1])
-
-        x = self.conv3dropout(x)
-        x = self.fc1(x)
-
-        x = torch.sigmoid(x)
-
-        return x
+class SimpleCNN3Layer(PVModel):
+    KERNEL_SIZE =   [25, 15, 5]
+    CHANNELS_SIZE = [10,  5, 1]
+    DEFAULTS = {'dropout_3':0.35}
+    
+class SimpleCNN3Layer_A(PVModel):
+    KERNEL_SIZE =   [25, 15, 5]
+    CHANNELS_SIZE = [20, 5, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_3':0.35}
+    
+class SimpleCNN3Layer_B(PVModel):
+    KERNEL_SIZE =   [25, 15, 5]
+    CHANNELS_SIZE = [20, 10, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.35}
+    
+class SimpleCNN3Layer_C(PVModel):
+    KERNEL_SIZE =   [25, 15, 5]
+    CHANNELS_SIZE = [20, 10, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.35}
+    
+class All_CNN3Layer_C(PVModel):
+    KERNEL_SIZE =   [25, 15, 5]
+    CHANNELS_SIZE = [20, 10, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.35}
+    
+class SimpleCNN4Layer_C(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 5]
+    CHANNELS_SIZE = [20, 10, 10, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.15, 'dropout_4':0.35}
+    
+class SimpleCNN4Layer_D(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 5]
+    CHANNELS_SIZE = [25, 25, 25, 1]
+    DEFAULTS = {'dropout_1':0.55, 'dropout_2':0.55, 'dropout_3':0.55, 'dropout_4':0.35}
+    
+class SimpleCNN4Layer_D35(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 5]
+    CHANNELS_SIZE = [25, 25, 25, 1]
+    DEFAULTS = {'dropout_1':0.35, 'dropout_2':0.35, 'dropout_3':0.35, 'dropout_4':0.35}
+    
+class SimpleCNN4Layer_D25(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 5]
+    CHANNELS_SIZE = [25, 25, 25, 1]
+    DEFAULTS = {'dropout_1':0.25, 'dropout_2':0.25, 'dropout_3':0.25, 'dropout_4':0.25}
+    
+class SimpleCNN5Layer_C(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 15, 5]
+    CHANNELS_SIZE = [20, 10, 10, 10, 1]
+    DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.15,
+                'dropout_4':0.15, 'dropout_5':0.35}
