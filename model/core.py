@@ -8,6 +8,7 @@ class PVModel(nn.Module):
     CHANNELS_SIZE = None # Must be overriden
     DEFAULTS = {} # Can set default dropouts if desired
     FC = True # Can turn off fully connected linear output layer
+    INPUTS = 1 # Number of inputs (1 for z only, or 3 for x and y too)
     
     def __init__(self, **kwargs):
         """Make a PV layer model.
@@ -24,7 +25,7 @@ class PVModel(nn.Module):
         
         # Make local names to use. Add 1 before and after the channels size.
         kernel_size = self.KERNEL_SIZE
-        channels_size = (1, *self.CHANNELS_SIZE)
+        channels_size = (self.INPUTS, *self.CHANNELS_SIZE)
         
         leaky = nn.LeakyReLU(self.LEAKYNESS)
         
@@ -88,20 +89,21 @@ class Model(PVModel):
     DEFAULTS = {model.DEFAULTS}
     FC = {model.FC}
     LEAKYNESS = {model.LEAKYNESS}
+    INPUTS = {model.INPUTS}
 """, file=f)
         
         if loss is not None:
             print(inspect.getsource(loss), file=f)
             
-def modernize(d):
+def modernize(d, layers = 2):
     'Convert old style files to the new style'
+    
+    # Factor for layers is 2 or 3
     
     # Convert new style only
     if 'fc1.weight' not in d:
         return d
     
-    # Factor for layers
-    layers = 2
 
     for key in list(d.keys()):
         new_key = None
