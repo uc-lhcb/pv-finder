@@ -56,7 +56,7 @@ def collect_truth(*files, pvs = True):
         concatenate(c_list))
     
 
-def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=False, slice=None, **kargs):
+def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=False, slice=None, load_xy=False, **kargs):
     """
     This function collects data. It does not split it up. You can pass in multiple files.
     Example: collect_data('a.h5', 'b.h5')
@@ -80,6 +80,13 @@ def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=Fa
         with Timer(msg), h5py.File(XY_file, mode='r') as XY:
             X = np.asarray(XY['kernel'])[:,np.newaxis,:].astype(dtype)
             Y = np.asarray(XY['pv']).astype(dtype)
+            
+            if load_xy:
+                x = np.asarray(XY['Xmax'])[:,np.newaxis,:].astype(dtype)
+                y = np.asarray(XY['Ymax'])[:,np.newaxis,:].astype(dtype)
+                x[np.isnan(x)] = 0
+                y[np.isnan(y)] = 0
+                X = np.concatenate((X,x,y), axis=1)
 
             if masking:
                 # Set the result to nan if the "other" array is above
@@ -89,8 +96,8 @@ def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=Fa
             Xlist.append(X)
             Ylist.append(Y)
             
-    X = np.concatenate(Xlist)
-    Y = np.concatenate(Ylist)
+    X = np.concatenate(Xlist, axis=0)
+    Y = np.concatenate(Ylist, axis=0)
             
     if slice:
         X = X[slice, :, :]
