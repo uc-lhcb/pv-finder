@@ -7,7 +7,7 @@ import os
 from .utilities import tqdm_redirect, import_progress_bar
 from .efficiency import efficiency, ValueSet
 
-Results = namedtuple("Results", ['epoch', 'cost', 'val', 'time', 'eff_val'])
+Results = namedtuple("Results", ['epoch', 'cost', 'val', 'time', 'eff_val', 'outA'])
 
 PARAM_EFF = {
     "difference": 5.0,
@@ -46,8 +46,7 @@ def select_gpu(selection = None):
 
 def trainNet(model, optimizer, loss,
              train_loader, val_loader,
-             n_epochs,
-             *, notebook=None, epoch_start=0):
+             n_epochs, notebook=None, epoch_start=0):
     """
     If notebook = None, no progress bar will be drawn. If False, this will be a terminal progress bar.
     """
@@ -90,7 +89,7 @@ model: {model}""")
         training_start_time = time.time()
 
         # Run the training step
-        total_train_loss= train(model, loss, train_loader, optimizer, device, progress=progress)
+        total_train_loss, outA = train(model, loss, train_loader, optimizer, device, progress=progress)
         cost_epoch = total_train_loss / len(train_loader)
 
         # At the end of the epoch, do a pass on the validation set
@@ -109,7 +108,7 @@ model: {model}""")
         write(f'Epoch {epoch}: train={cost_epoch:.6}, val={val_epoch:.6}, took {time_epoch:.5} s')
         write(f"  Validation {cur_val_eff}")
         
-        yield Results(epoch, cost_epoch, val_epoch, time_epoch, cur_val_eff)
+        yield Results(epoch, cost_epoch, val_epoch, time_epoch, cur_val_eff, outA)
 
 
 def train(model, loss, loader, optimizer, device, progress):
@@ -130,7 +129,7 @@ def train(model, loss, loader, optimizer, device, progress):
         optimizer.zero_grad()
 
         # Forward pass, backward pass, optimize
-        outputs = model(inputs)
+        outA, outputs = model(inputs)
         loss_output = loss(outputs, labels)
         loss_output.backward()
         optimizer.step()
@@ -140,7 +139,7 @@ def train(model, loss, loader, optimizer, device, progress):
         if hasattr(loader, 'postfix'):
             loader.postfix = f'train={loss_output.data.item():.4g}'
 
-    return total_loss
+    return total_loss, outA
 
 
 def validate(model, loss, loader, device):
@@ -156,7 +155,7 @@ def validate(model, loss, loader, device):
                 inputs, labels = inputs.to(device), labels.to(device)
 
             #Forward pass
-            val_outputs = model(inputs)
+            outA, val_outputs = model(inputs)
             loss_output = loss(val_outputs, labels)
 
             total_loss += loss_output.data.item()

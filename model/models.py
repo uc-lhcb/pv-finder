@@ -30,14 +30,16 @@ class SimpleCNN2Layer(nn.Module):
         leaky = nn.LeakyReLU(0.01)
 
         x = leaky(self.conv1(x))
+        a = x
         x = leaky(self.conv2(x))
+        b = x
 
         # Remove empty middle shape diminsion
         x = x.view(x.shape[0], x.shape[-1])
 
         x = torch.sigmoid(self.fc1(x))
 
-        return x
+        return [a,b], x
 
 
 class SimpleCNN3Layer(nn.Module):
@@ -85,10 +87,15 @@ class SimpleCNN3Layer(nn.Module):
 
     def forward(self, x):
         leaky = nn.LeakyReLU(0.01)
-
+        
+        
+        
         x = leaky(self.conv1(x))
+        a = x
         x = leaky(self.conv2(x))
+        b = x
         x = leaky(self.conv3(x))
+        c = x
 
         # Remove empty middle shape diminsion
         x = x.view(x.shape[0], x.shape[-1])
@@ -98,4 +105,4 @@ class SimpleCNN3Layer(nn.Module):
 
         x = torch.sigmoid(x)
 
-        return x
+        return [a,b,c], x
