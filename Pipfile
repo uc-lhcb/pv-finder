@@ -17,6 +17,7 @@ pytorch = ">=0.4"
 plumbum = "*"
 pandas = "*"
 matplotlib = "*"
+tqdm = "*"
 
 [requires]
 python_version = ">=3.6"
