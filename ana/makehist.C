@@ -63,8 +63,8 @@ void makez(int event, TTree* t, int& pv_n, int& sv_n,
     // now do gradient descent from max found
     pv.set(xmax,ymax,z);
     zdata[b] = (float) kernelMax(pv);
-    xmaxdata[b] = (float) pv.x();
-    ymaxdata[b] = (float) pv.y();
+    xmaxdata[b] = (float) (zdata[b]==0 ? 0 : pv.x());
+    ymaxdata[b] = (float) (zdata[b]==0 ? 0 : pv.y());
   }
     
     pv_n = data.pvz->size();
