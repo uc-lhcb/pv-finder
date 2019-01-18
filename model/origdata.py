@@ -83,6 +83,8 @@ def process_root_file(filepath, sd_1 = 0.1):
         X = (tree['zdata'].array() / 2500.).astype(dtype_X)
         Xmax = (tree['xmax'].array() / 2500.).astype(dtype_X)
         Ymax = (tree['ymax'].array() / 2500.).astype(dtype_X)
+        Xmax[X==0] = 0
+        Ymax[X==0] = 0
         pv_loc = tree['pv_loc'].array()
         pv_loc_x = tree['pv_loc_x'].array()
         pv_loc_y = tree['pv_loc_y'].array()
