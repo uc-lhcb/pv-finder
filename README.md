@@ -24,7 +24,7 @@ Other directories:
 
 #### For the generation:
 
-You should have a working ROOT-Python environement, with Pythia8 available from Python. See readme in `gen`.
+You should have a working ROOT-Python environment, with Pythia8 available from Python. See readme in `gen`.
 
 #### For the kernel generation:
 
