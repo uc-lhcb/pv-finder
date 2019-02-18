@@ -13,9 +13,12 @@ import awkward
 dtype_X = np.float16
 dtype_Y = np.float16
 
+# Assuming there are N events:
 OutputData = namedtuple(
     "OutputData", (
-        "X", "Y", "Xmax", "Ymax",
+        "X",         # Density in Z, 4000xN
+        "Y",         # 
+        "Xmax", "Ymax",
         "pv_loc_x", "pv_loc_y", "pv_loc", "pv_ntracks", "pv_cat",
         "sv_loc_x", "sv_loc_y", "sv_loc", "sv_ntracks", "sv_cat"))
 
@@ -80,17 +83,17 @@ def process_root_file(filepath, sd_1 = 0.1):
     with Timer(start = f'Loading file: {name}'):
         tree = uproot.open(str(filepath))['kernel']
 
-        X = (tree['zdata'].array() / 2500.).astype(dtype_X)
-        Xmax = (tree['xmax'].array() / 2500.).astype(dtype_X)
-        Ymax = (tree['ymax'].array() / 2500.).astype(dtype_X)
+        X = (tree['zdata'].array() / 2500.).astype(dtype_X)   # Density in z, 4000xN
+        Xmax = (tree['xmax'].array() / 2500.).astype(dtype_X) # Location of max z in x   <OPTIONAL>
+        Ymax = (tree['ymax'].array() / 2500.).astype(dtype_X) # Location of max z in y   <OPTIONAL>
         Xmax[X==0] = 0
-        Ymax[X==0] = 0
-        pv_loc = tree['pv_loc'].array()
-        pv_loc_x = tree['pv_loc_x'].array()
-        pv_loc_y = tree['pv_loc_y'].array()
-        pv_ntrks = tree['pv_ntrks'].array()
-        pv_cat = tree['pv_cat'].array()
-        sv_loc = tree['sv_loc'].array()
+        Ymax[X==0] = 0                                        # The following is Truth info for training:
+        pv_loc = tree['pv_loc'].array()                       # z locations of each PV [#pvs]*N
+        pv_loc_x = tree['pv_loc_x'].array()                   # x                                 <OPTIONAL>
+        pv_loc_y = tree['pv_loc_y'].array()                   # y                                 <OPTIONAL>
+        pv_ntrks = tree['pv_ntrks'].array()                   # number of tracks in PV [#pvs]*N   <OPTIONAL>
+        pv_cat = tree['pv_cat'].array()                       # PV category (LHCb or not) [#pvs]*N
+        sv_loc = tree['sv_loc'].array()                       # SVs like above                    <OPTIONAL>
         sv_loc_x = tree['sv_loc_x'].array()
         sv_loc_y = tree['sv_loc_y'].array()
         sv_ntrks = tree['sv_ntrks'].array()
