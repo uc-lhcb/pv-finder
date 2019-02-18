@@ -1,5 +1,23 @@
 Code to analyze events.
 
+### Classes
+
+* `Point`: A location in x,y,z (stored in trajectory.h)
+* `Trajectory`: Holds a point and a direction
+* `Hit`: The location of a hit - a Point and some ids
+* `Hits`: Holds Hit's in bins of Phi, sorted
+* `Triplet`: Holds three hits and can do closest approch and PDF calculations
+* `Tracks`: Holds a collection of Triplets
+
+Planned changes:
+
+* Make Track the base for Triplet, and Tracks will hold either Track or Triplet.
+* Track, from `VeloTracks` will hold:
+    - `ClosestToBeam`: The state(x,y,z,tx,tz,q/p) at which the (extrapolated) track came closest to the beam. Number[6]
+    - `errCTBState`: Covariance matrix of closest to beam state. Only non-zero elements (x,y,tx,ty, Cov(x,tx)). Cov(x,tx)= Cov(x,ty)= Cov(y,tx)= Cov(y,ty) Number[5]
+    - Based on [this description.](https://gitlab.cern.ch/BCForward/RAPID-data/blob/master/Event_format.md)
+
+
 ### Files
 * `lhcbStyle.h`: The usual style options
 * `trajectory.h`: Point and Trajectory (adds a direction)
