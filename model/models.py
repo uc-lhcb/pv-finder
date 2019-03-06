@@ -63,3 +63,10 @@ class SimpleCNN5Layer_C(PVModel):
     CHANNELS_SIZE = [20, 10, 10, 10, 1]
     DEFAULTS = {'dropout_1':0.15, 'dropout_2':0.15, 'dropout_3':0.15,
                 'dropout_4':0.15, 'dropout_5':0.35}
+
+class AltCNN4Layer_D35_sp(PVModel):
+    KERNEL_SIZE =   [25, 15, 15, 5, 91]
+    CHANNELS_SIZE = [25, 25, 25, 1, 1]
+    DEFAULTS = {'dropout_1':0.05, 'dropout_2':0.05, 'dropout_3':0.05, 'dropout_4':0.05}
+    FINAL_ACTIVATION = nn.Softplus
+    FC = False

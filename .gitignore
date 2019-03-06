@@ -18,8 +18,9 @@ Pipfile.lock
 *.cache/*
 *old/*
 *.h5
+*.hdf5
+*.pyt
 *.pytest_cache/*
-
 nohup.out
 Makefile
 CMakeCache.txt

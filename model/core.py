@@ -47,7 +47,7 @@ class PVModel(nn.Module):
             )
 
             # LeakyReLu
-            items.append(leaky if self.FC or i<nlayers-1 else self.final_activation)
+            items.append(leaky if self.FC or i<nlayers-1 else self.final_activation())
 
             # Get dropout if passed in and not none, and add that
             dropout = options.get(f"dropout_{i+1}")
@@ -117,7 +117,18 @@ def modernize(d, layers = 2):
             new_key = f"features.{i}" + key[5:]
         elif 'fc1' in key:
             new_key = 'fc' + key[3:]
+        elif 'finalFilter' in key:
+            i = (int(4)-1)*layers
+            new_key = f'features.{i}' + key[11:]
         if new_key:
             d[new_key] = d.pop(key)
 
     return d
+
+
+def modernize_state(model, state):
+    'Match equal length dicts'
+    return {key1:item
+            for key1, item
+            in zip(model.state_dict().keys(),
+                   state.values())}
