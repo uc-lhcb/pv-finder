@@ -2,7 +2,7 @@
 
 axes.prop_cycle : cycler('color', ['0057a7', 'd73232', 'd2eefa'])
 
-grid.color : d2eefa
-grid.alpha : 1
+grid.color : d73232
+grid.alpha : .7
 grid.linestyle : dotted
 grid.linewidth : 1.5
