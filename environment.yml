@@ -2,6 +2,7 @@ name: pvfinder
 channels:
     - conda-forge
 dependencies:
+    - python>=3.6
     - root
     - pythia8
     - pandas
