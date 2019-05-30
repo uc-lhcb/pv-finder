@@ -34,7 +34,7 @@ class SimpleCNN2Layer(nn.Module):
         # Remove empty middle shape diminsion
         x = x.view(x.shape[0], x.shape[-1])
         
-        x = nn.functional.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc1(x))
         
         return x
     
@@ -95,7 +95,7 @@ class SimpleCNN3Layer(nn.Module):
         x = self.conv3dropout(x)
         x = self.fc1(x)
         
-        x = nn.functional.sigmoid(x)
+        x = torch.sigmoid(x)
         
         return x
 
@@ -150,6 +150,6 @@ class SimpleCNN3Layer_A(nn.Module):
         x = x.view(x.shape[0], x.shape[-1])
         x = self.conv3OutputDropout(x)
         x = self.fc1(x)
-        x = nn.functional.sigmoid(x)
+        x = torch.sigmoid(x)
         return(x)
 
