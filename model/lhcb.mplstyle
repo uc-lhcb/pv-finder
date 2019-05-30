@@ -1,0 +1,8 @@
+# Style file for nice looking, LHCB styled plots
+
+axes.prop_cycle : cycler('color', ['0057a7', 'd73232', 'd2eefa'])
+
+grid.color : d73232
+grid.alpha : .7
+grid.linestyle : dotted
+grid.linewidth : 1.5

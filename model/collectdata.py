@@ -84,8 +84,8 @@ def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=Fa
             if load_xy:
                 x = np.asarray(XY['Xmax'])[:,np.newaxis,:].astype(dtype)
                 y = np.asarray(XY['Ymax'])[:,np.newaxis,:].astype(dtype)
-                x[np.isnan(x)] = 0
-                y[np.isnan(y)] = 0
+                x[X == 0] = 0
+                y[X == 0] = 0
                 X = np.concatenate((X,x,y), axis=1)
 
             if masking:

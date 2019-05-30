@@ -1,0 +1,16 @@
+name: pvfinder
+channels:
+    - conda-forge
+dependencies:
+    - python>=3.6
+    - root
+    - pythia8
+    - pandas
+    - jupyterlab
+    - pytorch-cpu
+    - numpy
+    - h5py
+    - numba
+    - tqdm
+    - scipy
+    - matplotlib

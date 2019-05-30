@@ -47,8 +47,8 @@ void getTrackPars(int nhits, Hit hits[], double &x0, double &y0, double &z0,
 // in principle, spline should be faster -- but it's not
 // TODO: why is this so slow?
 double getPDF(double d, double sigma){
-  static TSpline3 *spl = 0;
-  if(spl==0){
+  static TSpline3 *spl = nullptr;
+  if(spl==nullptr){
     double xspl[15]={-0.4,-0.3,-0.2,-0.1,-0.05,-0.02,-0.01,0,0.01,0.02,0.05,0.1,0.2,0.3,0.4};
     double yspl[15];
     yspl[0] = 1.55213;

@@ -1,0 +1,21 @@
+name: pvfindergpu
+channels:
+    - pytorch
+    - conda-forge
+dependencies:
+    - python>=3.6
+    - root
+    - pythia8
+    - pandas
+    - jupyterlab
+    - uproot
+    - numpy
+    - h5py
+    - numba
+    - tqdm
+    - scipy
+    - matplotlib
+      # From pytorch
+    - pytorch
+    - torchvision
+    - cudatoolkit=9.0

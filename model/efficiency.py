@@ -1,6 +1,7 @@
 import numba
 import numpy as np
 from typing import NamedTuple
+from collections import Counter
 
 class ValueSet(NamedTuple):
     """
@@ -172,3 +173,47 @@ def efficiency(truth, predict, difference, threshold, integral_threshold, min_wi
     return ValueSet(*numba_efficiency(truth, predict, difference, threshold, integral_threshold, min_width))
 
 
+def exact_efficiency(truth,
+                     outputs,
+                     difference,
+                     threshold,
+                     integral_threshold,
+                     min_width
+                     ):
+    """
+    Compute the exact efficency, as well as return successful and failed counters. Rather slow.
+    
+    Accepts:
+      * truth: AkwardArray of exact truth values
+      * predict: Numpy array of predictions
+      * difference: The maximum difference to count a success, in bin widths - such as 5
+      * threshold: The threshold for considering an "on" value - such as 1e-2
+      * integral_threshold: The total integral required to trigger a hit - such as 0.2
+      * min_width: The minimum width (in bins) of a feature - such as 2
+      
+    Returns: total_found, pvs_successful, pvs_failed
+    """
+    total_found = 0
+
+    pvs_successful = Counter()
+    pvs_failed = Counter()
+
+    for i in range(len(outputs)):
+        found_values = pv_locations(outputs[i], threshold, integral_threshold, min_width)/10-100
+        
+        for z, n in zip(truth.z[i], truth.n[i]):
+            if len(found_values) == 0:
+                continue
+            closest = np.min(np.abs(z - found_values))
+            found = closest < difference/10
+
+            # Require 5 or more tracks
+            if n > 4:
+                total_found += found
+
+            if found:
+                pvs_successful[n] += 1
+            else:
+                pvs_failed[n] += 1
+
+    return total_found, pvs_successful, pvs_failed
