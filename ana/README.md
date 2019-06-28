@@ -13,8 +13,8 @@ Planned changes:
 
 * Make Track the base for Triplet, and Tracks will hold either Track or Triplet.
 * Track, from `VeloTracks` will hold:
-    - `ClosestToBeam`: The state(x,y,z,tx,tz,q/p) at which the (extrapolated) track came closest to the beam. Number[6]
-    - `errCTBState`: Covariance matrix of closest to beam state. Only non-zero elements (x,y,tx,ty, Cov(x,tx)). Cov(x,tx)= Cov(x,ty)= Cov(y,tx)= Cov(y,ty) Number[5]
+    - `ClosestToBeam`: The state(x,y,z,tx,tz,q/p) at which the (extrapolated) track came closest to the beam. Number\[6\]
+    - `errCTBState`: Covariance matrix of closest to beam state. Only non-zero elements (x,y,tx,ty, Cov(x,tx)). Cov(x,tx)= Cov(x,ty)= Cov(y,tx)= Cov(y,ty) Number\[5\]
     - Based on [this description.](https://gitlab.cern.ch/BCForward/RAPID-data/blob/master/Event_format.md)
 
 
