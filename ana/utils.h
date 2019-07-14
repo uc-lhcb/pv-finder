@@ -6,12 +6,14 @@
 
 #include <TMinuit.h>
 
+Tracks* fcn_global_tracks = nullptr;
+
 // for TMinuit
 // TODO: would be faster with user-supplied derivatives
 void FCN(Int_t &num_par,Double_t *grad,Double_t &f,Double_t *pars,Int_t iflag){
   Point pv(pars[0],pars[1],pars[2]);
   double sum1 = 0, sum2 = 0;
-  Tracks* tracks = Tracks::instance();
+  Tracks* tracks = fcn_global_tracks;
   for(int i=tracks->tmin(); i<=tracks->tmax(); i++){
     double pdf = tracks->at(i).pdf(pv);
     sum1 += pdf;
@@ -23,7 +25,7 @@ void FCN(Int_t &num_par,Double_t *grad,Double_t &f,Double_t *pars,Int_t iflag){
 
 // kernel value at point pv
 double kernel(const Point &pv){
-  if(!Tracks::instance()->run()) return 0;
+  if(fcn_global_tracks->run()) return 0;
   int num_par=3, iflag=0;
   double grad[3],f,pars[3];
   pars[0]=pv.x(); pars[1]=pv.y(); pars[2]=pv.z();
@@ -35,7 +37,7 @@ double kernel(const Point &pv){
 // pv.x() and pv.y() are start values, then filled with x,y best fit
 double kernelMax(Point &pv){
 
-  Tracks *tracks = Tracks::instance();
+  Tracks *tracks = fcn_global_tracks;
   tracks->setRange(pv.z());
   if(!tracks->run()) return 0;
 

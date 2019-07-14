@@ -21,18 +21,11 @@ private:
   bool _use[MAX_TRACKS];
   Triplet _tracks[MAX_TRACKS];
 
-  // make it a singleton
-  static Tracks *_instance;
-  Tracks(){}
-  Tracks(const Tracks &){}
-  Tracks& operator=(const Tracks &){return *this;}
-
 public:
-
-  static Tracks* instance() {
-    if(!_instance) _instance = new Tracks();
-    return _instance;
-  }
+  
+  Tracks() = default;
+  Tracks(const Tracks &) = default;
+  Tracks& operator=(const Tracks &) = default;
 
   int tmin() const {return _tmin;}
   int tmax() const {return _tmax;}
@@ -63,12 +56,11 @@ public:
 
   bool run() const {return _tmin >= 0;}
 
-  void newEvent(){
+  void newEvent(Hits *hits){
 
     _ngood=0; _nbad=0;
     _n=0;
     bool marked[MAX_HITS_PHI_BIN];
-    Hits *hits = Hits::instance();
     Point poca;
     Triplet triplet;
 
@@ -112,7 +104,5 @@ public:
   }
 
 };
-
-Tracks* Tracks::_instance = 0;
 
 #endif /* TRACKS_H */

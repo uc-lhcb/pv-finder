@@ -44,12 +44,6 @@ private:
   Hit _hits_phi[PHI_BINS][MAX_HITS_PHI_BIN];
   TVector3 _phi_centroids[PHI_BINS];
 
-  // make it a singleton
-  static Hits *_instance;
-  Hits(){this->_init();}
-  Hits(const Hits &){}
-  Hits& operator=(const Hits&){return *this;}
-
   // set up the overlapping phi bins
   void _init(){
     for(int i=0; i<PHI_BINS; i++){
@@ -59,11 +53,11 @@ private:
   }
 
 public:
+    
+  Hits() {this->_init();}
+  Hits(const Hits &) = default;
+  Hits& operator=(const Hits&) = default;
 
-  static Hits* instance() {
-    if(!_instance) _instance = new Hits();
-    return _instance;
-  }
 
   int n(int i=-1) const {
     if(i < 0) return _n;
@@ -111,5 +105,3 @@ public:
   }
 
 };
-
-Hits* Hits::_instance = 0;
