@@ -4,23 +4,27 @@
 #include "data.h"
 
 void plotz(int event){
-
   lhcbStyle();
   TH1F hzkernel("hzkernel","",4000,-100,300);
 
   TFile f("../dat/test_10pvs.root");
-  TTree *t = (TTree*)f.Get("data");
+  TTree *t = (TTree*) f.Get("data");
   Data data;
   data.init(t);
   t->GetEntry(event);
 
   // gets all hits, bins them in phi
-  Hits::instance()->newEvent(data);
+  Hits hits;
+  hits.newEvent(data);
 
   // make triplets
-  Tracks *tracks = Tracks::instance();
-  tracks->newEvent();
-  cout << tracks->n() << " " << tracks->ngood() << " " << tracks->nbad() << endl;
+  Tracks tracks;
+    
+  // C style workaround for global FCN tracks 
+  fcn_global_tracks = &tracks;
+    
+  tracks.newEvent(&hits);
+  cout << tracks.n() << " " << tracks.ngood() << " " << tracks.nbad() << endl;
 
   int nb=hzkernel.GetNbinsX();
   Point pv;
@@ -32,8 +36,8 @@ void plotz(int event){
     double kmax=-1,xmax,ymax;
 
     // 1st do coarse grid search
-    tracks->setRange(z);
-    if(!tracks->run()) continue;
+    tracks.setRange(z);
+    if(!tracks.run()) continue;
 
     for(double x=-0.4; x<=0.4; x+=0.1){
       for(double y=-0.4; y<=0.4; y+=0.1){
@@ -97,14 +101,19 @@ void plotxy(int event, int which_pv, double zshift){
    t->GetEntry(event);
 
    // gets all hits, bins them in phi
-   Hits::instance()->newEvent(data);
+   Hits hits;
+   hits.newEvent(data);
+
+   Tracks tracks;
+    
+   // C style workaround for global FCN tracks 
+   fcn_global_tracks = &tracks;
 
    // make triplets
-   Tracks *tracks = Tracks::instance();
-   tracks->newEvent();
-
+   tracks.newEvent(&hits);
+    
    double z = data.pvz->at(which_pv)+zshift;
-   tracks->setRange(z);
+   tracks.setRange(z);
    Point pv;
    for(int bx=1; bx<=100; bx++){
      double xval = hbins.GetBinCenter(bx);
