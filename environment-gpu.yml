@@ -4,18 +4,19 @@ channels:
     - conda-forge
 dependencies:
     - python>=3.6
-    - root
-    - pythia8
-    - pandas
-    - jupyterlab
-    - uproot
-    - numpy
     - h5py
-    - numba
-    - tqdm
-    - scipy
+    - jupyterlab
     - matplotlib
+    - nb_conda_kernels
+    - numba
+    - numpy
+    - pandas
+    - pythia8
+    - root
+    - scipy
+    - tqdm
+    - uproot
       # From pytorch
+    - cudatoolkit=9.0
     - pytorch
     - torchvision
-    - cudatoolkit=9.0
