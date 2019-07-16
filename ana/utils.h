@@ -25,7 +25,8 @@ void FCN(Int_t &num_par,Double_t *grad,Double_t &f,Double_t *pars,Int_t iflag){
 
 // kernel value at point pv
 double kernel(const Point &pv){
-  if(fcn_global_tracks->run()) return 0;
+  if(!fcn_global_tracks->run())
+    return 0;
   int num_par=3, iflag=0;
   double grad[3],f,pars[3];
   pars[0]=pv.x(); pars[1]=pv.y(); pars[2]=pv.z();
