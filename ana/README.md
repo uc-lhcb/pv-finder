@@ -25,7 +25,7 @@ Planned changes:
 * `hits.h`: Hit and Hits, one is a point in space, the other a collection of overlapping phi bins of hits
 * `triplet.h`: getTrackPairs, getPDF, Triplet class
 * `tracks.h`: Tracks hold triplets
-* `utils.h`: FCN, kernel, kernelMax, pvCategory, svCategory
+* `fcn.h`: FCN, kernel, kernelMax, pvCategory, svCategory
 * `plot.c`: Contains plotz, plotxy
 * `makehist.c`: Convert a hit file into a z-histogram file
 

@@ -7,6 +7,7 @@ find_package(ROOT CONFIG REQUIRED)
 add_executable(make_histogram
     main.C
     makehist.C
+    compute_over.h
     data.h
     hit.h
     hits.h
@@ -17,7 +18,7 @@ add_executable(make_histogram
     trajectory.h
     triplet.h
     triplet_utils.h
-    utils.h
+    fcn.h
 )
 
 target_link_libraries(make_histogram PUBLIC
