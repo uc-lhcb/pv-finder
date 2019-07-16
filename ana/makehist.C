@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "data.h"
+#include "compute_over.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -7,70 +8,20 @@
 
 #include <iostream>
 
-using namespace std;
-
-inline double bin_center(int nbins, double min, double max, int i) {
-    return (i + 0.5) / nbins * (max - min) + min;
-}
-
 void makez(int event, TTree* t, int& pv_n, int& sv_n,
                                 int* pv_cat, float* pv_loc, float* pv_loc_x, float* pv_loc_y, int* pv_ntrks,
                                 int* sv_cat, float* sv_loc, float* sv_loc_x, float* sv_loc_y, int* sv_ntrks,
                                 float* zdata, float* xmaxdata, float* ymaxdata){
 
-  constexpr int nb = 4000;
-  constexpr double zmin = -100.;
-  constexpr double zmax = 300.;
+    Data data;
+    data.init(t);
+    t->GetEntry(event);
 
-  Data data;
-  data.init(t);
-  t->GetEntry(event);
-
-  // gets all hits, bins them in phi
-  Hits hits;
-  hits.newEvent(data);
-
-  // make triplets
-  Tracks tracks;
-
-  // C style workaround for global FCN tracks
-  fcn_global_tracks = &tracks;
-
-  tracks.newEvent(&hits);
-  cout << " Total tracks: " << tracks.n() << " good tracks: " << tracks.ngood() << " bad tracks: " << tracks.nbad();
-
-  Point pv;
-
-  // build the kernel vs z profiled in x-y
-  // TODO: clearly non-optimal CPU-wise how this search is done
-  for(int b=0; b<nb; b++){
-    double z = bin_center(nb, zmin, zmax, b);
-    double kmax = -1.;
-    double xmax = 0.;
-    double ymax = 0.;
-
-    // 1st do coarse grid search
-    tracks.setRange(z);
-    if(!tracks.run()) continue;
-
-    for(double x=-0.4; x<=0.41; x+=0.1){
-      for(double y=-0.4; y<=0.41; y+=0.1){
-        pv.set(x,y,z);
-        double val = kernel(pv);
-        if(val > kmax){
-          kmax=val;
-          xmax=x;
-          ymax=y;
-        }
-      }
-    }
-
-    // now do gradient descent from max found
-    pv.set(xmax,ymax,z);
-    zdata[b] = (float) kernelMax(pv);
-    xmaxdata[b] = (float) (zdata[b]==0 ? 0 : pv.x());
-    ymaxdata[b] = (float) (zdata[b]==0 ? 0 : pv.y());
-  }
+    compute_over(data, [&zdata, &xmaxdata, &ymaxdata](int b, float kernel, float x, float y){
+        zdata[b] = kernel;
+        xmaxdata[b] = (zdata[b]==0 ? 0.f : x);
+        ymaxdata[b] = (zdata[b]==0 ? 0.f : y);
+    });
 
     pv_n = data.pvz->size();
     for(int i=0; i<pv_n; i++){
@@ -118,9 +69,11 @@ void makehist(TString input, TString folder = "/data/schreihf/PvFinder") {
     int sv_cat[MAX_TRACKS];
     int sv_ntrks[MAX_TRACKS];
 
-    float zdata[4000];
-    float xmax[4000];
-    float ymax[4000];
+    float zdata[4000] = {0};
+    float xmax[4000] = {0};
+    float ymax[4000] = {0};
+    
+    
 
     int pv_n, sv_n;
 
