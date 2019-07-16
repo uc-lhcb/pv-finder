@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "data.h"
+#include "compute_over.h"
 
 void plotz(int event){
   lhcbStyle();
@@ -9,53 +10,15 @@ void plotz(int event){
 
   TFile f("../dat/test_10pvs.root");
   TTree *t = (TTree*) f.Get("data");
+
   Data data;
   data.init(t);
   t->GetEntry(event);
 
-  // gets all hits, bins them in phi
-  Hits hits;
-  hits.newEvent(data);
+  compute_over(data, [&hzkernel](int b, double kernel, double, double){
+        hzkernel.SetBinContent(b,kernel);
+  });
 
-  // make triplets
-  Tracks tracks;
-    
-  // C style workaround for global FCN tracks 
-  fcn_global_tracks = &tracks;
-    
-  tracks.newEvent(&hits);
-  cout << tracks.n() << " " << tracks.ngood() << " " << tracks.nbad() << endl;
-
-  int nb=hzkernel.GetNbinsX();
-  Point pv;
-
-  // build the kernel vs z profiled in x-y
-  // TODO: clearly non-optimal CPU-wise how this search is done
-  for(int b=1; b<=nb; b++){
-    double z = hzkernel.GetBinCenter(b);
-    double kmax=-1,xmax,ymax;
-
-    // 1st do coarse grid search
-    tracks.setRange(z);
-    if(!tracks.run()) continue;
-
-    for(double x=-0.4; x<=0.4; x+=0.1){
-      for(double y=-0.4; y<=0.4; y+=0.1){
-        pv.set(x,y,z);
-        double val = kernel(pv);
-        if(val > kmax){
-          kmax=val;
-          xmax=x;
-          ymax=y;
-        }
-      }
-    }
-
-    // now do gradient descent from max found
-    pv.set(xmax,ymax,z);
-    double kernel = kernelMax(pv);
-    hzkernel.SetBinContent(b,kernel);
-  }
   hzkernel.SetMinimum(0);
   hzkernel.DrawCopy();
 

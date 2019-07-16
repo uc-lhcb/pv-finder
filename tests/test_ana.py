@@ -5,7 +5,10 @@ import numpy as np
 
 copt = ''
 
-def test_simple_run():
+def test_simple_run(request, monkeypatch):
+    print(dir(request.fspath))
+    monkeypatch.chdir(request.fspath.dirpath().dirpath() / 'ana')
+
     output = subprocess.check_output(['root', '-b', '-q', f'makehist.C{copt}("10pvs", "../dat")'],
                                     encoding=sys.stdout.encoding)
     expected = '''\
@@ -23,7 +26,9 @@ Entry 9/10 Total tracks: 29 good tracks: 29 bad tracks: 0 PVs: 4 SVs: 0'''
 
     assert expected in output
 
-def test_with_uproot():
+def test_with_uproot(request, monkeypatch):
+    monkeypatch.chdir(request.fspath.dirpath().dirpath() / 'ana')
+
     output = subprocess.run(['root', '-b', '-q', f'makehist.C{copt}("10pvs", "../dat")'])
     assert output.returncode == 0
     f1 = uproot.open('../dat/result_10pvs.root')['kernel']
@@ -31,4 +36,5 @@ def test_with_uproot():
     for branchname in f1.keys():
         arr1 = f1.array(branchname)
         arr2 = f2.array(branchname)
-        np.testing.assert_array_equal(arr1, arr2)
+        print(branchname)
+        np.testing.assert_allclose(arr1.flatten(), arr2.flatten())

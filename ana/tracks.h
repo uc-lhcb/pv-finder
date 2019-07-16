@@ -1,5 +1,4 @@
-#ifndef TRACKS_H
-#define TRACKS_H
+#pragma once
 
 #include "hits.h"
 #include "triplet.h"
@@ -7,7 +6,7 @@
 #define MAX_TRACKS 2000
 
 // for sorting tracks
-bool trackBeamPOCAz(const Triplet &t0, const Triplet &t1){
+bool trackBeamPOCAz(const TripletBase &t0, const TripletBase &t1){
   return t0.beamPOCA().z() < t1.beamPOCA().z();
 }
 
@@ -19,7 +18,7 @@ private:
 
   int _n,_tmin,_tmax,_ngood,_nbad;
   bool _use[MAX_TRACKS];
-  Triplet _tracks[MAX_TRACKS];
+  TripletToy _tracks[MAX_TRACKS];
 
 public:
   
@@ -30,7 +29,7 @@ public:
   int tmin() const {return _tmin;}
   int tmax() const {return _tmax;}
 
-  const Triplet& at(int i) const {return _tracks[i];}
+  const TripletToy& at(int i) const {return _tracks[i];}
 
   int n() const {return _n;}
   int ngood() const {return _ngood;}
@@ -62,7 +61,7 @@ public:
     _n=0;
     bool marked[MAX_HITS_PHI_BIN];
     Point poca;
-    Triplet triplet;
+    TripletToy triplet;
 
     for(int p=0; p<PHI_BINS; p++){
       if(!hits->useBin(p)) continue;
@@ -78,7 +77,7 @@ public:
           for(int k=j+1; k < n; k++){
             if(marked[k]) continue;
             if(hits->sameModule(p,i,k) || hits->sameModule(p,j,k)) continue;
-            Triplet triplet(hits->at(p,i),hits->at(p,j),hits->at(p,k));
+            TripletToy triplet(hits->at(p,i),hits->at(p,j),hits->at(p,k));
             if(triplet.chi2NDof() < 10){
               // mark hits that "belong" to this particle
               for(int l=0; l<n; l++){
@@ -104,5 +103,3 @@ public:
   }
 
 };
-
-#endif /* TRACKS_H */

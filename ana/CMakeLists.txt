@@ -5,19 +5,19 @@ project(PVFinderANA LANGUAGES CXX)
 find_package(ROOT CONFIG REQUIRED)
 
 add_executable(make_histogram
+    main.C
+    makehist.C
     data.h
+    hit.h
     hits.h
     lhcbStyle.h
-    makehist.C
     point.h
-    runall.sh
-    testA.py
-    testAna.py
+    property.h
     tracks.h
     trajectory.h
     triplet.h
+    triplet_utils.h
     utils.h
-    main.C
 )
 
 target_link_libraries(make_histogram PUBLIC
