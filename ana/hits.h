@@ -1,7 +1,7 @@
 #pragma once
 
 #include "trajectory.h"
-#include "data.h"
+#include "data/raw_hits.h"
 #include "hit.h"
 
 #include <iostream>
@@ -67,7 +67,7 @@ public:
     return Hit::sameModule(_hits_phi[p][i], _hits_phi[p][j]);
   }
 
-  void newEvent(const Data &data){
+  void newEvent(const DataHits &data){
     _n = data.hz->size();
     for(int i=0; i<PHI_BINS; i++)
         _n_phi[i]=0;

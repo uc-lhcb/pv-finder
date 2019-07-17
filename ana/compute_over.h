@@ -3,14 +3,14 @@
 #include "fcn.h"
 #include "tracks.h"
 #include "hits.h"
-#include "data.h"
+#include "data/raw_hits.h"
 
 inline double bin_center(int nbins, double min, double max, int i) {
     return (i + 0.5) / nbins * (max - min) + min;
 }
 
 // Take a function of n, kernel, x, y, and call on each n value from 0 to 4000
-inline void compute_over(const Data &data, std::function<void(int, float, float, float)> dothis) {
+inline void compute_over(const DataHits &data, std::function<void(int, float, float, float)> dothis) {
     
     constexpr int nb = 4000;
     constexpr double zmin = -100.;

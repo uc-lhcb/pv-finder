@@ -10,11 +10,10 @@ import matplotlib
 
 DIR = Path(__file__).resolve().parent
 
-def compare(p: Path, orig: Path):
+def compare(p: Path, orig: Path, key: str):
     f_new = uproot.open(p)['kernel']
     f_old = uproot.open(orig)['kernel']
 
-    key = 'zdata'
     d_new = f_new[key].array()
     d_old = f_old[key].array()
 
@@ -28,9 +27,10 @@ def plot(n: np.ndarray, o: np.ndarray, v: int):
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Compare a file with the orinal kernel (10 event run)')
-    parser.add_argument('file', type=Path, help='A ROOT file with a new run')
+    parser.add_argument('--file', type=Path, default=DIR / 'kernel_10pvs.root',  help='A ROOT file with a new run')
     parser.add_argument('--orig', type=Path, default=DIR / 'result_10pvs.root', help='A ROOT file with the old run')
     parser.add_argument('--save', type=Path, help='A file to write to instead of a display')
+    parser.add_argument('--key', type=str, default='zdata', help='The key to plot, one of zdata, xmax, ymax')
     args = parser.parse_args()
 
     if args.save:
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
 
     import matplotlib.pyplot as plt
-    fig, _ = compare(args.file, args.orig)
+    fig, _ = compare(args.file, args.orig, args.key)
     if args.save:
         plt.savefig(args.save)
     else:

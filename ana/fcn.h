@@ -84,7 +84,7 @@ double kernelMax(Point &pv){
   return -amin;
 }
 
-int ntrkInAcc(Data &data, int i) {
+int ntrkInAcc(DataHits &data, int i) {
   int ntrk_in_acc = 0;
   int nprt = data.ipv->size();
   
@@ -108,7 +108,7 @@ int ntrkInAcc(Data &data, int i) {
 // -1: < 2 particles made hits
 // 0: < 5 long tracks
 // 1: LHCb pv
-int pvCategory(Data &data, int i){
+int pvCategory(DataHits &data, int i){
   if(data.ntrks->at(i)<2)
       return -1;
     
@@ -120,7 +120,7 @@ int pvCategory(Data &data, int i){
       return 1;
 }
 
-int nSVPrt(Data &data, int i) {
+int nSVPrt(DataHits &data, int i) {
   int nsv_prt = 0, nprt = data.ipv->size();
   for(int j=0; j<nprt; j++){
     if(data.nhits->at(j) < 3)
@@ -135,7 +135,7 @@ int nSVPrt(Data &data, int i) {
 // -1: no particles made hits
 // 0: 1 particle with hits
 // 1: 2+ (an actual SV)
-int svCategory(Data &data, int i){
+int svCategory(DataHits &data, int i){
   int nsv_prt = nSVPrt(data, i);
   if(nsv_prt < 1)
       return -1;
