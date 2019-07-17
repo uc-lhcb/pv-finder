@@ -1,5 +1,7 @@
 #include "fcn.h"
-#include "data.h"
+#include "data/raw_hits.h"
+#include "data/raw_kernel.h"
+#include "data/raw_tracks.h"
 #include "compute_over.h"
 
 #include <TFile.h>
@@ -8,40 +10,65 @@
 
 #include <iostream>
 
-void makez(int event, TTree* t, int& pv_n, int& sv_n,
-                                int* pv_cat, float* pv_loc, float* pv_loc_x, float* pv_loc_y, int* pv_ntrks,
-                                int* sv_cat, float* sv_loc, float* sv_loc_x, float* sv_loc_y, int* sv_ntrks,
-                                float* zdata, float* xmaxdata, float* ymaxdata){
-
-    Data data;
-    data.init(t);
-    t->GetEntry(event);
-
-    compute_over(data, [&zdata, &xmaxdata, &ymaxdata](int b, float kernel, float x, float y){
-        zdata[b] = kernel;
-        xmaxdata[b] = (zdata[b]==0 ? 0.f : x);
-        ymaxdata[b] = (zdata[b]==0 ? 0.f : y);
+void makez(DataHits& data, DataKernel& dk){
+    compute_over(data, [&dk](int b, float kernel, float x, float y){
+        dk.zdata[b] = kernel;
+        dk.xmax[b] = (dk.zdata[b]==0 ? 0.f : x);
+        dk.ymax[b] = (dk.zdata[b]==0 ? 0.f : y);
     });
+}
 
-    pv_n = data.pvz->size();
-    for(int i=0; i<pv_n; i++){
-      pv_cat[i] = pvCategory(data, i);
-      pv_loc[i] = data.pvz->at(i);
-      pv_loc_x[i] = data.pvx->at(i);
-      pv_loc_y[i] = data.pvy->at(i);
-      pv_ntrks[i] = ntrkInAcc(data, i);
+void copy_pvs(DataHits& data, DataTracks &dt) {
+    
+    dt.pv_n = data.pvz->size();
+    for(int i=0; i<dt.pv_n; i++){
+        dt.pv_cat[i] = pvCategory(data, i);
+        dt.pv_loc[i] = data.pvz->at(i);
+        dt.pv_loc_x[i] = data.pvx->at(i);
+        dt.pv_loc_y[i] = data.pvy->at(i);
+        dt.pv_ntrks[i] = ntrkInAcc(data, i);
     }
-
-    sv_n = data.svz->size();
-    for(int i=0; i<sv_n; i++){
-        sv_cat[i] = svCategory(data,i);
-        sv_loc[i] = data.svz->at(i);
-        sv_loc_x[i] = data.svx->at(i);
-        sv_loc_y[i] = data.svy->at(i);
-        sv_ntrks[i] = nSVPrt(data, i);
+    
+    dt.sv_n = data.svz->size();
+    for(int i=0; i<dt.sv_n; i++){
+        dt.sv_cat[i] = svCategory(data,i);
+        dt.sv_loc[i] = data.svz->at(i);
+        dt.sv_loc_x[i] = data.svx->at(i);
+        dt.sv_loc_y[i] = data.svy->at(i);
+        dt.sv_ntrks[i] = nSVPrt(data, i);
     }
 }
 
+void make_output(TString input, TString output) {
+    TFile f(input);
+    TTree *t = (TTree*) f.Get("data");
+    
+    TFile out(output, "RECREATE");
+    
+    int ntrack = t->GetEntries();
+    std::cout << "Number of entries to read in: " << ntrack << std::endl;
+    
+
+
+    TTree tout("kernel", "Output");
+    DataTracks dt(&tout);
+    
+    for(int i=0; i<ntrack; i++) {
+        cout << "Entry " << i << "/" << ntrack;
+        
+        DataHits data(t);
+        t->GetEntry(i);
+        
+        copy_pvs(data, dt);
+        
+        cout << " PVs: " << dt.pv_n << " SVs: " << dt.sv_n << endl;
+        tout.Fill();
+    }
+}
+
+void read_input(TString input, TString output) {
+    
+}
 
 /// Run with root -b -q 'makehist.C+("20180814")'
 /// Or run runall.sh
@@ -55,59 +82,24 @@ void makehist(TString input, TString folder = "/data/schreihf/PvFinder") {
     int ntrack = t->GetEntries();
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
 
-    float pv_loc[MAX_TRACKS];
-    float pv_loc_x[MAX_TRACKS];
-    float pv_loc_y[MAX_TRACKS];
-
-    int pv_cat[MAX_TRACKS];
-    int pv_ntrks[MAX_TRACKS];
-
-    float sv_loc[MAX_TRACKS];
-    float sv_loc_x[MAX_TRACKS];
-    float sv_loc_y[MAX_TRACKS];
-
-    int sv_cat[MAX_TRACKS];
-    int sv_ntrks[MAX_TRACKS];
-
-    float zdata[4000] = {0};
-    float xmax[4000] = {0};
-    float ymax[4000] = {0};
-    
-    
-
-    int pv_n, sv_n;
-
-    TTree *tout = new TTree("kernel", "Output");
-    tout->Branch("pv_n", &pv_n, "pv_n/I");
-    tout->Branch("sv_n", &sv_n, "sv_n/I");
-
-    tout->Branch("pv_cat", pv_cat, "pv_cat[pv_n]/I");
-    tout->Branch("pv_loc", pv_loc, "pv_loc[pv_n]/F");
-    tout->Branch("pv_loc_x", pv_loc_x, "pv_loc_x[pv_n]/F");
-    tout->Branch("pv_loc_y", pv_loc_y, "pv_loc_y[pv_n]/F");
-    tout->Branch("pv_ntrks", pv_ntrks, "pv_ntrks[pv_n]/I");
-
-    tout->Branch("sv_cat", sv_cat, "sv_cat[sv_n]/I");
-    tout->Branch("sv_loc", sv_loc, "sv_loc[sv_n]/F");
-    tout->Branch("sv_loc_x", sv_loc_x, "sv_loc_x[sv_n]/F");
-    tout->Branch("sv_loc_y", sv_loc_y, "sv_loc_y[sv_n]/F");
-
-    tout->Branch("sv_ntrks", sv_ntrks, "sv_ntrks[sv_n]/I");
-
-    tout->Branch("zdata",zdata,"zdata[4000]/F");
-    tout->Branch("xmax", xmax, "xmax[4000]/F");
-    tout->Branch("ymax", ymax, "ymax[4000]/F");
+    TTree tout("kernel", "Output");
+    DataKernel dk(&tout);
+    DataTracks dt(&tout);
 
     for(int i=0; i<ntrack; i++) {
-        std::fill(zdata, zdata+4000, 0);
+        dk.clear();
+        
+        DataHits data(t);
+        t->GetEntry(i);
         cout << "Entry " << i << "/" << ntrack;
-        makez(i, t,
-              pv_n, sv_n,
-              pv_cat, pv_loc, pv_loc_x, pv_loc_y, pv_ntrks,
-              sv_cat, sv_loc, sv_loc_x, sv_loc_y, sv_ntrks,
-              zdata, xmax, ymax);
-        cout << " PVs: " << pv_n << " SVs: " << sv_n << endl;
-        tout->Fill();
+        
+        makez(data, dk);
+        
+        copy_pvs(data, dt);
+        
+        cout << " PVs: " << dt.pv_n << " SVs: " << dt.sv_n << endl;
+        tout.Fill();
     }
-    tout->Write();
+
+    out.Write();
 }
