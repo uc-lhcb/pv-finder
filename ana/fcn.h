@@ -6,24 +6,33 @@
 
 #include <TMinuit.h>
 
+// This is an (ugly) global pointer so that minuit can run a plain function
 Tracks* fcn_global_tracks = nullptr;
 
 // for TMinuit
 // TODO: would be faster with user-supplied derivatives
 void FCN(Int_t &num_par, Double_t *grad, Double_t &f, Double_t *pars, Int_t iflag){
+
+  // A 3D point (custom class) for the current location
   Point pv(pars[0],pars[1],pars[2]);
+
   double sum1 = 0;
   double sum2 = 0;
+
+  // Grab the global instance. This is ugly - can be solved by using Minuit2
   Tracks* tracks = fcn_global_tracks;
+
   for(int i=tracks->tmin(); i<=tracks->tmax(); i++){
+    // Compute the PDF for the current track at the current location (by integer track number)
     double pdf = tracks->at(i).pdf(pv);
+    
+    // Sum PDF
     sum1 += pdf;
     sum2 += pdf*pdf;
   }
-  if(sum1 <1e-9)
-      f=0;
-  else
-      f = -(sum1 - sum2/sum1);
+
+  // Avoid really small values
+  f = (sum1 < 1.e-9) ? 0 : -(sum1 - sum2/sum1);
 }
 
 // kernel value at point pv
@@ -72,7 +81,8 @@ double kernelMax(Point &pv){
   min->mnparm(1,"PVY",pv.y(),0.01,-10*0.055,10*0.055,iflag);
   min->mnparm(2,"PVZ",pv.z(),0,0,0,iflag);
 
-  arglist[0] = 1000; arglist[1] = 0.1;
+  arglist[0] = 1000;
+  arglist[1] = 0.1;
   min->mnexcm("MIGRAD",arglist,2,iflag);
 
   double x,y,tmp;
@@ -125,7 +135,7 @@ int nSVPrt(DataHits &data, int i) {
   for(int j=0; j<nprt; j++){
     if(data.nhits->at(j) < 3)
         continue;
-    if(abs(data.z->at(j)-data.svz->at(i))>0.001)
+    if(abs(data.z->at(j)-data.svz->at(i)) > 0.001)
         continue;
     nsv_prt++;
   }
