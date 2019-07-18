@@ -5,6 +5,8 @@
 #include "hits.h"
 #include "data/raw_hits.h"
 
+#include <functional>
+
 inline double bin_center(int nbins, double min, double max, int i) {
     return (i + 0.5) / nbins * (max - min) + min;
 }

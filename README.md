@@ -40,3 +40,25 @@ This should be run in Jupyter on Anaconda using Python 3.6, with PyTorch availab
 * plumbum : Used in scripts
 
  See readme in [`model`](./model) and/or [`notebooks`](./notebooks).
+
+## Docker image
+
+A CPU docker image is provided, mostly for the CI. To use:
+
+```bash
+docker run --rm -it gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest
+```
+
+To build it:
+
+```bash
+docker build -t gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder .
+```
+
+To push it:
+
+```bash
+docker login gitlab-registry.cern.ch
+docker push gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder
+```
+

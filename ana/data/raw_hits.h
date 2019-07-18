@@ -5,26 +5,26 @@
 class DataHits {
     TTree *t;
 public:
-    vector<double> *pvx;
-    vector<double> *pvy;
-    vector<double> *pvz;
-    vector<double> *svx;
-    vector<double> *svy;
-    vector<double> *svz;
-    vector<double> *sv_ipv;
-    vector<double> *px;
-    vector<double> *py;
-    vector<double> *pz;
-    vector<double> *x;
-    vector<double> *y;
-    vector<double> *z;
-    vector<double> *hx;
-    vector<double> *hy;
-    vector<double> *hz;
-    vector<double> *hid;
-    vector<double> *ntrks;
-    vector<double> *ipv;
-    vector<double> *nhits;
+    vector<double> *pvx = nullptr;
+    vector<double> *pvy = nullptr;
+    vector<double> *pvz = nullptr;
+    vector<double> *svx = nullptr;
+    vector<double> *svy = nullptr;
+    vector<double> *svz = nullptr;
+    vector<double> *sv_ipv = nullptr;
+    vector<double> *px = nullptr;
+    vector<double> *py = nullptr;
+    vector<double> *pz = nullptr;
+    vector<double> *x = nullptr;
+    vector<double> *y = nullptr;
+    vector<double> *z = nullptr;
+    vector<double> *hx = nullptr;
+    vector<double> *hy = nullptr;
+    vector<double> *hz = nullptr;
+    vector<double> *hid = nullptr;
+    vector<double> *ntrks = nullptr;
+    vector<double> *ipv = nullptr;
+    vector<double> *nhits = nullptr;
     
     DataHits(TTree *tree) : t(tree) {
         t->SetBranchAddress("pvr_x",&pvx);

@@ -2,8 +2,28 @@ import subprocess
 import uproot
 import sys
 import numpy as np
+import pathlib
+import pytest
+import platform
 
-copt = ''
+from pathlib import Path
+MAIN_DIR = Path(__file__).resolve().parents[1]
+ANA_DIR = MAIN_DIR / 'ana'
+DAT_DIR = MAIN_DIR / 'dat'
+
+
+copt = '++' if platform.system() == 'Linux' else ''
+
+@pytest.fixture(scope='module')
+def makehist_arrs():
+    output = subprocess.run(['root', '-b', '-q', f'makehist.C{copt}("10pvs", "../dat")'],
+                            cwd = ANA_DIR)
+
+    f1 = uproot.open(DAT_DIR / 'result_10pvs.root')['kernel']
+    f2 = uproot.open(DAT_DIR / 'kernel_10pvs.root')['kernel']
+    return f1, f2
+
+
 
 def test_simple_run(request, monkeypatch):
     print(dir(request.fspath))
@@ -26,15 +46,18 @@ Entry 9/10 Total tracks: 29 good tracks: 29 bad tracks: 0 PVs: 4 SVs: 0'''
 
     assert expected in output
 
-def test_with_uproot(request, monkeypatch):
-    monkeypatch.chdir(request.fspath.dirpath().dirpath() / 'ana')
-
-    output = subprocess.run(['root', '-b', '-q', f'makehist.C{copt}("10pvs", "../dat")'])
-    assert output.returncode == 0
-    f1 = uproot.open('../dat/result_10pvs.root')['kernel']
-    f2 = uproot.open('../dat/kernel_10pvs.root')['kernel']
-    for branchname in f1.keys():
-        arr1 = f1.array(branchname)
-        arr2 = f2.array(branchname)
-        print(branchname)
-        np.testing.assert_allclose(arr1.flatten(), arr2.flatten())
+@pytest.mark.parametrize('branchname', [
+    'zdata', 'xmax', 'ymax',
+    'pv_n', 'sv_n',
+    'pv_cat', 'pv_loc', 'pv_loc_x', 'pv_loc_y', 'pv_ntrks',
+    'sv_cat', 'sv_loc', 'sv_loc_x', 'sv_loc_y', 'sv_ntrks'])
+def test_with_uproot(makehist_arrs, branchname):
+    f1, f2 = makehist_arrs
+    arr1 = f1.array(branchname).flatten()
+    arr2 = f2.array(branchname).flatten()
+    diff = np.isclose(arr1, arr2, rtol=1e-04, atol=1e-07)
+    arange = np.arange(len(arr1))
+    arrdiff = np.stack([arange//4000, arange%4000, arr1, arr2]).T[~diff]
+    for row in arrdiff:
+        print('{0:1g} {1:4g} : {2:11g} <-> {3:11g}'.format(*row))
+    np.testing.assert_allclose(arr1, arr2, rtol=1e-04, atol=1e-07)

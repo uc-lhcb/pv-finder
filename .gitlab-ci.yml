@@ -1,0 +1,15 @@
+image: "gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest"
+
+# Complete recipe if not using container:
+#image: "continuumio/miniconda:4.6.14"
+before_script:
+#  - conda env create -qf environment.yml
+ - source activate pvfinder
+
+pytest:
+  only:
+    - master
+    - merge_requests
+
+  script:
+    - pytest

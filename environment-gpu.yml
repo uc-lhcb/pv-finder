@@ -9,6 +9,7 @@ dependencies:
     - jupyterlab
     - matplotlib
     - nb_conda_kernels
+    - ninja
     - numba
     - numpy
     - pandas
