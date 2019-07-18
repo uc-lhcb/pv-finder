@@ -7,5 +7,5 @@ def test_cmake(request, tmpdir, monkeypatch):
 
     monkeypatch.chdir(build_path)
 
-    subprocess.check_call(['cmake', ana_path])
+    subprocess.check_call(['cmake', '-GNinja', ana_path])
     subprocess.check_call(['cmake', '--build', '.'])

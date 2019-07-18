@@ -6,3 +6,4 @@ public: \
   void set_##name(const type& v) { name = v; } \
 protected: \
   type name
+
