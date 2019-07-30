@@ -7,24 +7,12 @@ find_package(ROOT CONFIG REQUIRED)
 # Looks like full address are not used in targets even in 6.18
 include("${ROOT_USE_FILE}")
 
-add_executable(make_histogram
-    main.C
-    makehist.C
-    compute_over.h
-    hit.h
-    hits.h
-    lhcbStyle.h
-    point.h
-    property.h
-    tracks.h
-    trajectory.h
-    triplet.h
-    triplet_utils.h
-    fcn.h
-    data/raw_hits.h
-    data/raw_kernel.h
-    data/raw_tracks.h
-)
+file(GLOB HEADER_FILES CONFIGURE_DEPENDS *.h data/*.h)
+set(SRC_FILES main.C makehist.C)
+
+add_executable(make_histogram ${SRC_FILES} ${HEADER_FILES})
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/" PREFIX "Header Files" FILES ${HEADER_FILES})
 
 target_link_libraries(make_histogram PUBLIC
 	ROOT::Physics
