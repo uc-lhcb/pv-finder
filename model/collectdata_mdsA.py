@@ -86,10 +86,22 @@ def collect_data(*files, batch_size=1, dtype=np.float32, device=None, masking=Fa
 
             Y = np.asarray(XY['pv']).astype(dtype)
 
-            if load_XandXsq:
+            if (load_XandXsq and (not load_xy)):
                X = np.concatenate((X,Xsq), axis=1)
+
+            elif (load_XandXsq and load_xy):
+##  the code which wrote the files divided the Xmax and Ymax values by 2500,
+##  just as the KDE value was divided by 2500. But the range is (nominally)
+##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
+                x = np.asarray(XY['Xmax'])[:,np.newaxis,:].astype(dtype)
+                x = 5000.*x
+                y = np.asarray(XY['Ymax'])[:,np.newaxis,:].astype(dtype)
+                y = 5000.*y
+                x[X == 0] = 0
+                y[X == 0] = 0
+                X = np.concatenate((X,Xsq,x,y), axis=1) ## filling in axis with (X,Xsq,x,y)
             
-            if load_xy:
+            elif (load_xy and (not load_XandXsq)):
                 x = np.asarray(XY['Xmax'])[:,np.newaxis,:].astype(dtype)
                 y = np.asarray(XY['Ymax'])[:,np.newaxis,:].astype(dtype)
                 x[X == 0] = 0
