@@ -3,6 +3,8 @@
 
 #include <TTree.h>
 
+#include "raw_hits.h"
+
 class DataTracks {
     TTree *t;
 public:
@@ -38,6 +40,26 @@ public:
         t->Branch("sv_loc_y", sv_loc_y, "sv_loc_y[sv_n]/F");
         
         t->Branch("sv_ntrks", sv_ntrks, "sv_ntrks[sv_n]/I");
+    }
+    
+    void copy_in_pvs(const DataHits& data) {
+        pv_n = data.pvz->size();
+        for(int i=0; i<pv_n; i++){
+            pv_cat[i] = pvCategory(data, i);
+            pv_loc[i] = data.pvz->at(i);
+            pv_loc_x[i] = data.pvx->at(i);
+            pv_loc_y[i] = data.pvy->at(i);
+            pv_ntrks[i] = ntrkInAcc(data, i);
+        }
+        
+        sv_n = data.svz->size();
+        for(int i=0; i<sv_n; i++){
+            sv_cat[i] = svCategory(data,i);
+            sv_loc[i] = data.svz->at(i);
+            sv_loc_x[i] = data.svx->at(i);
+            sv_loc_y[i] = data.svy->at(i);
+            sv_ntrks[i] = nSVPrt(data, i);
+        }
     }
 };
 

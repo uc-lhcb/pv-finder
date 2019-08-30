@@ -10,33 +10,12 @@
 
 #include <iostream>
 
-void makez(DataHits& data, DataKernel& dk){
+void makez(const DataHits& data, DataKernel& dk){
     compute_over(data, [&dk](int b, float kernel, float x, float y){
         dk.zdata[b] = kernel;
         dk.xmax[b] = (dk.zdata[b]==0 ? 0.f : x);
         dk.ymax[b] = (dk.zdata[b]==0 ? 0.f : y);
     });
-}
-
-void copy_pvs(DataHits& data, DataTracks &dt) {
-    
-    dt.pv_n = data.pvz->size();
-    for(int i=0; i<dt.pv_n; i++){
-        dt.pv_cat[i] = pvCategory(data, i);
-        dt.pv_loc[i] = data.pvz->at(i);
-        dt.pv_loc_x[i] = data.pvx->at(i);
-        dt.pv_loc_y[i] = data.pvy->at(i);
-        dt.pv_ntrks[i] = ntrkInAcc(data, i);
-    }
-    
-    dt.sv_n = data.svz->size();
-    for(int i=0; i<dt.sv_n; i++){
-        dt.sv_cat[i] = svCategory(data,i);
-        dt.sv_loc[i] = data.svz->at(i);
-        dt.sv_loc_x[i] = data.svx->at(i);
-        dt.sv_loc_y[i] = data.svy->at(i);
-        dt.sv_ntrks[i] = nSVPrt(data, i);
-    }
 }
 
 void make_output(TString input, TString output) {
@@ -59,7 +38,7 @@ void make_output(TString input, TString output) {
         DataHits data(t);
         t->GetEntry(i);
         
-        copy_pvs(data, dt);
+        dt.copy_in_pvs(data);
         
         cout << " PVs: " << dt.pv_n << " SVs: " << dt.sv_n << endl;
         tout.Fill();
@@ -95,7 +74,7 @@ void makehist(TString input, TString folder = "/data/schreihf/PvFinder") {
         
         makez(data, dk);
         
-        copy_pvs(data, dt);
+        dt.copy_in_pvs(data);
         
         cout << " PVs: " << dt.pv_n << " SVs: " << dt.sv_n << endl;
         tout.Fill();
