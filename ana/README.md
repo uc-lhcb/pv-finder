@@ -1,6 +1,6 @@
-Code to analyze events.
+Code to analyze hits or tracks and produce tracks or kernels.
 
-This is now fully compilable. Like any CMake project, you run:
+This is now fully compilable. Like any CMake project, you run (from this `/ana` folder):
 
 ```bash
 cmake -S . -B build
@@ -19,7 +19,7 @@ All executables take the same two optional arguments; `prefix` and `folder`.
 The hits files will always start with `pv_`, the track files with `trks_`,
 and the kernel files with `kernel_`.
 
-TODO: Rename `prefix` to `postfix` or something like that.
+TODO: Rename `prefix` to `base` or `basename`. It's not a prefix. Rename `pv_` to `hits_`. Rename `histogram` to `kernel`.
 
 There is a file in `/dat` with 10 events with 10 (visible) collisions each to
 play with. The "correct" result is stored in the repository as `result_10pvs.root`,
@@ -29,7 +29,7 @@ This is the default if you run the executables in place.
 
 ## Developing
 
-You should be in the pvfinder conda environment on macOS or Linux. If you want to use Docker, you can:
+You should be in the pvfinder Conda environment on macOS or Linux. If you want to use Docker, you can:
 
 ```bash
 docker run --rm -v $PWD:/pv -it gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest
@@ -38,13 +38,13 @@ cmake --build build-ana/
 ./build-ana/make_histogram 10pvs pv/dat
 ```
 
-Note that there are minor varations in the Minuit minimziations
+Note that there are minor variations in the Minuit minimizations
 between systems, so the `pytest` based testing may report variations on macOS.
 The stored `results_10pvs.root` is designed to work correctly with
 the Docker version since that is what is used in CI.
 
-In `makehist` and family, the following procedure is followed. First, the input
-and put ROOT files are opened. The trees are then used in the constructors of three families of readers:
+In `make_histogram` and family, the following procedure is followed. First, the input
+and output ROOT files are opened. The trees are then used in the constructors of three families of readers:
 
 * `Core*In`: Input
     * `CoreHitsIn`: Only for hits. `hit_x`, `hit_y`, `hit_z`, `hit_prt` (ID of hit)
@@ -54,7 +54,7 @@ and put ROOT files are opened. The trees are then used in the constructors of th
     * `CoreReconTracksIn`: Tracks specific `recon_x`, `recon_y`, `recon_z`, `recon_tx`, `recon_ty`, `recon_chi2`
 * `Core*Out`: Output (same as above, only for output)
 * `Data*Out`: Final Output
-    * `DataPVsOut`: `sv_cat`, `sv_loc`, `sv_loc_x`, `sv_loc_y`, `sv_ntracks`, `sv_cat`, `sv_loc`, `sv_loc_x`, `sv_loc_y`, `sv_ntracks`  (all float)
+    * `DataPVsOut`: `pv_cat`, `pv_loc`, `pv_loc_x`, `pv_loc_y`, `pv_ntracks`, `sv_cat`, `sv_loc`, `sv_loc_x`, `sv_loc_y`, `sv_ntracks`  (all float)
     * `DataKernelOut`: `zdata`, `xmax`, `ymax` (all 4,000 long, all float)
 
 Note that `sv_n` and `pv_n` were in `DataPVsOut`, but have been removed.
@@ -62,9 +62,9 @@ All of these are stored in a single tree. `CoreHits`, `CoreNHits`, `CorePVs`, an
 required for Hits reconstruction. If you replace `CoreHits` with `CoreReconTracks`, you can use Track-only reconstruction.
 
 You should call `GetEntry` to load up the branches with one event, then run `make_tracks()`
-to convert hits to `AnyTracks`, or direclty create an `AnyTracks` with a `CoreReconTracksIn`
+to convert hits to `AnyTracks`, or directly create an `AnyTracks` with a `CoreReconTracksIn`
 instance. Use `copy_in_pvs` to add the Core readers to the PVs out instance if you are creating
-a kernel. `makez` computes the kernel from `AnyTracks`. Fill the try then repeat.
+a kernel. `makez` computes the kernel from `AnyTracks`. Fill the tree then repeat.
 
 
 ### Classes
@@ -76,7 +76,7 @@ a kernel. `makez` computes the kernel from `AnyTracks`. Fill the try then repeat
 * `TripletBase`: Holds a `Point`, `Trajectory`, and `chi2` and can do closest approach and PDF calculations
     * `TripletToy`: Holds three hits
 * `AnyTracks`: Holds a collection of `TripletBase`
-    * `Tracks`: Holds a collection of `TripletToy` - is convertable to `AnyTracks`
+    * `Tracks`: Holds a collection of `TripletToy` - is convertible to `AnyTracks`
 
 
 
