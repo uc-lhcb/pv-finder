@@ -2,13 +2,14 @@ import torch
 from torch import nn
 import inspect
 
+
 class PVModel(nn.Module):
     LEAKYNESS = 0.01
-    KERNEL_SIZE = None # Must be overriden
-    CHANNELS_SIZE = None # Must be overriden
-    DEFAULTS = {} # Can set default dropouts if desired
-    FC = True # Can turn off fully connected linear output layer
-    INPUTS = 1 # Number of inputs (1 for z only, or 3 for x and y too)
+    KERNEL_SIZE = None  # Must be overriden
+    CHANNELS_SIZE = None  # Must be overriden
+    DEFAULTS = {}  # Can set default dropouts if desired
+    FC = True  # Can turn off fully connected linear output layer
+    INPUTS = 1  # Number of inputs (1 for z only, or 3 for x and y too)
     FINAL_ACTIVATION = nn.Sigmoid
 
     def __init__(self, **kwargs):
@@ -21,7 +22,11 @@ class PVModel(nn.Module):
 
         options = {**self.DEFAULTS, **kwargs}
 
-        self.final_activation = options['final_activation'] if 'final_activation' in options else self.FINAL_ACTIVATION
+        self.final_activation = (
+            options["final_activation"]
+            if "final_activation" in options
+            else self.FINAL_ACTIVATION
+        )
 
         nlayers = len(self.KERNEL_SIZE)
         assert len(self.CHANNELS_SIZE) == nlayers, "You need as many channels as layers"
@@ -38,16 +43,18 @@ class PVModel(nn.Module):
         for i in range(nlayers):
             items.append(
                 nn.Conv1d(
-                    in_channels = channels_size[i],
-                    out_channels = channels_size[i+1],
-                    kernel_size = kernel_size[i],
-                    stride = 1,
-                    padding = (kernel_size[i] - 1) // 2
+                    in_channels=channels_size[i],
+                    out_channels=channels_size[i + 1],
+                    kernel_size=kernel_size[i],
+                    stride=1,
+                    padding=(kernel_size[i] - 1) // 2,
                 )
             )
 
             # LeakyReLu
-            items.append(leaky if self.FC or i<nlayers-1 else self.final_activation())
+            items.append(
+                leaky if self.FC or i < nlayers - 1 else self.final_activation()
+            )
 
             # Get dropout if passed in and not none, and add that
             dropout = options.get(f"dropout_{i+1}")
@@ -57,10 +64,7 @@ class PVModel(nn.Module):
         self.features = nn.Sequential(*items)
 
         if self.FC:
-            self.fc = nn.Linear(
-                in_features = 4000*channels_size[-1],
-                out_features = 4000
-            )
+            self.fc = nn.Linear(in_features=4000 * channels_size[-1], out_features=4000)
 
     def forward(self, x):
         x = self.features(x)
@@ -72,6 +76,7 @@ class PVModel(nn.Module):
             x = self.final_activation()(self.fc(x))
 
         return x
+
 
 def write_model(filename, model, loss=None):
     "Write a model and maybe a loss function to a file"
@@ -86,7 +91,8 @@ def write_model(filename, model, loss=None):
         print(inspect.getsource(master_model), end="\n\n\n", file=f)
 
         if issubclass(model, PVModel):
-            print(f"""
+            print(
+                f"""
 class Model(PVModel):
     KERNEL_SIZE =   {model.KERNEL_SIZE}
     CHANNELS_SIZE = {model.CHANNELS_SIZE}
@@ -95,31 +101,33 @@ class Model(PVModel):
     LEAKYNESS = {model.LEAKYNESS}
     INPUTS = {model.INPUTS}
     FINAL_ACTIVATION = {model.FINAL_ACTIVATION.__qualname__}
-""", file=f)
+""",
+                file=f,
+            )
 
         if loss is not None:
             print(inspect.getsource(loss), file=f)
 
-def modernize(d, layers = 2):
-    'Convert old style files to the new style'
+
+def modernize(d, layers=2):
+    "Convert old style files to the new style"
 
     # Factor for layers is 2 or 3, depending on dropout.
 
     # Convert new style only
-    if 'fc1.weight' not in d:
+    if "fc1.weight" not in d:
         return d
-
 
     for key in list(d.keys()):
         new_key = None
-        if 'conv' in key:
-            i = (int(key[4])-1)*layers
+        if "conv" in key:
+            i = (int(key[4]) - 1) * layers
             new_key = f"features.{i}" + key[5:]
-        elif 'fc1' in key:
-            new_key = 'fc' + key[3:]
-        elif 'finalFilter' in key:
-            i = (int(4)-1)*layers
-            new_key = f'features.{i}' + key[11:]
+        elif "fc1" in key:
+            new_key = "fc" + key[3:]
+        elif "finalFilter" in key:
+            i = (int(4) - 1) * layers
+            new_key = f"features.{i}" + key[11:]
         if new_key:
             d[new_key] = d.pop(key)
 
@@ -127,8 +135,5 @@ def modernize(d, layers = 2):
 
 
 def modernize_state(model, state):
-    'Match equal length dicts'
-    return {key1:item
-            for key1, item
-            in zip(model.state_dict().keys(),
-                   state.values())}
+    "Match equal length dicts"
+    return {key1: item for key1, item in zip(model.state_dict().keys(), state.values())}

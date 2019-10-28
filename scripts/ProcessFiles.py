@@ -10,13 +10,14 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     import h5py
 
-from model.origdata import (process_root_file,
-                            OutputData,
-                            concatinate_data,
-                            save_data_hdf5)
+from model.origdata import (
+    process_root_file,
+    OutputData,
+    concatinate_data,
+    save_data_hdf5,
+)
 
 from model.utilities import Timer
-
 
 
 def main(output_fname, files):
@@ -24,7 +25,7 @@ def main(output_fname, files):
     futures = []
 
     for f in files:
-        assert f.exists(), f'{f} must be an existing file'
+        assert f.exists(), f"{f} must be an existing file"
 
     outputs = [process_root_file(f) for f in files]
 
@@ -37,15 +38,18 @@ def main(output_fname, files):
             save_data_hdf5(hf, outputs, files)
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="This processes files, in multiple processes. "
+        "You should use it something like this: "
+        "./ProcessFiles -o /data/schreihf/PvFinder/Aug_10_30K_train.h5 "
+        "/data/schreihf/PvFinder/kernel*"
+    )
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "This processes files, in multiple processes. "
-                                     "You should use it something like this: "
-                                     "./ProcessFiles -o /data/schreihf/PvFinder/Aug_10_30K_train.h5 "
-                                     "/data/schreihf/PvFinder/kernel*")
-
-    parser.add_argument('-o', '--output', type=Path, required=True, help="Set the output file (.h5)")
-    parser.add_argument('files', type=Path, nargs='+', help="The files to read in")
+    parser.add_argument(
+        "-o", "--output", type=Path, required=True, help="Set the output file (.h5)"
+    )
+    parser.add_argument("files", type=Path, nargs="+", help="The files to read in")
 
     args = parser.parse_args()
 

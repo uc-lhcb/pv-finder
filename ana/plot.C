@@ -68,13 +68,13 @@ void plotxy(int event, int which_pv, double zshift){
    hits.newEvent(data);
 
    Tracks tracks;
-    
-   // C style workaround for global FCN tracks 
+
+   // C style workaround for global FCN tracks
    fcn_global_tracks = &tracks;
 
    // make triplets
    tracks.newEvent(&hits);
-    
+
    double z = data.pvz->at(which_pv)+zshift;
    tracks.setRange(z);
    Point pv;
@@ -96,8 +96,8 @@ void plotxy(int event, int which_pv, double zshift){
    marker->SetMarkerSize(10);
    marker->SetMarkerColor(kMagenta);
    marker->DrawMarker(data.pvx->at(which_pv),data.pvy->at(which_pv));
-   cout << "pv: " << data.pvx->at(which_pv) << " " << data.pvy->at(which_pv) << " " << data.pvz->at(which_pv) << endl;
-   cout << "cat: " << pvCategory(data,which_pv) << endl;
+   std::cout << "pv: " << data.pvx->at(which_pv) << " " << data.pvy->at(which_pv) << " " << data.pvz->at(which_pv) << std::endl;
+   std::cout << "cat: " << pvCategory(data,which_pv) << std::endl;
 
    marker->SetMarkerColor(kCyan);
    for(int i=0; i<data.svz->size(); i++){
@@ -106,7 +106,7 @@ void plotxy(int event, int which_pv, double zshift){
      if(cat < 0) continue;
      if(cat == 0) marker->SetMarkerStyle(2);
      else marker->SetMarkerStyle(3);
-     cout << data.svx->at(i) << " " << data.svy->at(i) << " " << data.svz->at(i) << endl;
+     std::cout << data.svx->at(i) << " " << data.svy->at(i) << " " << data.svz->at(i) << std::endl;
      marker->DrawMarker(data.svx->at(i),data.svy->at(i));
    }
 
