@@ -3,13 +3,13 @@ import torch
 # how to define our cost function
 class Loss(torch.nn.Module):
     def __init__(self, epsilon=1e-5):
-        '''
+        """
         Epsilon is a parameter that can be adjusted.
-        '''
+        """
 
         # You must call the original constructor (torch.nn.Module.__init__(self))!
         super().__init__()
-        
+
         # Now you can add things
         self.epsilon = epsilon
 
@@ -26,7 +26,7 @@ class Loss(torch.nn.Module):
         r = torch.abs((x[valid] + self.epsilon) / (y[valid] + self.epsilon))
 
         # Compute -log(2r/(r² + 1))
-        alpha = -torch.log(2*r / (r**2 + 1))
+        alpha = -torch.log(2 * r / (r ** 2 + 1))
 
         # Sum up the alpha values, and divide by the length of x and y. Note this is not quite
         # a .mean(), since alpha can be a bit shorter than x and y due to masking.

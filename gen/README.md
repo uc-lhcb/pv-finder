@@ -1,6 +1,6 @@
 Generator code.
 
-### Files 
+### Files
 * `scatter.h/c`: Class Scatter, which only has one method, `smear`.
     - `scatter.py`: Loads C++ classes into Python
 * `velo.h/c`: Material, Sensor, Integral, Distance, Segment, Intersect, VeloMaterial

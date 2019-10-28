@@ -27,3 +27,4 @@ CMakeFiles
 cmake_install.cmake
 *build*
 dat/kernel_10pvs.root
+dat/trks_10pvs.root

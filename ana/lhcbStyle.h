@@ -1,5 +1,4 @@
-void lhcbStyle()
-{
+void lhcbStyle() {
     ////////////////////////////////////////////////////////////////////
     // PURPOSE:
     //
@@ -58,105 +57,104 @@ void lhcbStyle()
 
     gROOT->Reset();
 
-     TStyle *lhcbStyle= new TStyle("lhcbStyle","LHCb official plots style");
+    TStyle *lhcbStyle = new TStyle("lhcbStyle", "LHCb official plots style");
 
-     // use helvetica-bold-r-normal, precision 2 (rotatable)
-     Int_t lhcbFont = 132;
-     // line thickness
-     Double_t lhcbWidth = 1;//2;
+    // use helvetica-bold-r-normal, precision 2 (rotatable)
+    Int_t lhcbFont = 132;
+    // line thickness
+    Double_t lhcbWidth = 1; // 2;
 
-     // use plain black on white colors
-     lhcbStyle->SetFrameBorderMode(0);
-     lhcbStyle->SetCanvasBorderMode(0);
-     lhcbStyle->SetPadBorderMode(0);
-     lhcbStyle->SetPadColor(0);
-     lhcbStyle->SetCanvasColor(0);
-     lhcbStyle->SetStatColor(0);
-     lhcbStyle->SetPalette(1);
-     //lhcbStyle->SetFillColor(0);
+    // use plain black on white colors
+    lhcbStyle->SetFrameBorderMode(0);
+    lhcbStyle->SetCanvasBorderMode(0);
+    lhcbStyle->SetPadBorderMode(0);
+    lhcbStyle->SetPadColor(0);
+    lhcbStyle->SetCanvasColor(0);
+    lhcbStyle->SetStatColor(0);
+    lhcbStyle->SetPalette(1);
+    // lhcbStyle->SetFillColor(0);
 
-     // set the paper & margin sizes
-     lhcbStyle->SetPaperSize(20,26);
-     lhcbStyle->SetPadTopMargin(0.05);
-     lhcbStyle->SetPadRightMargin(0.05); // increase for colz plots!!
-     lhcbStyle->SetPadBottomMargin(0.16);
-     lhcbStyle->SetPadLeftMargin(0.14);
+    // set the paper & margin sizes
+    lhcbStyle->SetPaperSize(20, 26);
+    lhcbStyle->SetPadTopMargin(0.05);
+    lhcbStyle->SetPadRightMargin(0.05); // increase for colz plots!!
+    lhcbStyle->SetPadBottomMargin(0.16);
+    lhcbStyle->SetPadLeftMargin(0.14);
 
-     // use large fonts
-     lhcbStyle->SetTextFont(lhcbFont);
-     lhcbStyle->SetTextSize(0.08);
-     lhcbStyle->SetLabelFont(lhcbFont,"x");
-     lhcbStyle->SetLabelFont(lhcbFont,"y");
-     lhcbStyle->SetLabelFont(lhcbFont,"z");
-     lhcbStyle->SetLabelSize(0.06,"x");
-     lhcbStyle->SetLabelSize(0.06,"y");
-     lhcbStyle->SetLabelSize(0.06,"z");
-     lhcbStyle->SetTitleFont(lhcbFont);
-     lhcbStyle->SetTitleFont(lhcbFont,"x");
-     lhcbStyle->SetTitleFont(lhcbFont,"y");
-     lhcbStyle->SetTitleFont(lhcbFont,"z");
-     lhcbStyle->SetTitleSize(0.06*1.2,"x");
-     lhcbStyle->SetTitleSize(0.06*1.2,"y");
-     lhcbStyle->SetTitleSize(0.06*1.2,"z");
+    // use large fonts
+    lhcbStyle->SetTextFont(lhcbFont);
+    lhcbStyle->SetTextSize(0.08);
+    lhcbStyle->SetLabelFont(lhcbFont, "x");
+    lhcbStyle->SetLabelFont(lhcbFont, "y");
+    lhcbStyle->SetLabelFont(lhcbFont, "z");
+    lhcbStyle->SetLabelSize(0.06, "x");
+    lhcbStyle->SetLabelSize(0.06, "y");
+    lhcbStyle->SetLabelSize(0.06, "z");
+    lhcbStyle->SetTitleFont(lhcbFont);
+    lhcbStyle->SetTitleFont(lhcbFont, "x");
+    lhcbStyle->SetTitleFont(lhcbFont, "y");
+    lhcbStyle->SetTitleFont(lhcbFont, "z");
+    lhcbStyle->SetTitleSize(0.06 * 1.2, "x");
+    lhcbStyle->SetTitleSize(0.06 * 1.2, "y");
+    lhcbStyle->SetTitleSize(0.06 * 1.2, "z");
 
-     // use bold lines and markers
-     lhcbStyle->SetLineWidth(lhcbWidth);
-     lhcbStyle->SetFrameLineWidth(lhcbWidth);
-     //lhcbStyle->SetFrameLineWidth(1);
-     lhcbStyle->SetHistLineWidth(lhcbWidth);
-     lhcbStyle->SetFuncWidth(lhcbWidth);
-     lhcbStyle->SetGridWidth(lhcbWidth);
-     lhcbStyle->SetLineStyleString(2,"[12 12]"); // postscript dashes
-     lhcbStyle->SetMarkerStyle(8);
-     //lhcbStyle->SetMarkerSize(1.5);
-     lhcbStyle->SetMarkerSize(1.0);
+    // use bold lines and markers
+    lhcbStyle->SetLineWidth(lhcbWidth);
+    lhcbStyle->SetFrameLineWidth(lhcbWidth);
+    // lhcbStyle->SetFrameLineWidth(1);
+    lhcbStyle->SetHistLineWidth(lhcbWidth);
+    lhcbStyle->SetFuncWidth(lhcbWidth);
+    lhcbStyle->SetGridWidth(lhcbWidth);
+    lhcbStyle->SetLineStyleString(2, "[12 12]"); // postscript dashes
+    lhcbStyle->SetMarkerStyle(8);
+    // lhcbStyle->SetMarkerSize(1.5);
+    lhcbStyle->SetMarkerSize(1.0);
 
-     // label offsets
-     //lhcbStyle->SetLabelOffset(0.015);
+    // label offsets
+    // lhcbStyle->SetLabelOffset(0.015);
 
-     // by default, do not display histogram decorations:
-     lhcbStyle->SetOptStat(0);
-     //lhcbStyle->SetOptStat(1110);  // show only nent, mean, rms
-     lhcbStyle->SetOptTitle(0);
-     lhcbStyle->SetOptFit(0);
-     //lhcbStyle->SetOptFit(1011); // show probability, parameters and errors
+    // by default, do not display histogram decorations:
+    lhcbStyle->SetOptStat(0);
+    // lhcbStyle->SetOptStat(1110);  // show only nent, mean, rms
+    lhcbStyle->SetOptTitle(0);
+    lhcbStyle->SetOptFit(0);
+    // lhcbStyle->SetOptFit(1011); // show probability, parameters and errors
 
-     // look of the statistics box:
-     lhcbStyle->SetStatBorderSize(1);
-     lhcbStyle->SetStatFont(lhcbFont);
-     lhcbStyle->SetStatFontSize(0.05);
-     lhcbStyle->SetStatX(0.9);
-     lhcbStyle->SetStatY(0.9);
-     lhcbStyle->SetStatW(0.25);
-     lhcbStyle->SetStatH(0.15);
+    // look of the statistics box:
+    lhcbStyle->SetStatBorderSize(1);
+    lhcbStyle->SetStatFont(lhcbFont);
+    lhcbStyle->SetStatFontSize(0.05);
+    lhcbStyle->SetStatX(0.9);
+    lhcbStyle->SetStatY(0.9);
+    lhcbStyle->SetStatW(0.25);
+    lhcbStyle->SetStatH(0.15);
 
-     // put tick marks on top and RHS of plots
-     lhcbStyle->SetPadTickX(1);
-     lhcbStyle->SetPadTickY(1);
+    // put tick marks on top and RHS of plots
+    lhcbStyle->SetPadTickX(1);
+    lhcbStyle->SetPadTickY(1);
 
-     // histogram divisions: only 5 in x to avoid label overlaps
-     lhcbStyle->SetNdivisions(505,"x");
-     lhcbStyle->SetNdivisions(505,"y");
+    // histogram divisions: only 5 in x to avoid label overlaps
+    lhcbStyle->SetNdivisions(505, "x");
+    lhcbStyle->SetNdivisions(505, "y");
 
-     gROOT->SetStyle("lhcbStyle");
-     gROOT->ForceStyle();
+    gROOT->SetStyle("lhcbStyle");
+    gROOT->ForceStyle();
 
-     TPaveText *lhcbName = new TPaveText(0.65,0.8,0.9,0.9,"BRNDC");
-     //lhcbName->SetFillColor(0);
-     lhcbName->SetTextAlign(12);
-     lhcbName->SetBorderSize(0);
-     lhcbName->AddText("LHCb");
+    TPaveText *lhcbName = new TPaveText(0.65, 0.8, 0.9, 0.9, "BRNDC");
+    // lhcbName->SetFillColor(0);
+    lhcbName->SetTextAlign(12);
+    lhcbName->SetBorderSize(0);
+    lhcbName->AddText("LHCb");
 
-     TText *lhcbLabel = new TText();
-     lhcbLabel->SetTextFont(lhcbFont);
-     lhcbLabel->SetTextColor(1);
-     lhcbLabel->SetTextSize(0.04);
-     lhcbLabel->SetTextAlign(12);
+    TText *lhcbLabel = new TText();
+    lhcbLabel->SetTextFont(lhcbFont);
+    lhcbLabel->SetTextColor(1);
+    lhcbLabel->SetTextSize(0.04);
+    lhcbLabel->SetTextAlign(12);
 
-     TLatex *lhcbLatex = new TLatex();
-     lhcbLatex->SetTextFont(lhcbFont);
-     lhcbLatex->SetTextColor(1);
-     lhcbLatex->SetTextSize(0.04);
-     lhcbLatex->SetTextAlign(12);
-
+    TLatex *lhcbLatex = new TLatex();
+    lhcbLatex->SetTextFont(lhcbFont);
+    lhcbLatex->SetTextColor(1);
+    lhcbLatex->SetTextSize(0.04);
+    lhcbLatex->SetTextAlign(12);
 }

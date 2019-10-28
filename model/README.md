@@ -93,7 +93,7 @@ model.load_state_dict(torch.load(filename))
 model.eval()
 ```
 
-See the plethora of notebooks that do this: 
+See the plethora of notebooks that do this:
 
 * `PlotEachPV`
 * `FalsePositives`

@@ -1,3 +1,4 @@
 import ROOT
-ROOT.gROOT.LoadMacro('scatter.C+')
+
+ROOT.gROOT.LoadMacro("scatter.C+")
 Scatter = ROOT.Scatter
