@@ -27,7 +27,7 @@ conda env create -f environment.yml
 Other directories:
 
 * [`dat`](dat): A few tiny sample data files live here
-* `binned_tracking`: Binned tracking toy code (classic code, CMake compile)
+* [`binned_tracking`](binned_tracking): Binned tracking toy code (classic code, CMake compile)
 * [`tests`](tests): Minimal testing for now
 
 ## Requirements:

@@ -20,6 +20,7 @@ The hits files will always start with `pv_`, the track files with `trks_`,
 and the kernel files with `kernel_`.
 
 TODO: Rename `prefix` to `base` or `basename`. It's not a prefix. Rename `pv_` to `hits_`. Rename `histogram` to `kernel`.
+Move the headers to a folder to keep the listing from being so long.
 
 There is a file in `/dat` with 10 events with 10 (visible) collisions each to
 play with. The "correct" result is stored in the repository as `result_10pvs.root`,
@@ -29,7 +30,7 @@ This is the default if you run the executables in place.
 
 ## Developing
 
-You should be in the pvfinder Conda environment on macOS or Linux. If you want to use Docker, you can:
+You should be in the `pvfinder` Conda environment on macOS or Linux. If you want to use Docker, you can:
 
 ```bash
 docker run --rm -v $PWD:/pv -it gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest
