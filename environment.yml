@@ -7,9 +7,10 @@ dependencies:
     - h5py
     - jupyterlab
     - matplotlib
+    - ipympl
     - nb_conda_kernels
     - ninja
-    - numba
+    - numba<0.46
     - numpy
     - pandas
     - pytest
