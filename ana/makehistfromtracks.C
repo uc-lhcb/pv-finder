@@ -10,12 +10,12 @@
 
 void makez(AnyTracks& tracks, DataKernelOut& dk);
 
-/// Run with root -b -q 'makehist.C+("20180814")'
+/// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
 /// Or run runall.sh
-void makehistfromtracks(TString input, TString folder = "/data/schreihf/PvFinder") {
+void makehistfromtracks(TString input, TString tree_name, TString folder) {
 
     TFile f(folder + "/trks_"+input+".root");
-    TTree *t = (TTree*)f.Get("trks");
+    TTree *t = (TTree*)f.Get(tree_name);
     if(t == nullptr)
         throw std::runtime_error("Failed to get trks from file");
 
