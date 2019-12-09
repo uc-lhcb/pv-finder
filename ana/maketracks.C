@@ -9,9 +9,9 @@
 #include <iostream>
 
 /// Convert raw data to tracks
-void make_tracks(TString input, TString folder = "/data/schreihf/PvFinder") {
+void make_tracks(TString input, TString tree_name, TString folder) {
     TFile f(folder + "/pv_"+input+".root");
-    TTree *t = (TTree*) f.Get("data");
+    TTree *t = (TTree*) f.Get(tree_name);
     if(t == nullptr)
         throw std::runtime_error("Failed to get hits from file");
 

@@ -16,20 +16,20 @@ DAT_DIR = MAIN_DIR / "dat"
 def makehist_core(*, split: bool, dat: Path, build: Path):
     result = "result_10pvs.root"
     pv = "pv_10pvs.root"
-    kwargs = dict(text=True, stderr=sys.stderr, stdout=subprocess.PIPE)
+    kwargs = dict(text=True, check=True, capture_output=True)
 
     shutil.copy(DAT_DIR / result, dat / result)
     shutil.copy(DAT_DIR / pv, dat / pv)
 
     if split:
-        output = subprocess.run([build / "make_tracks", "10pvs", dat], **kwargs).stdout
+        output = subprocess.run([build / "make_tracks", "10pvs", "data", dat], **kwargs).stdout
         output += subprocess.run(
-            [build / "make_histogram_from_tracks", "10pvs", dat], **kwargs
+            [build / "make_histogram_from_tracks", "10pvs", "trks", dat], **kwargs
         ).stdout
 
     else:
         output = subprocess.run(
-            [build / "make_histogram", "10pvs", dat], **kwargs
+            [build / "make_histogram", "10pvs", "data", dat], **kwargs
         ).stdout
 
     f1 = uproot.open(dat / result)["kernel"]

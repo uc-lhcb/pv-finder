@@ -15,11 +15,11 @@ There are three executables:
 ./make_histogram_from_tracks # tracks -> kernel
 ```
 
-All executables take the same two optional arguments; `prefix` and `folder`.
+All executables take the same three optional arguments; `base`, `tree`, and `folder`.
 The hits files will always start with `pv_`, the track files with `trks_`,
 and the kernel files with `kernel_`.
 
-TODO: Rename `prefix` to `base` or `basename`. It's not a prefix. Rename `pv_` to `hits_`. Rename `histogram` to `kernel`.
+TODO: Rename `pv_` to `hits_`. Rename `histogram` to `kernel`.
 Move the headers to a folder to keep the listing from being so long.
 
 There is a file in `/dat` with 10 events with 10 (visible) collisions each to
@@ -30,7 +30,7 @@ This is the default if you run the executables in place.
 
 ## Developing
 
-You should be in the `pvfinder` Conda environment on macOS or Linux. If you want to use Docker, you can:
+You should be in the `pvfinder` or `pvfindergpu` Conda environment on macOS or Linux. If you want to use Docker, you can:
 
 ```bash
 docker run --rm -v $PWD:/pv -it gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest
@@ -95,7 +95,8 @@ To run on Goofy:
 
 ```bash
 ssh goofy -L 8888:localhost:8888
-ml anaconda
+module purge
+conda activate pvfindergpu
 cd <the ana directory>
 jupyter lab --no-browser
 ```
