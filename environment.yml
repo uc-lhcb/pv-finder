@@ -10,9 +10,10 @@ dependencies:
     - ipympl
     - nb_conda_kernels
     - ninja
-    - numba<0.46
+    - numba
     - numpy
     - pandas
+    - pytables
     - pytest
     - pythia8
     - pytorch-cpu

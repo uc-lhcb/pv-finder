@@ -6,14 +6,15 @@ dependencies:
     - python>=3.6
     - cmake
     - h5py
+    - ipympl
     - jupyterlab
     - matplotlib
-    - ipympl
     - nb_conda_kernels
     - ninja
-    - numba<0.46
+    - numba
     - numpy
     - pandas
+    - pytables
     - pytest
     - pythia8
     - root
@@ -21,6 +22,6 @@ dependencies:
     - tqdm
     - uproot
       # From pytorch
-    - cudatoolkit=9.0
+    - cudatoolkit
     - pytorch
     - torchvision
