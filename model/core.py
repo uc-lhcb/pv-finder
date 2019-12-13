@@ -26,7 +26,7 @@ class PVModel(nn.Module):
             options["final_activation"]
             if "final_activation" in options
             else self.FINAL_ACTIVATION
-        )
+        )()
 
         nlayers = len(self.KERNEL_SIZE)
         assert len(self.CHANNELS_SIZE) == nlayers, "You need as many channels as layers"
@@ -73,7 +73,7 @@ class PVModel(nn.Module):
         x = x.view(x.shape[0], x.shape[-1])
 
         if self.FC:
-            x = self.final_activation()(self.fc(x))
+            x = self.final_activation(self.fc(x))
 
         return x
 

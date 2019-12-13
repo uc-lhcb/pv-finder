@@ -10,6 +10,7 @@ dependencies:
     - ipympl
     - nb_conda_kernels
     - ninja
+    - nodejs
     - numba
     - numpy
     - pandas
