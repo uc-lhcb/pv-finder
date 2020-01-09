@@ -2417,6 +2417,8 @@ class FourFeature_CNN7Layer_D(nn.Module):
         self.conv5dropout = nn.Dropout(0.15)
         self.conv6dropout = nn.Dropout(0.15)
 
+    leaky = nn.LeakyReLU(0.01)
+        
     def forward(self, neuronValues):
 
         ## in the method definition, neuronValues corresponds to (X,Xsq,x,y)
@@ -2428,18 +2430,18 @@ class FourFeature_CNN7Layer_D(nn.Module):
         x0 = neuronValues[:, 0:2, :]  ## picks out the 0 & 1 feature sets, X & Xsq
         x1 = neuronValues[:, 2:4, :]  ## picks out the 2 & 3 feature sets, x & y
 
-        leaky = nn.LeakyReLU(0.01)
-        x0 = leaky(self.conv1(x0))
+        
+        x0 = self.leaky(self.conv1(x0))
         x0 = self.conv1dropout(x0)
-        x0 = leaky(self.conv2(x0))
+        x0 = self.leaky(self.conv2(x0))
         x0 = self.conv2dropout(x0)
-        x0 = leaky(self.conv3(x0))
+        x0 = self.leaky(self.conv3(x0))
         x0 = self.conv3dropout(x0)
-        x0 = leaky(self.conv4of6(x0))
+        x0 = self.leaky(self.conv4of6(x0))
         x0 = self.conv4dropout(x0)
-        x0 = leaky(self.conv5(x0))
+        x0 = self.leaky(self.conv5(x0))
         x0 = self.conv5dropout(x0)
-        x0 = leaky(self.conv6(x0))
+        x0 = self.leaky(self.conv6(x0))
         x0 = self.conv6dropout(x0)
 
         ##  with a little luck, the following two lines instantiate the
@@ -2452,11 +2454,11 @@ class FourFeature_CNN7Layer_D(nn.Module):
         ##  similar to the original SimpleCNN3Layer  model with
         ##  3 convolutional layers followed by a fully connected layer
         ##  as this began to learn very quickly
-        x1 = leaky(self.ppConv1(x1))
+        x1 = self.leaky(self.ppConv1(x1))
         x1 = self.conv1dropout(x1)
-        x1 = leaky(self.ppConv2(x1))
+        x1 = self.leaky(self.ppConv2(x1))
         x1 = self.conv2dropout(x1)
-        x1 = leaky(self.ppConv3(x1))
+        x1 = self.leaky(self.ppConv3(x1))
         x1 = self.conv3dropout(x1)
         x1 = self.ppFinalFilter(x1)
         x1 = x1.view(x1.shape[0], x1.shape[-1])
