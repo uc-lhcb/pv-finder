@@ -1,0 +1,1 @@
+./ProcessFiles_mdsA.py -o /share/lazy/sokoloff/ML-data_AA/HLT1CPU_1kevts_val.h5 ../dat/kernel_HLT1CPU_1kevts.root 
