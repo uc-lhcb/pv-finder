@@ -1063,6 +1063,118 @@ class SimpleCNN5Layer_Ca(nn.Module):
         return x
 
 
+class All_CNN6Layer_A(nn.Module):
+    softplus = torch.nn.Softplus()
+
+    def __init__(self):
+        super(All_CNN6Layer_A, self).__init__()
+
+        self.conv1 = nn.Conv1d(
+            in_channels=1,
+            out_channels=20,
+            kernel_size=25,
+            stride=1,
+            padding=(25 - 1) // 2,
+        )
+
+        assert (
+            self.conv1.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        self.conv2 = nn.Conv1d(
+            in_channels=self.conv1.out_channels,
+            out_channels=10,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        assert (
+            self.conv2.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        self.conv3 = nn.Conv1d(
+            in_channels=self.conv2.out_channels,
+            out_channels=10,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        assert (
+            self.conv3.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        self.conv4 = nn.Conv1d(
+            in_channels=self.conv3.out_channels,
+            out_channels=10,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        assert (
+            self.conv4.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        self.conv5 = nn.Conv1d(
+            in_channels=self.conv4.out_channels,
+            out_channels=1,
+            kernel_size=5,
+            stride=1,
+            padding=(5 - 1) // 2,
+        )
+
+        assert (
+            self.conv5.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        ## the "finalFilter" is meant to replace the fully connected layer with a
+        ## convolutional layer that extends over the full range where we saw
+        ## significant structure in the 4K x 4K matrix
+        self.finalFilter = nn.Conv1d(
+            in_channels=self.conv5.out_channels,
+            out_channels=1,
+            kernel_size=91,
+            stride=1,
+            padding=(91 - 1) // 2,
+        )
+
+        assert (
+            self.finalFilter.kernel_size[0] % 2 == 1
+        ), "Kernel size should be odd for 'same' conv."
+
+        ##  18 July 2019 try dropout 0.15 rather than 0.05 (used in CNN5Layer_A) to mitigate overtraining
+        self.conv1dropout = nn.Dropout(0.15)
+        self.conv2dropout = nn.Dropout(0.15)
+        self.conv3dropout = nn.Dropout(0.15)
+        self.conv4dropout = nn.Dropout(0.15)
+        self.conv5dropout = nn.Dropout(0.15)
+
+    def forward(self, x):
+        leaky = nn.LeakyReLU(0.01)
+        x = leaky(self.conv1(x))
+        x = self.conv1dropout(x)
+        x = leaky(self.conv2(x))
+        x = self.conv2dropout(x)
+        x = leaky(self.conv3(x))
+        x = self.conv3dropout(x)
+        x = leaky(self.conv4(x))
+        x = self.conv4dropout(x)
+        x = leaky(self.conv5(x))
+        x = self.conv5dropout(x)
+
+        ##  with a little luck, the following two lines instantiate the
+        ##  finalFilter and reshape its output to work as output to the
+        ##  softplus activation
+        x = self.finalFilter(x)
+        x = x.view(x.shape[0], x.shape[-1])
+
+        x = self.softplus(x)
+
+        return x
+
+
 class TwoFeatures_CNN4Layer_D35(nn.Module):
     def __init__(self):
         super(TwoFeatures_CNN4Layer_D35, self).__init__()
