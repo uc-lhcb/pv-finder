@@ -57,6 +57,7 @@ def trainNet(
     *,
     notebook=None,
     epoch_start=0,
+    device
 ):
     """
     If notebook = None, no progress bar will be drawn. If False, this will be a terminal progress bar.
@@ -81,7 +82,7 @@ model: {model}"""
     progress = import_progress_bar(notebook)
 
     # Get the current device
-    device = get_device_from_model(model)
+    # device = get_device_from_model(model)
 
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
 

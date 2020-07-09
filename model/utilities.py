@@ -1,7 +1,7 @@
 from contextlib import contextmanager, redirect_stdout, redirect_stderr
 import sys
 import time
-
+import torch
 
 class DummyTqdmFile(object):
     """Dummy file-like that will write to tqdm"""
@@ -95,3 +95,49 @@ def get_device_from_model(model):
         return model.weight.device
     else:
         return get_device_from_model(list(model.children())[0])
+    
+
+def load_full_state(model_to_update, optimizer_to_update, Path):
+    """
+    Load the model and optimizer state_dict, and the total number of epochs
+    The use case for this is if we care about the optimizer state_dict, which we do if we have multiple training 
+    sessions with momentum and/or learning rate decay. this will track the decay/momentum.
+
+    Args: 
+            model_to_update (Module): Pytorch model with randomly initialized weights. These weights will be updated.
+            optimizer_to_update (Module): Optimizer with your learning rate set. 
+            THIS FUNCTION WILL NOT UPDATE THE LEARNING RATE YOU SPECIFY.
+            Path (string): If we are not training from scratch, this path should be the path to the "run_stats" file in the artifacts 
+            directory of whatever run you are using as a baseline. 
+            You can find the path in the MLFlow UI. It should end in /artifacts/run_stats  
+            
+
+    Returns:
+            Nothing
+
+    Note:
+            The model and optimizer will not be returned, rather the optimizer and module you pass to this function will be modified.
+    """
+    checkpoint = torch.load(Path)
+    update_dict = {k: v for k, v in checkpoint['model'].items() if k in model_to_update.state_dict()}
+    # to go back to old behavior, just do checkpoint['model'] instead of update_dict
+    model_to_update.load_state_dict(update_dict, strict=False)
+    print('Of the ' + str(len(model_to_update.state_dict())) +' parameter layers to update in the current model, ' + str(len(update_dict)) + ' were loaded')
+
+
+def count_parameters(model):
+    """
+    Counts the total number of parameters in a model
+    Args:
+        model (Module): Pytorch model, the total number of parameters for this model will be counted. 
+
+    Returns: Int, number of parameters in the model
+    """
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+class Params(object):
+    def __init__(self, batch_size, epochs, lr, epoch_start=0):
+        self.epoch_start = epoch_start
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.lr = lr

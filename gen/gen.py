@@ -35,7 +35,7 @@ from writer import prtStable, heavyFlavor, Writer, hitSel, Hits
 
 
 def run(lname, tEvt):
-    name = "/data/schreihf/PvFinder/pv_{}.root".format(lname)
+    name = "/share/lazy/michael/data/pv_{}.root".format(lname)
     myhash = abs(hash(lname)) % 900000000
     print("Producing", tEvt, "tracks to", name, "with hash:", myhash)
     # Initialize Pythia.
