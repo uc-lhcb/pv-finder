@@ -2,6 +2,8 @@ import torch
 from torch import nn
 import numpy as np
 
+# layers different from SimpleCNN5Layer_Ca are suffixed with an "a" to prevent weight freezing
+
 class SimpleCNN5Layer_Ca(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -325,7 +327,7 @@ class All_CNN6Layer_B(nn.Module):
     def __init__(self):
         super(All_CNN6Layer_B, self).__init__()
 
-        self.conv1 = nn.Conv1d(
+        self.conv1a = nn.Conv1d(
             in_channels=1,
             out_channels=16,
             kernel_size=25,
@@ -334,12 +336,12 @@ class All_CNN6Layer_B(nn.Module):
         )
 
         assert (
-            self.conv1.kernel_size[0] % 2 == 1
+            self.conv1a.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv2 = nn.Conv1d(
             in_channels=self.conv1.out_channels,
-            out_channels=9,
+            out_channels=10,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
@@ -349,28 +351,28 @@ class All_CNN6Layer_B(nn.Module):
             self.conv2.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv3 = nn.Conv1d(
+        self.conv3a = nn.Conv1d(
             in_channels=self.conv2.out_channels,
-            out_channels=9,
+            out_channels=6,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
         )
 
         assert (
-            self.conv3.kernel_size[0] % 2 == 1
+            self.conv3a.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv4 = nn.Conv1d(
+        self.conv4a = nn.Conv1d(
             in_channels=self.conv3.out_channels,
-            out_channels=9,
+            out_channels=6,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
         )
 
         assert (
-            self.conv4.kernel_size[0] % 2 == 1
+            self.conv4a.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv5 = nn.Conv1d(
@@ -409,13 +411,13 @@ class All_CNN6Layer_B(nn.Module):
 
     def forward(self, x):
         leaky = nn.LeakyReLU(0.01)
-        x = leaky(self.conv1(x))
+        x = leaky(self.conv1a(x))
         x = self.conv1dropout(x)
         x = leaky(self.conv2(x))
         x = self.conv2dropout(x)
-        x = leaky(self.conv3(x))
+        x = leaky(self.conv3a(x))
         x = self.conv3dropout(x)
-        x = leaky(self.conv4(x))
+        x = leaky(self.conv4a(x))
         x = self.conv4dropout(x)
         x = leaky(self.conv5(x))
         x = self.conv5dropout(x)
@@ -464,7 +466,7 @@ class All_CNN6Layer_C(nn.Module):
             self.conv2.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv3 = nn.Conv1d(
+        self.conv3a = nn.Conv1d(
             in_channels=self.conv2.out_channels+self.conv1.out_channels,
             out_channels=10,
             kernel_size=15,
@@ -473,11 +475,11 @@ class All_CNN6Layer_C(nn.Module):
         )
 
         assert (
-            self.conv3.kernel_size[0] % 2 == 1
+            self.conv3a.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv4 = nn.Conv1d(
-            in_channels=self.conv3.out_channels,
+            in_channels=self.conv3a.out_channels,
             out_channels=10,
             kernel_size=15,
             stride=1,
@@ -528,7 +530,7 @@ class All_CNN6Layer_C(nn.Module):
         x1 = self.conv1dropout(x1)
         x2 = leaky(self.conv2(x1))
         x2 = self.conv2dropout(x2)
-        x3 = leaky(self.conv3(torch.cat([x1, x2], 1)))
+        x3 = leaky(self.conv3a(torch.cat([x1, x2], 1)))
         x3 = self.conv3dropout(x3)
         x4 = leaky(self.conv4(x3))
         x4 = self.conv4dropout(x4)

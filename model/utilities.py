@@ -97,7 +97,7 @@ def get_device_from_model(model):
         return get_device_from_model(list(model.children())[0])
     
 
-def load_full_state(model_to_update, optimizer_to_update, Path):
+def load_full_state(model_to_update, optimizer_to_update, Path, freeze_weights=False):
     """
     Load the model and optimizer state_dict, and the total number of epochs
     The use case for this is if we care about the optimizer state_dict, which we do if we have multiple training 
@@ -119,10 +119,31 @@ def load_full_state(model_to_update, optimizer_to_update, Path):
             The model and optimizer will not be returned, rather the optimizer and module you pass to this function will be modified.
     """
     checkpoint = torch.load(Path)
+    
+    # freeze weights of the first model
     update_dict = {k: v for k, v in checkpoint['model'].items() if k in model_to_update.state_dict()}
+                # do this so it does not use the learning rate from the previous run. this is unwanted behavior
+                # in our scenario since we are not using a learning rate scheduler, rather we want to tune the learning
+                # rate further after we have gotten past the stalling
+            #     checkpoint['optimizer']['param_groups'][0]['lr'] = optimizer_to_update.state_dict()['param_groups'][0]['lr']
+            #     optimizer_to_update.load_state_dict(checkpoint['optimizer'])
+    
     # to go back to old behavior, just do checkpoint['model'] instead of update_dict
     model_to_update.load_state_dict(update_dict, strict=False)
-    print('Of the ' + str(len(model_to_update.state_dict())) +' parameter layers to update in the current model, ' + str(len(update_dict)) + ' were loaded')
+    if freeze_weights:
+        ## add the following code to allow the user to freeze the some of the weights corresponding 
+        ## to those taken from an earlier model trained with the original target histograms
+        ## presumably -- this leaves either the perturbative filter "fixed" and lets the 
+        ## learning focus on the non-perturbative features, so get started faster, or vice versa
+        ct = 0
+        for child in model_to_update.children():
+            if ct < len(update_dict):
+                for param in child.parameters():
+                    param.requires_grad = False 
+            ct += 1
+        print('we also froze {} weights'.format(ct))
+    
+    print('Of the '+str(len(model_to_update.state_dict()))+' parameter layers to update in the current model, '+str(len(update_dict))+' were loaded')
 
 
 def count_parameters(model):
