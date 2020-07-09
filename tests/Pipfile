@@ -1,0 +1,23 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[dev-packages]
+
+
+[packages]
+numpy = ">=1.13"
+uproot = ">=3.2.9"
+awkward = ">=0.4.2"
+numba = "*"
+pytorch = ">=0.4"
+plumbum = "*"
+pandas = "*"
+matplotlib = "*"
+tqdm = "*"
+
+[requires]
+python_version = ">=3.6"
