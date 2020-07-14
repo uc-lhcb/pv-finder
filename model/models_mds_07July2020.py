@@ -109,7 +109,7 @@ Same as SimpleCNN5Layer_Ca but with 16 channels in the first layer and 9 in the 
 class SimpleCNN5Layer_Ca_B(nn.Module):
     softplus = torch.nn.Softplus()
     def __init__(self):
-        super(SimpleCNN5Layer_Ca, self).__init__()
+        super(SimpleCNN5Layer_Ca_B, self).__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -327,7 +327,7 @@ class All_CNN6Layer_B(nn.Module):
     def __init__(self):
         super(All_CNN6Layer_B, self).__init__()
 
-        self.conv1a = nn.Conv1d(
+        self.conv1 = nn.Conv1d(
             in_channels=1,
             out_channels=16,
             kernel_size=25,
@@ -336,12 +336,12 @@ class All_CNN6Layer_B(nn.Module):
         )
 
         assert (
-            self.conv1a.kernel_size[0] % 2 == 1
+            self.conv1.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv2 = nn.Conv1d(
             in_channels=self.conv1.out_channels,
-            out_channels=10,
+            out_channels=9,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
@@ -351,28 +351,28 @@ class All_CNN6Layer_B(nn.Module):
             self.conv2.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv3a = nn.Conv1d(
+        self.conv3 = nn.Conv1d(
             in_channels=self.conv2.out_channels,
-            out_channels=6,
+            out_channels=9,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
         )
 
         assert (
-            self.conv3a.kernel_size[0] % 2 == 1
+            self.conv3.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv4a = nn.Conv1d(
+        self.conv4 = nn.Conv1d(
             in_channels=self.conv3.out_channels,
-            out_channels=6,
+            out_channels=9,
             kernel_size=15,
             stride=1,
             padding=(15 - 1) // 2,
         )
 
         assert (
-            self.conv4a.kernel_size[0] % 2 == 1
+            self.conv4.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv5 = nn.Conv1d(
@@ -411,13 +411,13 @@ class All_CNN6Layer_B(nn.Module):
 
     def forward(self, x):
         leaky = nn.LeakyReLU(0.01)
-        x = leaky(self.conv1a(x))
+        x = leaky(self.conv1(x))
         x = self.conv1dropout(x)
         x = leaky(self.conv2(x))
         x = self.conv2dropout(x)
-        x = leaky(self.conv3a(x))
+        x = leaky(self.conv3(x))
         x = self.conv3dropout(x)
-        x = leaky(self.conv4a(x))
+        x = leaky(self.conv4(x))
         x = self.conv4dropout(x)
         x = leaky(self.conv5(x))
         x = self.conv5dropout(x)
@@ -701,7 +701,7 @@ class All_CNN6Layer_E(nn.Module):
             self.conv2.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
-        self.conv3 = nn.Conv1d(
+        self.conv3a = nn.Conv1d(
             in_channels=self.conv2.out_channels+self.conv1.out_channels,
             out_channels=9,
             kernel_size=15,
@@ -710,11 +710,11 @@ class All_CNN6Layer_E(nn.Module):
         )
 
         assert (
-            self.conv3.kernel_size[0] % 2 == 1
+            self.conv3a.kernel_size[0] % 2 == 1
         ), "Kernel size should be odd for 'same' conv."
 
         self.conv4 = nn.Conv1d(
-            in_channels=self.conv3.out_channels,
+            in_channels=self.conv3a.out_channels,
             out_channels=9,
             kernel_size=15,
             stride=1,
@@ -761,7 +761,7 @@ class All_CNN6Layer_E(nn.Module):
 
         self.bn1 = nn.BatchNorm1d(self.conv1.out_channels)
         self.bn2 = nn.BatchNorm1d(self.conv2.out_channels)
-        self.bn3 = nn.BatchNorm1d(self.conv3.out_channels)
+        self.bn3 = nn.BatchNorm1d(self.conv3a.out_channels)
         self.bn4 = nn.BatchNorm1d(self.conv4.out_channels)
         self.bn5 = nn.BatchNorm1d(self.conv5.out_channels)
 
@@ -771,7 +771,7 @@ class All_CNN6Layer_E(nn.Module):
         x1 = self.conv1dropout(x1)
         x2 = leaky(self.bn2(self.conv2(x1)))
         x2 = self.conv2dropout(x2)
-        x3 = leaky(self.bn3(self.conv3(torch.cat([x1, x2], 1))))
+        x3 = leaky(self.bn3(self.conv3a(torch.cat([x1, x2], 1))))
         x3 = self.conv3dropout(x3)
         x4 = leaky(self.bn4(self.conv4(x3)))
         x4 = self.conv4dropout(x4)

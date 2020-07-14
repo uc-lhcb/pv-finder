@@ -130,20 +130,18 @@ def load_full_state(model_to_update, optimizer_to_update, Path, freeze_weights=F
     
     # to go back to old behavior, just do checkpoint['model'] instead of update_dict
     model_to_update.load_state_dict(update_dict, strict=False)
+
+    ct = 0
     if freeze_weights:
-        ## add the following code to allow the user to freeze the some of the weights corresponding 
-        ## to those taken from an earlier model trained with the original target histograms
-        ## presumably -- this leaves either the perturbative filter "fixed" and lets the 
-        ## learning focus on the non-perturbative features, so get started faster, or vice versa
-        ct = 0
-        for child in model_to_update.children():
-            if ct < len(update_dict):
-                for param in child.parameters():
-                    param.requires_grad = False 
-            ct += 1
-        print('we also froze {} weights'.format(ct))
+        for k, v in model_to_update.named_children():
+            if ((k+'.weight' in checkpoint['model'].keys()) | (k+'.bias' in checkpoint['model'].keys())) & (k != 'Dropout'):
+                v.weight.requires_grad = False
+                v.bias.requires_grad = False
+                ct += 1
+                        
+    print('we also froze {} weights'.format(ct))
     
-    print('Of the '+str(len(model_to_update.state_dict()))+' parameter layers to update in the current model, '+str(len(update_dict))+' were loaded')
+    print('Of the '+str(len(model_to_update.state_dict())/2)+' parameter layers to update in the current model, '+str(len(update_dict)/2)+' were loaded')
 
 
 def count_parameters(model):
