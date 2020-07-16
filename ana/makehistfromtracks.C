@@ -27,6 +27,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder) {
     TTree tout("kernel", "Output");
     DataKernelOut dk(&tout);
     DataPVsOut dt(&tout);
+    CoreReconTracksOut recon_out(&tout);
 
     for(int i=0; i<ntrack; i++) {
         dk.clear();
@@ -43,6 +44,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder) {
         std::cout << " " << tracks;
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
+        copy_in(recon_out,tracks);
 
         makez(tracks, dk);
 

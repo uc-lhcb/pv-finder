@@ -12,6 +12,10 @@ template <class T> struct CoreReconTracksIO : public CoreIO<T, double> {
     Vec recon_tx{this, "recon_tx"};
     Vec recon_ty{this, "recon_ty"};
     Vec recon_chi2{this, "recon_chi2"};
+    Vec recon_pocax{this, "recon_pocax"};
+    Vec recon_pocay{this, "recon_pocay"};
+    Vec recon_pocaz{this, "recon_pocaz"};
+    Vec recon_sigmapocaxy{this, "recon_sigmapocaxy"};
 };
 
 using CoreReconTracksIn = CoreReconTracksIO<In>;

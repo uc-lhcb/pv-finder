@@ -149,11 +149,20 @@ inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
 
     self.clear();
     for(int i = 0; i < tracks.n(); i++) {
-        self.recon_x->push_back(tracks.at(i).trajectory().point().x());
-        self.recon_y->push_back(tracks.at(i).trajectory().point().y());
-        self.recon_z->push_back(tracks.at(i).trajectory().point().z());
-        self.recon_tx->push_back(tracks.at(i).trajectory().xslope());
-        self.recon_ty->push_back(tracks.at(i).trajectory().yslope());
-        self.recon_chi2->push_back(tracks.at(i).get_chi2());
+        const auto ttraj = tracks.at(i).trajectory();
+        const auto trajp = ttraj.point();
+        const auto bpoca = ttraj.beamPOCA();
+        const auto tchi2 = tracks.at(i).get_chi2();
+
+        self.recon_x->push_back(trajp.x());
+        self.recon_y->push_back(trajp.y());
+        self.recon_z->push_back(trajp.z());
+        self.recon_tx->push_back(ttraj.xslope());
+        self.recon_ty->push_back(ttraj.yslope());
+        self.recon_chi2->push_back(tchi2);
+        self.recon_pocax->push_back(bpoca.x());
+        self.recon_pocay->push_back(bpoca.y());
+        self.recon_pocaz->push_back(bpoca.z());
+        self.recon_sigmapocaxy->push_back(tchi2/3.<=2. ? 0.05 : 0.05+(tchi2-2.)*0.05/4.);
     }
 }
