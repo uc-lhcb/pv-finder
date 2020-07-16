@@ -31,6 +31,15 @@ OutputData = namedtuple(
         "sv_loc",
         "sv_ntracks",
         "sv_cat",
+        "recon_x",
+        "recon_y",
+        "recon_z",
+        "recon_tx",
+        "recon_ty",
+        "recon_pocax",
+        "recon_pocay",
+        "recon_pocaz",
+        "recon_sigmapocaxy",
     ),
 )
 
@@ -51,6 +60,15 @@ def concatenate_data(outputs):
         concatenate(o.sv_loc for o in outputs),
         concatenate(o.sv_ntracks for o in outputs),
         concatenate(o.sv_cat for o in outputs),
+        concatenate(o.recon_x for o in outputs),
+        concatenate(o.recon_y for o in outputs),
+        concatenate(o.recon_z for o in outputs),
+        concatenate(o.recon_tx for o in outputs),
+        concatenate(o.recon_ty for o in outputs),
+        concatenate(o.recon_pocax for o in outputs),
+        concatenate(o.recon_pocay for o in outputs),
+        concatenate(o.recon_pocaz for o in outputs),
+        concatenate(o.recon_sigmapocaxy for o in outputs),
     )
 
 
@@ -77,6 +95,15 @@ def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
     akdh5["sv_loc"] = od.sv_loc
     akdh5["sv_ntracks"] = od.sv_ntracks
     akdh5["sv_cat"] = od.sv_cat
+    akdh5["recon_x"] = od.recon_x
+    akdh5["recon_y"] = od.recon_y
+    akdh5["recon_z"] = od.recon_z
+    akdh5["recon_tx"] = od.recon_tx
+    akdh5["recon_ty"] = od.recon_ty
+    akdh5["recon_pocax"] = od.recon_pocax
+    akdh5["recon_pocay"] = od.recon_pocay
+    akdh5["recon_pocaz"] = od.recon_pocaz
+    akdh5["recon_sigmapocaxy"] = od.recon_sigmapocaxy
 
     return dset
 
@@ -129,6 +156,15 @@ def process_root_file(filepath, sd_1=0.1):
         sv_loc_y = tree["sv_loc_y"].array()
         sv_ntrks = tree["sv_ntrks"].array()
         sv_cat = tree["sv_cat"].array()
+        recon_x = tree["recon_x"].array()
+        recon_y = tree["recon_y"].array()
+        recon_z = tree["recon_z"].array()
+        recon_tx = tree["recon_tx"].array()
+        recon_ty = tree["recon_ty"].array()
+        recon_pocax = tree["recon_pocax"].array()
+        recon_pocay = tree["recon_pocay"].array()
+        recon_pocaz = tree["recon_pocaz"].array()
+        recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
 
         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
@@ -257,4 +293,13 @@ def process_root_file(filepath, sd_1=0.1):
         sv_loc,
         sv_ntrks,
         sv_cat,
+        recon_x,
+        recon_y,
+        recon_z,
+        recon_tx,
+        recon_ty,
+        recon_pocax,
+        recon_pocay,
+        recon_pocaz,
+        recon_sigmapocaxy,
     )
