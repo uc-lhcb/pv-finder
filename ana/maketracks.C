@@ -9,7 +9,7 @@
 #include <iostream>
 
 /// Convert raw data to tracks
-void make_tracks(TString input, TString tree_name, TString folder) {
+void make_tracks(TString input, TString tree_name, TString folder, const bool verbose_track_info) {
     TFile f(folder + "/pv_"+input+".root");
     TTree *t = (TTree*) f.Get(tree_name);
     if(t == nullptr)
@@ -23,7 +23,9 @@ void make_tracks(TString input, TString tree_name, TString folder) {
     TTree tout("trks", "Tracks");
     DataPVsOut dt(&tout);
 
-    CoreReconTracksOut recon_out(&tout);
+    CoreReconTracksOut recon_out(&tout,{"recon_x","recon_y","recon_z","recon_tx","recon_ty","recon_chi2"});
+    if(verbose_track_info)
+        recon_out.extend({"recon_pocax","recon_pocay","recon_pocaz","recon_sigmapocaxy"});
     CoreNHitsOut nhits_out(&tout);
     CorePVsOut pvs_out(&tout);
     CoreTruthTracksOut truth_out(&tout);
@@ -42,7 +44,7 @@ void make_tracks(TString input, TString tree_name, TString folder) {
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
 
-        copy_in(recon_out, tracks);
+        copy_in(recon_out, tracks, verbose_track_info);
         pvs_out.copy_in(data_pvs);
         truth_out.copy_in(data_trks);
         nhits_out.copy_in(data_nhits);

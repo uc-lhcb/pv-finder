@@ -102,13 +102,13 @@ class AnyTracks {
     }
 
     AnyTracks(const CoreReconTracksIn &trks) {
-        for(int i = 0; i < trks.recon_x->size(); i++) {
-            _tracks.emplace_back(trks.recon_x->at(i),
-                                 trks.recon_y->at(i),
-                                 trks.recon_z->at(i),
-                                 trks.recon_tx->at(i),
-                                 trks.recon_ty->at(i),
-                                 trks.recon_chi2->at(i));
+        for(int i = 0; i < trks["recon_x"]->size(); i++) {
+            _tracks.emplace_back(trks["recon_x"]->at(i),
+                                 trks["recon_y"]->at(i),
+                                 trks["recon_z"]->at(i),
+                                 trks["recon_tx"]->at(i),
+                                 trks["recon_ty"]->at(i),
+                                 trks["recon_chi2"]->at(i));
         }
     }
 
@@ -145,24 +145,26 @@ inline std::ostream &operator<<(std::ostream &input, const AnyTracks &self) {
     return input << "AnyTracks: " << self.n();
 }
 
-inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
+inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks, const bool& verbose) {
 
     self.clear();
     for(int i = 0; i < tracks.n(); i++) {
         const auto ttraj = tracks.at(i).trajectory();
         const auto trajp = ttraj.point();
-        const auto bpoca = ttraj.beamPOCA();
         const auto tchi2 = tracks.at(i).get_chi2();
 
-        self.recon_x->push_back(trajp.x());
-        self.recon_y->push_back(trajp.y());
-        self.recon_z->push_back(trajp.z());
-        self.recon_tx->push_back(ttraj.xslope());
-        self.recon_ty->push_back(ttraj.yslope());
-        self.recon_chi2->push_back(tchi2);
-        self.recon_pocax->push_back(bpoca.x());
-        self.recon_pocay->push_back(bpoca.y());
-        self.recon_pocaz->push_back(bpoca.z());
-        self.recon_sigmapocaxy->push_back(tchi2/3.<=2. ? 0.05 : 0.05+(tchi2-2.)*0.05/4.);
+        self["recon_x"]->push_back(trajp.x());
+        self["recon_y"]->push_back(trajp.y());
+        self["recon_z"]->push_back(trajp.z());
+        self["recon_tx"]->push_back(ttraj.xslope());
+        self["recon_ty"]->push_back(ttraj.yslope());
+        self["recon_chi2"]->push_back(tchi2);
+        if(verbose){
+            const auto bpoca = ttraj.beamPOCA();
+            self["recon_pocax"]->push_back(bpoca.x());
+            self["recon_pocay"]->push_back(bpoca.y());
+            self["recon_pocaz"]->push_back(bpoca.z());
+            self["recon_sigmapocaxy"]->push_back(tchi2/3.<=2. ? 0.05 : 0.05+(tchi2-2.)*0.05/4.);
+        }
     }
 }

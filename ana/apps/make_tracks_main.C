@@ -18,7 +18,10 @@ int main(int argc, char** argv) {
     TString folder = "../../dat";
     app.add_option("folder,--folder", folder);
 
+    bool verbose_track_info = false;
+    app.add_option("verbose_track_info,--verbose_track_info", verbose_track_info);
+
     CLI11_PARSE(app, argc, argv);
 
-    make_tracks(base, tree, folder);
+    make_tracks(base, tree, folder, verbose_track_info);
 }

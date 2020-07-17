@@ -21,7 +21,7 @@ AnyTracks* fcn_global_tracks = nullptr;
 
 
 /// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
-void makehist(TString input, TString tree_name, TString folder) {
+void makehist(TString input, TString tree_name, TString folder, const bool write_track_info, const bool verbose_track_info) {
 
     TFile f(folder + "/pv_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -36,7 +36,9 @@ void makehist(TString input, TString tree_name, TString folder) {
     TTree tout("kernel", "Output");
     DataKernelOut dk(&tout);
     DataPVsOut dt(&tout);
-    CoreReconTracksOut recon_out(&tout);
+    CoreReconTracksOut recon_out(&tout,{"recon_x","recon_y","recon_z","recon_tx","recon_ty","recon_chi2"});
+    if(verbose_track_info)
+        recon_out.extend({"recon_pocax","recon_pocay","recon_pocaz","recon_sigmapocaxy"});
 
     for(int i=0; i<ntrack; i++) {
         dk.clear();
@@ -53,10 +55,11 @@ void makehist(TString input, TString tree_name, TString folder) {
         std::cout << " " << tracks;
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
-        copy_in(recon_out, tracks);
+        if(write_track_info) 
+            copy_in(recon_out, tracks, verbose_track_info);
 
         makez(tracks, dk);
-
+        
         std::cout << " " << dt << std::endl;
         tout.Fill();
     }
