@@ -27,15 +27,15 @@ def main(output_fname, files):
     for f in files:
         assert f.exists(), f"{f} must be an existing file"
 
-    outputs = [process_root_file(f) for f in files]
+    outputs = [process_root_file(f,verbose_tracking=False) for f in files]
 
     # Convert list of OutputDatas to one OutData
     with Timer(start="Concatinating..."):
-        outputs = concatenate_data(outputs)
+        outputs = concatenate_data(outputs,verbose_tracking=False)
 
     with Timer(start=f"Saving to {output_fname}..."):
         with h5py.File(str(output_fname), "w") as hf:
-            save_data_hdf5(hf, outputs, files)
+            save_data_hdf5(hf, outputs, files,verbose_tracking=False)
 
 
 if __name__ == "__main__":
