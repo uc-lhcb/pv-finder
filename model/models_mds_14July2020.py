@@ -2,7 +2,10 @@ from torch import nn
 import torch
 
 '''
-Convolutional blocks used for the different UNet models
+UNet model with the following properties:
+- 3 skip connections
+**- 1/2 -> 1/4 -> 1/4 downsample rates for each layer** (i.e. increased MaxPooling to k=4, s=4 on x3, x4)
+- Kernel size decay (i.e. kernel size in convolutional layers proportionally decreases with downsampling)
 '''
 class ConvBNrelu(nn.Sequential):
     """convolution => [BN] => ReLU"""
@@ -12,13 +15,6 @@ class ConvBNrelu(nn.Sequential):
         nn.BatchNorm1d(out_channels),
         nn.ReLU())
     
-class ConvBNrelustride(nn.Sequential):
-    """convolution => [BN] => ReLU"""
-    def __init__(self, in_channels, out_channels, k_size):
-        super(ConvBNrelu, self).__init__(
-            nn.Conv1d(in_channels, out_channels, k_size, stride=2, padding=(k_size-2)//2),
-            nn.BatchNorm1d(out_channels),
-            nn.ReLU())
 
 class Up(nn.Sequential):
     def __init__(self, inc, outc, k_size, s):
@@ -27,12 +23,6 @@ class Up(nn.Sequential):
             ConvBNrelu(outc, outc, k_size=5))
 
 
-'''
-UNet model with the following properties:
-- 3 skip connections
-**- 1/2 -> 1/4 -> 1/4 downsample rates for each layer** (i.e. increased MaxPooling to k=4, s=4 on x3, x4)
-- Kernel size decay (i.e. kernel size in convolutional layers proportionally decreases with downsampling)
-'''
 class UNet3SC(nn.Module):
     def __init__(self, n=24):
         super(UNet3SC, self).__init__()
@@ -72,21 +62,46 @@ UNet model with the following properties:
 **- No MaxPool layers; all downsampling occurs in the convolutional layers** (i.e. stride=2)
 - Kernel size decay (i.e. kernel size in convolutional layers proportionally decreases with downsampling)
 '''
+class ConvBNrelu1(nn.Sequential):
+    """convolution => [BN] => ReLU"""
+    def __init__(self, in_channels, out_channels, k_size):
+        super(ConvBNrelu1, self).__init__(
+            nn.Conv1d(in_channels, out_channels, k_size, stride=2, padding=(k_size-2)//2),
+            nn.BatchNorm1d(out_channels),
+            nn.ReLU())
+    
+class ConvBNreluSame(nn.Sequential):
+    """preserves dimension of input"""
+    def __init__(self, in_channels, out_channels, k_size):
+        super(ConvBNreluSame, self).__init__(
+            nn.Conv1d(in_channels, out_channels, k_size, stride=1, padding=(k_size-1)//2),
+            nn.BatchNorm1d(out_channels),
+            nn.ReLU())
+    
+class Up1(nn.Sequential):
+    def __init__(self, inc, outc, k_size):
+        super().__init__(
+            nn.ConvTranspose1d(inc, outc, kernel_size=2, stride=2),
+            nn.Conv1d(outc, outc, k_size, stride=1, padding=(k_size-1)//2),
+            nn.BatchNorm1d(outc),
+            nn.ReLU())
+
+
 class UNet4SC(nn.Module):
     def __init__(self, n=24):
         super(UNet4SC, self).__init__()
         
-        self.rcbn1 = ConvBNrelu(1, n, k_size=25)
-        self.rcbn2 = ConvBNrelustride(n, n, k_size=12)
-        self.rcbn3 = ConvBNrelustride(n, n, k_size=6)
-        self.rcbn4 = ConvBNrelustride(n, n, k_size=4)
-        self.rcbn5 = ConvBNrelustride(n, n, k_size=4)
+        self.rcbn1 = ConvBNreluSame(1, n, k_size=25)
+        self.rcbn2 = ConvBNrelu1(n, n, k_size=12)
+        self.rcbn3 = ConvBNrelu1(n, n, k_size=6)
+        self.rcbn4 = ConvBNrelu1(n, n, k_size=4)
+        self.rcbn5 = ConvBNrelu1(n, n, k_size=4)
 
-        self.up1 = Up(n, n, k_size=3)
-        self.up2 = Up(n*2, n, k_size=3)
-        self.up2 = Up(n*2, n, k_size=7)
-        self.up3 = Up(n*2, n, k_size=13)
-        self.up4 = Up(n*2, n, k_size=25)
+        self.up1 = Up1(n, n, k_size=3)
+        self.up2 = Up1(n*2, n, k_size=3)
+        self.up2 = Up1(n*2, n, k_size=7)
+        self.up3 = Up1(n*2, n, k_size=13)
+        self.up4 = Up1(n*2, n, k_size=25)
         self.outc = nn.Conv1d(n*2, 1, 3, padding=1)
 
     def forward(self, x):
