@@ -96,32 +96,23 @@ model: {model}"""
 
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
 
-    print(f"epoch_iterator created")
 
     # Loop for n_epochs
     for epoch in epoch_iterator:
-        print(f"another epoch in epoch_iterator loop")
         training_start_time = time.time()
 
         # Run the training step
-        print("about to execute total_train_loss = train( ...")
         total_train_loss = train(
             model, loss, train_loader, optimizer, device, progress=progress
         )
-        print("returned from executing total_train_loss = train( ...")
         cost_epoch = total_train_loss / len(train_loader)
-        print("cost_epoch = ",cost_epoch)
 
         # At the end of the epoch, do a pass on the validation set
-        print("about to execute total_val_loss = validate( ... ")
         total_val_loss = validate(model, loss, val_loader, device)
-        print("total_val_loss = ", total_val_loss)
         val_epoch = total_val_loss / len(val_loader)
-        print("val_epoch = ", val_epoch)
 
         # Record total time
         time_epoch = time.time() - training_start_time
-        print("time_epoch = ",time_epoch)
 
         # Pretty print a description
         if hasattr(epoch_iterator, "postfix"):
@@ -139,7 +130,6 @@ model: {model}"""
 
 def train(model, loss, loader, optimizer, device, progress):
     total_loss = 0.0
-    print("enter train(...  ")
 
     # switch to train mode
     model.train()
@@ -154,7 +144,6 @@ def train(model, loss, loader, optimizer, device, progress):
         leave=False,
         file=sys.stderr,
     )
-    print("created loader = progress ...  ")
 
     for inputs, labels in loader:
         if inputs.device != device:
