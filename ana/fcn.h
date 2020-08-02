@@ -80,8 +80,8 @@ inline double kernelMax(Point &pv) {
     // reset
     min->mnrset(1);
 
-    min->mnparm(0, "PVX", pv.x(), 0.01, -10 * 0.055, 10 * 0.055, iflag);
-    min->mnparm(1, "PVY", pv.y(), 0.01, -10 * 0.055, 10 * 0.055, iflag);
+    min->mnparm(0, "PVX", pv.x(), 0.01, -2, 2, iflag);
+    min->mnparm(1, "PVY", pv.y(), 0.01, -2, 2, iflag);
     min->mnparm(2, "PVZ", pv.z(), 0, 0, 0, iflag);
 
     arglist[0] = 1000;

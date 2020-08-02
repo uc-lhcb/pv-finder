@@ -21,7 +21,7 @@ AnyTracks* fcn_global_tracks = nullptr;
 
 
 /// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
-void makehist(TString input, TString tree_name, TString folder) {
+void makehist(TString input, TString tree_name, TString folder, int nevents) {
 
     TFile f(folder + "/pv_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -30,7 +30,7 @@ void makehist(TString input, TString tree_name, TString folder) {
 
     TFile out(folder + "/kernel_"+input+".root", "RECREATE");
 
-    int ntrack = t->GetEntries();
+    int ntrack = nevents<1 ? t->GetEntries() : nevents;
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
 
     TTree tout("kernel", "Output");

@@ -10,9 +10,7 @@
 
 void makez(AnyTracks& tracks, DataKernelOut& dk);
 
-/// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
-/// Or run runall.sh
-void makehistfromtracks(TString input, TString tree_name, TString folder) {
+void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
 
     TFile f(folder + "/trks_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -21,7 +19,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder) {
 
     TFile out(folder + "/kernel_"+input+".root", "RECREATE");
 
-    int ntrack = t->GetEntries();
+    int ntrack = nevents<1 ? t->GetEntries() : nevents;
     std::cout << "Number of entries to read in: " << ntrack << std::endl;
 
     TTree tout("kernel", "Output");

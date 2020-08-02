@@ -48,10 +48,13 @@ inline void compute_over(AnyTracks &any_tracks, std::function<void(int, float, f
         if(!any_tracks.run())
             continue;
 
-        for(double x = -0.4; x <= 0.41; x += 0.1) {
-            for(double y = -0.4; y <= 0.41; y += 0.1) {
+        for(double x = -0.8; x <= 0.81; x += 0.1) {
+            for(double y = -0.8; y <= 0.81; y += 0.1) {
                 pv.set(x, y, z);
                 double val = kernel(pv);
+                // estimate beam width (3 sigma) to be 240 micron
+                constexpr auto beam_width = .24;
+                if(auto rho = sqrt(x*x+y*y); rho>beam_width) val*=beam_width/rho;
                 if(val > kmax) {
                     kmax = val;
                     xmax = x;

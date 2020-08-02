@@ -120,7 +120,7 @@ class AnyTracks {
         double x, y;
         for(int i = 0; i < n(); i++) {
             _tracks[i].trajectory().getXY(z, x, y);
-            if(abs(x) < 0.5 && abs(y) < 0.5) {
+            if(abs(x) < 2 && abs(y) < 2) {
                 if(i < _tmin)
                     _tmin = i;
                 if(i > _tmax)

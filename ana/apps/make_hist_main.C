@@ -1,7 +1,7 @@
 #include <TString.h>
 #include "CLI11.hpp"
 
-void makehist(TString input, TString tree, TString folder);
+void makehist(TString input, TString tree, TString folder, int nevents);
 
 int main(int argc, char** argv) {
 
@@ -17,7 +17,10 @@ int main(int argc, char** argv) {
     TString folder = "../../dat";
     app.add_option("folder,--folder", folder);
 
+    int nevents = 0;
+    app.add_option("nevents,--nevents", nevents);
+
     CLI11_PARSE(app, argc, argv);
 
-    makehist(base, tree, folder);
+    makehist(base, tree, folder, nevents);
 }

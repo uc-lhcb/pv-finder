@@ -27,8 +27,8 @@ class TripletBase {
         double dx, dy;
         _trajectory.getIPxy(pv, dx, dy);
 
-        if(abs(dx) > 0.5 || abs(dy) > 0.5)
-            return 0;
+        //if(abs(dx) > 0.5 || abs(dy) > 0.5)
+        //   return 0;
 
         double sigma = 0.05;
 
