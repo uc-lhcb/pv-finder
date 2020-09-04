@@ -1,4 +1,5 @@
 import torch
+import matplotlib.pyplot as plt
 
 # how to define our cost function
 class Loss(torch.nn.Module):
@@ -28,10 +29,17 @@ class Loss(torch.nn.Module):
         nFeatures = 4000
         nEvts = y.shape[0]
 ##        print("nEvts = ", nEvts)
-        y = y.view(nEvts,nFeatures,-1)
+##        y = y.view(nEvts,nFeatures,-1)
+        y = y.view(nEvts,-1,nFeatures)
+        y = y.transpose(1,2) 
+
 ##        print("after view, y.shape = ", y.shape)
         y_kde = y[:,:,0]
 ##        print("y_kde.shape = ",y_kde.shape)
+##        y_kde = y[0,:,0].cpu().numpy()
+##        plt.figure()
+##        plt.plot(y_kde, color="r")
+##        plt.show()
 
         # Compute r, only including non-nan values. r will probably be shorter than x and y.
         valid = ~torch.isnan(y_kde)
