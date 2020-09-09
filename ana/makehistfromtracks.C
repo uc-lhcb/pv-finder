@@ -8,7 +8,13 @@
 
 #include <iostream>
 
-void makez(AnyTracks& tracks, DataKernelOut& dk);
+void makez(AnyTracks& tracks, DataKernelOut& dk){
+    compute_over(tracks, [&dk](int b, float kernel, float x, float y){
+        dk.zdata[b] = kernel;
+        dk.xmax[b] = (dk.zdata[b]==0 ? 0.f : x);
+        dk.ymax[b] = (dk.zdata[b]==0 ? 0.f : y);
+    });
+}
 
 void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
 

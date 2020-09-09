@@ -1,7 +1,5 @@
 #pragma once
 
-#include <TVector3.h>
-
 #include "point.h"
 
 class Trajectory {

@@ -139,6 +139,12 @@ class AnyTracks {
 
     const TripletBase &at(int i) const { return _tracks[i]; }
     int n() const { return _tracks.size(); }
+
+    std::vector<Trajectory> trajectories ( ) const {
+      std::vector<Trajectory> trjs;
+      std::transform(_tracks.begin(), _tracks.end(), std::back_inserter(trjs),[](auto const& triplet){ return triplet.trajectory(); } );
+      return trjs;
+    }
 };
 
 inline std::ostream &operator<<(std::ostream &input, const AnyTracks &self) {

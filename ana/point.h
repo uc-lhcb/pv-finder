@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TVector3.h"
+
 class Point {
 
   protected:
@@ -27,4 +29,6 @@ class Point {
         double dz = p1._z - p2._z;
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
+
+    TVector3 to_vec() const { return TVector3(_x,_y,_z); }
 };

@@ -17,7 +17,7 @@ void makez(AnyTracks& tracks, DataKernelOut& dk){
 }
 
 // This is an (ugly) global pointer so that minuit can run a plain function
-AnyTracks* fcn_global_tracks = nullptr;
+//AnyTracks* fcn_global_tracks = nullptr;
 
 
 /// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
