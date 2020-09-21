@@ -26,7 +26,6 @@ inline void FCN(Int_t &num_par, Double_t *grad, Double_t &f, Double_t *pars, Int
     AnyTracks *tracks = fcn_global_tracks;
 
     for(int i = tracks->tmin(); i <= tracks->tmax(); i++) {
-        // Compute the PDF for the current track at the current location (by integer track number)
         double pdf = tracks->at(i).pdf(pv);
 
         // Sum PDF

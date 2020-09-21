@@ -1,12 +1,14 @@
 #include "fcn.h"
 #include "data.h"
-#include "compute_over.h"
+//#include "compute_over.h"
 
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1.h>
 
 #include <iostream>
+
+inline AnyTracks make_tracks(const CoreHitsIn &data);
 
 /// Convert raw data to tracks
 void make_tracks(TString input, TString tree_name, TString folder) {

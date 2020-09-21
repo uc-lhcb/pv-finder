@@ -52,4 +52,8 @@ class Ellipsoid {
     void print() const {
       printf("POCA ellipsoid Info:   center (%+6.3f,%+6.3f,%+6.3f)  zmin %+6.3f  zmax %+6.3f\n",_center.x(),_center.y(),_center.z(),_zmin,_zmax);
     }
+    TVector3 minor_axis1() const {return _minor_axis1;}
+    TVector3 minor_axis2() const {return _minor_axis2;}
+    TVector3 major_axis () const {return _major_axis;}
+    TVector3 center     () const {return _center;}
 };

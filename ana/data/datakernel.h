@@ -11,10 +11,10 @@ class DataKernelOut {
     std::array<float, 4000> xmax{};
     std::array<float, 4000> ymax{};
 
-    DataKernelOut(TTree *tree) : t(tree) {
-        t->Branch("zdata", zdata.data(), "zdata[4000]/F");
-        t->Branch("xmax", xmax.data(), "xmax[4000]/F");
-        t->Branch("ymax", ymax.data(), "ymax[4000]/F");
+    DataKernelOut(TTree *tree, const std::string&& prefix) : t(tree) {
+        t->Branch((prefix+"zdata").data(), zdata.data(), (prefix+"zdata[4000]/F").data());
+        t->Branch((prefix+"xmax").data(),  xmax.data(),  (prefix+"xmax[4000]/F").data());
+        t->Branch((prefix+"ymax").data(),  ymax.data(),  (prefix+"ymax[4000]/F").data());
     }
 
     void clear() {
