@@ -25,7 +25,7 @@ class Up_A(nn.Sequential):
         )
 
 class UNet_A(nn.Module):
-    def __init__(self, n=32):
+    def __init__(self, n=48):
         super(UNet_A, self).__init__()
         
         self.block1 = ConvBNRelu_A(1, n, kernel_size=25)
@@ -83,7 +83,7 @@ class Up_B(nn.Sequential):
 
 class UNet_B(nn.Module):
     def __init__(self, n=24):
-        super(UNet3SC, self).__init__()
+        super(UNet_B, self).__init__()
         self.d2 = nn.MaxPool1d(kernel_size=2, stride=2)
         self.d4 = nn.MaxPool1d(kernel_size=4, stride=4)
         
@@ -207,7 +207,7 @@ class Up_D(nn.Sequential):
 
 
 class UNet_D(nn.Module):
-    def __init__(self, n=24):
+    def __init__(self, n=18):
         super(UNet_D, self).__init__()
         self.d2 = nn.MaxPool1d(kernel_size=2, stride=2)
         self.d4 = nn.MaxPool1d(kernel_size=4, stride=4)
