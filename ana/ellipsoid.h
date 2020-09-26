@@ -6,10 +6,10 @@ class Ellipsoid {
 
   private:
     TVector3 _center, _minor_axis1, _minor_axis2, _major_axis;
-    double   _zmin, _zmax;
+    double   _zmin, _zmax, _determinant;
 
   public:
-    Ellipsoid() : _center(), _minor_axis1(), _minor_axis2(), _major_axis(), _zmin(0), _zmax(0) {}
+    Ellipsoid() : _center(), _minor_axis1(), _minor_axis2(), _major_axis(), _zmin(0.), _zmax(0.), _determinant(0.) {}
 
     Ellipsoid(const Trajectory& t1, const Trajectory& t2, const double& road_error = 0.0566) {
       //##  the error ellipsoid of the point of closest approach of L2
@@ -33,6 +33,7 @@ class Ellipsoid {
       _major_axis        = (road_error/std::tan(v1.Angle(v2)))*xhat;
       _zmin              = _center.z()-3*_major_axis.z();//the assumption that the major axis has the largest ellipsoid z component should be good enough
       _zmax              = _center.z()+3*_major_axis.z();
+      _determinant       = road_error*road_error*road_error/std::tan(v1.Angle(v2));
     }
 
     double pdf(Point const& scan_point) const {
@@ -45,7 +46,8 @@ class Ellipsoid {
       auto const chisq = std::pow(xvec.Dot(_minor_axis1.Unit()),2)/_minor_axis1.Mag2() +
                          std::pow(xvec.Dot(_minor_axis2.Unit()),2)/_minor_axis2.Mag2() +
                          std::pow(xvec.Dot(_major_axis.Unit()),2)/_major_axis.Mag2();
-      return std::exp(-0.5*chisq);
+
+      return std::exp(-0.5*chisq)/std::sqrt(_determinant);
     }
     double zmin() const {return _zmin;}
     double zmax() const {return _zmax;}

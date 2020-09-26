@@ -70,13 +70,13 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         // do finer grid search taking ninterxy (3) steps left/up/forward, and ninterxy (3) steps right/down/backward
         // with size interxy (10 microns) from the current best point
         for(auto fbinx = -ninterxy; fbinx <= ninterxy; fbinx++) {
-            if(fbinx == 0) continue; // we have this point already
-            for(auto fbiny = -ninterxy; fbiny <= ninterxy; fbiny++) {
-                if(fbiny == 0) continue; // we have this point already
-                Point p(best_first_scan.x() + fbinx * ninterxy, best_first_scan.y() + fbiny * ninterxy, z);
-                //call the lambda to set kernel_value values and point if p is the best
-                eval_pdf_set_kernel_maximum_and_position(p);
-            }
+          if(fbinx == 0) continue;// we have this point already
+          for(auto fbiny = -ninterxy; fbiny <= ninterxy; fbiny++) {
+            if(fbiny == 0) continue; // we have this point already
+            Point p(best_first_scan.x() + fbinx * interxy, best_first_scan.y() + fbiny * interxy, z);
+            //call the lambda to set kernel_value values and point if p is the best
+            eval_pdf_set_kernel_maximum_and_position(p);
+          }
         }
         //set x and y of first kernel_value definition
         bestx[0]=best.x();
