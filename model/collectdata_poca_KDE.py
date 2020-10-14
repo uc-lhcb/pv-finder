@@ -97,8 +97,10 @@ def collect_data(
 
 ## X_B is the KDE from summing probability square values; can be used to augment X_A
             X_B = np.asarray(XY["poca_KDE_B"])[:, np.newaxis, :].astype(dtype)
-            
-            Y = np.asarray(XY["pv_target"]).astype(dtype)
+ 
+##  restore "old name" for consistency when using with old KDE data           
+##            Y = np.asarray(XY["pv_target"]).astype(dtype)
+            Y = np.asarray(XY["pv"]).astype(dtype)
 
             if load_A_and_B and (not load_xy):
                 X = np.concatenate((X, X_B), axis=1)
@@ -188,8 +190,10 @@ def read_data(
 
 ## X_B is the KDE from summing probability square values; can be used to augment X_A
             X_B = np.asarray(XY["poca_KDE_B"])[:, np.newaxis, :].astype(dtype)
+##  no doubt, we will want a re-scaling here as well to get the range roughly 0 - 1
             
-            Y = np.asarray(XY["pv_target"]).astype(dtype)
+##            Y = np.asarray(XY["pv_target"]).astype(dtype)
+            Y = np.asarray(XY["pv"]).astype(dtype)
 
 
             ##  the code which wrote the files divided the Xmax and Ymax values by 2500,

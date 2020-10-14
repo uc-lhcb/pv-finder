@@ -129,7 +129,7 @@ def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
     if filelist:
         dset.attrs["files"] = np.string_(",".join(str(s.stem) for s in filelist))
 
-    hf.create_dataset("pv_target", data=od.Y[0], compression=compression)
+    hf.create_dataset("pv", data=od.Y[0], compression=compression)
     hf.create_dataset("sv", data=od.Y[2], compression=compression)
     hf.create_dataset("pv_other", data=od.Y[1], compression=compression)
     hf.create_dataset("sv_other", data=od.Y[3], compression=compression)
@@ -206,7 +206,10 @@ def process_root_file(filepath, sd_1=0.1):
 
 ## mds 10 Sept 2020        X = (tree["zdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
 ## mds 10 Sept 2020        Xmax = (tree["xmax"].array() / 2500.0).astype(
-        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
+##        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
+## in origdata_mdsA (for original KDEs) we divided by 2500
+## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
+        X = (tree["oldzdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
         Xmax = (tree["oldxmax"].array() / 2500.0).astype(
             dtype_X
         )  # Location of max z in x   <OPTIONAL>
@@ -258,10 +261,10 @@ def process_root_file(filepath, sd_1=0.1):
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
-        poca_KDE_A = (tree["POCAzdata"].array() / 50.0).astype(dtype_X) 
+        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X) 
         poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) 
         poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_B = (tree["POCA_sqzdata"].array() / 50.0).astype(dtype_X) 
+        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X) 
         poca_KDE_B_xMax = (tree["POCA_sqxmax"].array() / 2500.0).astype(dtype_X) 
         poca_KDE_B_yMax = (tree["POCA_sqymax"].array() / 2500.0).astype(dtype_X) 
         poca_KDE_A_xMax[0 == poca_KDE_A] = 0
