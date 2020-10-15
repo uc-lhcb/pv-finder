@@ -2,8 +2,6 @@ import torch
 from torch import nn
 import numpy as np
 
-# layers different from SimpleCNN5Layer_Ca are suffixed with an "a" to prevent weight freezing
-
 class SimpleCNN5Layer_Ca(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -400,8 +398,7 @@ class SimpleCNN5Layer_Ca_G(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+       
 class SimpleCNN5Layer_Ca_H(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -598,8 +595,7 @@ class SimpleCNN5Layer_Ca_I(nn.Module):
 
         x = self.softplus(x)
 
-        return x
-    
+        return x    
     
 class SimpleCNN5Layer_Ca_J(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
@@ -897,8 +893,7 @@ class SimpleCNN5Layer_Ca_L(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+      
 class SimpleCNN5Layer_Ca_M(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -997,8 +992,7 @@ class SimpleCNN5Layer_Ca_M(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+     
 class SimpleCNN5Layer_Ca_N(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -1098,7 +1092,6 @@ class SimpleCNN5Layer_Ca_N(nn.Module):
 
         return x
     
-    
 class SimpleCNN5Layer_Ca_O(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
@@ -1197,8 +1190,8 @@ class SimpleCNN5Layer_Ca_O(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+
+
 '''
 Benchmark network architecture from Dr. Sokoloff
 '''
@@ -2588,8 +2581,7 @@ class All_CNN6Layer_L(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+       
 '''
 Same as All_CNN6Layer_A but with low channel count (6-6-6-6-1) and a smaller kernel size (11-9-9-9-5)
 This is an unprincipled approach to reduce the network size.
@@ -2704,8 +2696,7 @@ class All_CNN6Layer_M(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+       
 '''
 Same as All_CNN6Layer_A but with low channel count (16-9-9-9-1) and a smaller kernel size (15-11-11-11-5)
 This is an unprincipled approach to reduce the network size.
@@ -2820,8 +2811,7 @@ class All_CNN6Layer_N(nn.Module):
         x = self.softplus(x)
 
         return x
-    
-    
+        
 '''
 Same as All_CNN6Layer_A but with low channel count (16-9-9-9-1) and a smaller kernel size (35-25-25-25-10)
 This is an unprincipled approach to reduce the network size.
