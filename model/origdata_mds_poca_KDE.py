@@ -4,7 +4,7 @@
 ##  and two poca KDEs, one summing the probabilities and another the probability^2 values.
 ##  He has also scaled the original KDEs by a 100 (divided them by 100) so they
 ##  are typically the same magnitude as the new poca KDEs.
-##  [the probabilities are calculated using exp(0.5*chisq) where we probably 
+##  [the probabilities are calculated using exp(0.5*chisq) where we probably
 ##  need to additionally account for sqrt{determinant of the inverse covariance
 ##  matrix} and (perhaps) the "usual" (2*pi)^{=3/2}.]
 ##
@@ -244,11 +244,11 @@ def process_root_file(filepath, sd_1=0.1):
 ## mds        recon_pocay = tree["recon_pocay"].array()
 ## mds        recon_pocaz = tree["recon_pocaz"].array()
 ## mds        recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
-## 200922 mds  add the following variables; note that the names of the 
+## 200922 mds  add the following variables; note that the names of the
 ##             Python variables differ from those of the ROOT variables
 ##  the "scaling" factors of 50.0 and 2500.0 may change after Marian
 ##  updates the KDE calculations to account for the determinants of
-##  the inverse covariance matrices. 
+##  the inverse covariance matrices.
         poca_x = tree["POCA_center_x"].array()
         poca_y = tree["POCA_center_y"].array()
         poca_z = tree["POCA_center_z"].array()
@@ -261,17 +261,17 @@ def process_root_file(filepath, sd_1=0.1):
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
-        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X) 
-        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X) 
-        poca_KDE_B_xMax = (tree["POCA_sqxmax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_B_yMax = (tree["POCA_sqymax"].array() / 2500.0).astype(dtype_X) 
+        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X)
+        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X)
+        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X)
+        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X)
+        poca_KDE_B_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) #POCA_sqxmax = POCAxmax
+        poca_KDE_B_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X)  #POCA_sqxmax = POCAxmax
         poca_KDE_A_xMax[0 == poca_KDE_A] = 0
         poca_KDE_A_yMax[0 == poca_KDE_A] = 0
         poca_KDE_B_xMax[0 == poca_KDE_B] = 0
         poca_KDE_B_yMax[0 == poca_KDE_B] = 0
-##  end of 200922 additions 
+##  end of 200922 additions
 
         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
@@ -427,4 +427,4 @@ def process_root_file(filepath, sd_1=0.1):
         poca_KDE_B,           ## KDE calculated from summing probability square values
         poca_KDE_B_xMax,      ## x value where poca_KDE_B was found
         poca_KDE_B_yMax,      ## y value where poca_KDE_B was found
-    ) 
+    )
