@@ -38,7 +38,7 @@ class UNet4SC(nn.Module):
     def __init__(self, n=24):
         super(UNet4SC, self).__init__()
         
-        self.rcbn1 = ConvBNreluSame(1, n, k_size=24)
+        self.rcbn1 = ConvBNreluSame(1, n, k_size=25)
         self.rcbn2 = ConvBNrelu(n, n, k_size=12)
         self.rcbn3 = ConvBNrelu(n, n, k_size=6)
         self.rcbn4 = ConvBNrelu(n, n, k_size=4)
