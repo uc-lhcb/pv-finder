@@ -408,6 +408,12 @@ def process_root_file(filepath, sd_1=0.1):
     print("poca_x.shape = ",poca_x.shape)
     print("poca_y.shape = ",poca_y.shape)
     print("poca_z.shape = ",poca_z.shape)
+    print("poca_KDE_A.shape = ",poca_KDE_A.shape)
+    print("poca_KDE_A_xMax.shape = ",poca_KDE_A_xMax.shape)
+    print("poca_KDE_A_yMax.shape = ",poca_KDE_A_yMax.shape)
+    print("poca_KDE_B.shape = ",poca_KDE_B.shape)
+    print("poca_KDE_B_xMax.shape = ",poca_KDE_B_xMax.shape)
+    print("poca_KDE_B_yMax.shape = ",poca_KDE_B_yMax.shape)
 
     return OutputData(
         X,
