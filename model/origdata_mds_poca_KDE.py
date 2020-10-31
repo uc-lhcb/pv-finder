@@ -210,6 +210,7 @@ def process_root_file(filepath, sd_1=0.1):
 ## in origdata_mdsA (for original KDEs) we divided by 2500
 ## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
         X = (tree["oldzdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
+        print("at creation, X.shape = ",X.shape)
         Xmax = (tree["oldxmax"].array() / 2500.0).astype(
             dtype_X
         )  # Location of max z in x   <OPTIONAL>
@@ -384,6 +385,29 @@ def process_root_file(filepath, sd_1=0.1):
 
     for msg in msgs:
         print(" ", msg)
+
+    print("X.shape = ",X.shape)
+    print("Y.shape = ",Y.shape)
+    print("Xmax.shape = ",Xmax.shape)
+    print("Ymax.shape = ",Ymax.shape)
+    print("pv_loc_x.shape = ",pv_loc_x.shape)
+    print("pv_loc_y.shape = ",pv_loc_y.shape)
+    print("pv_loc.shape = ",pv_loc.shape)
+    print("pv_ntrks.shape = ",pv_ntrks.shape)
+    print("pv_cat.shape = ", pv_cat.shape)
+    print("sv_loc_x.shape = ", sv_loc_x.shape)
+    print("sv_loc_y.shape = ", sv_loc_y.shape)
+    print("sv_loc.shape = ", sv_loc.shape)
+    print("sv_ntrks.shape = ", sv_ntrks.shape)
+    print("sv_cat.shape = ", sv_cat.shape)
+    print("recon_x.shape = ",recon_x.shape)
+    print("recon_y.shape = ",recon_y.shape)
+    print("recon_z.shape = ",recon_z.shape)
+    print("recon_tx.shape = ",recon_tx.shape)
+    print("recon_ty.shape = ",recon_ty.shape)
+    print("poca_x.shape = ",poca_x.shape)
+    print("poca_y.shape = ",poca_y.shape)
+    print("poca_z.shape = ",poca_z.shape)
 
     return OutputData(
         X,
