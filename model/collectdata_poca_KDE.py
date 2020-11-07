@@ -56,7 +56,7 @@ def collect_truth(*files, pvs=True):
     )
 
 
-def collect_data(
+def collect_data_poca(
     *files,
     batch_size=1,
     dtype=np.float32,
@@ -65,11 +65,12 @@ def collect_data(
     slice=None,
     load_xy=False,
     load_A_and_B=False,
+    load_XandXsq=False,
     **kargs,
 ):
     """
     This function collects data. It does not split it up. You can pass in multiple files.
-    Example: collect_data('a.h5', 'b.h5')
+    Example: collect_data_poca('a.h5', 'b.h5')
 
     batch_size: The number of events per batch
     dtype: Select a different dtype (like float16)
@@ -94,6 +95,7 @@ def collect_data(
 ## X_A is the KDE from summing probabilities
             X_A = np.asarray(XY["poca_KDE_A"])[:, np.newaxis, :].astype(dtype)
             X = X_A   ##  default is to use only the KDE from summing probabilities
+            Xsq = X ** 2  ## this simply squares each element of X
 
 ## X_B is the KDE from summing probability square values; can be used to augment X_A
             X_B = np.asarray(XY["poca_KDE_B"])[:, np.newaxis, :].astype(dtype)
@@ -102,6 +104,29 @@ def collect_data(
 ##            Y = np.asarray(XY["pv_target"]).astype(dtype)
             Y = np.asarray(XY["pv"]).astype(dtype)
 
+
+##  if we want to treat new KDE as input for old KDE infrerence engine, use
+##  load_XandXsq
+##  we will not want to use this moving forward, but it is necessary for
+##  testing with some old inference engines
+            if load_XandXsq and (not load_xy):
+                X = np.concatenate((X, Xsq), axis=1)
+
+            elif load_XandXsq and load_xy:
+                ##  the code which wrote the files divided the Xmax and Ymax values by 2500,
+                ##  just as the KDE value was divided by 2500. But the range is (nominally)
+                ##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
+                x = np.asarray(XY["Xmax"])[:, np.newaxis, :].astype(dtype)
+                x = 5000.0 * x
+                y = np.asarray(XY["Ymax"])[:, np.newaxis, :].astype(dtype)
+                y = 5000.0 * y
+                x[X == 0] = 0
+                y[X == 0] = 0
+                X = np.concatenate(
+                    (X, Xsq, x, y), axis=1
+                )  ## filling in axis with (X,Xsq,x,y)
+
+##  end of treating new KDE and input for old algs
             if load_A_and_B and (not load_xy):
                 X = np.concatenate((X, X_B), axis=1)
 
@@ -119,7 +144,7 @@ def collect_data(
                     (X, X_B, x, y), axis=1
                 )  ## filling in axis with (X,X_B,x,y)
 
-            elif load_xy and (not load_A_and_B):
+            elif load_xy and (not load_A_and_B) and (not load_XandXsq):
                 x = np.asarray(XY["poca_KDE_A_xMax"])[:, np.newaxis, :].astype(dtype)
                 y = np.asarray(XY["poca_KDE_A_yMax"])[:, np.newaxis, :].astype(dtype)
                 x[X == 0] = 0
