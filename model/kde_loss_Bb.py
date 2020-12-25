@@ -53,7 +53,27 @@ class Loss(torch.nn.Module):
         # a .mean(), since alpha can be a bit shorter than x and y due to masking.
         beta = alpha.sum() / 4000
 
-##  let's divide by the number of events in a batch so the
-##  return value is independent of the batch size
-        beta = beta/nEvts
-        return beta
+## let's add a chi-square type of term to give the values farther from zero
+## more weight in the cost function
+
+        sigma = 0.01
+        diff = torch.sub(x[valid],y_kde[valid])
+        diff = diff/sigma
+        chisq = torch.pow(diff,2)
+        ave_chisq = chisq.sum()/4000
+##
+## 201025 starting with a fairly well trained model that has only
+## beta and chisq terms in cost, normalize chi4 so it has (nominal)
+## weights similar to chisq
+        chi4 = 0.00001*torch.pow(diff,4)
+
+        ave_chi4 = chi4.sum()/4000.
+
+##  nEvts is the number of events in the batch; to get the average per events
+##  rather than per batch, divide by this number
+        ave_beta  = beta/nEvts
+        ave_chisq = ave_chisq/nEvts
+        ave_chi4  = ave_chi4/nEvts
+
+
+        return ave_chi4

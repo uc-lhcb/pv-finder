@@ -298,7 +298,7 @@ def process_root_file(filepath, sd_1=0.1):
                 (sv_loc[i][sv_cat[i] != 1], sv_ntrks[i][sv_cat[i] != 1]),
             )
 
-            if mds_counter < 10:
+            if mds_counter < 0:
 
                 print(" \n \n N_vals = ", N_vals)
 
@@ -323,7 +323,7 @@ def process_root_file(filepath, sd_1=0.1):
                 ## mds            sd = 0.001*pvRes  ## convert from microns (in TDR) to  mm (units used here)
 
                 entries = len(elements[0])
-                if mds_counter < 10:
+                if mds_counter < 0:
                     print(" \n \n \n elements =  ", elements)
                     print(" entries = ", entries)
                 for v_index in range(entries):
@@ -341,14 +341,14 @@ def process_root_file(filepath, sd_1=0.1):
                     nTrks = nTrks[test]
                     sd = sd[test]
 
-                    if mds_counter < 10:
+                    if mds_counter < 0:
                         print("\n \n n = ", n)
                         print(" \n centers = ", centers)
                         print(" nTrks  =       ", nTrks)
                         print(" sd     =       ", sd)
 
                     for mean, ntrk, pv_res in zip(centers, nTrks, sd):
-                        if mds_counter < 10:
+                        if mds_counter < 0:
                             print(" \n iterating  using zip(centers, nTrks, sd)  ")
                             print(" \n  mean = ", mean)
                             print(" ntrk   = ", ntrk)
@@ -363,7 +363,7 @@ def process_root_file(filepath, sd_1=0.1):
                         ##  with unit area at sd = 0.150 mm = 150 micron, and larger values (lower nTrk)
                         ##  altogether, this will make the target peaks more narrow and the areas larger as the
                         ##  number of tracks increases.
-                        if mds_counter < 10:
+                        if mds_counter < 0:
                             print("N_bin = ", N_bin)
                             print("mat = ", mat)
                             print("  values = ", values)
@@ -372,7 +372,7 @@ def process_root_file(filepath, sd_1=0.1):
                         populate = np.where(
                             (0.15 / pv_res) > 1, (0.15 / pv_res) * populate, populate
                         )
-                        if mds_counter < 10:
+                        if mds_counter < 0:
                             print(" populate = ", populate)
 
                         try:
@@ -383,37 +383,37 @@ def process_root_file(filepath, sd_1=0.1):
                                 f"Ignored hit at bin {N_bin} at {mean:.4g} in event {i}, column {n}"
                             )
 
-    for msg in msgs:
-        print(" ", msg)
-
-    print("X.shape = ",X.shape)
-    print("Y.shape = ",Y.shape)
-    print("Xmax.shape = ",Xmax.shape)
-    print("Ymax.shape = ",Ymax.shape)
-    print("pv_loc_x.shape = ",pv_loc_x.shape)
-    print("pv_loc_y.shape = ",pv_loc_y.shape)
-    print("pv_loc.shape = ",pv_loc.shape)
-    print("pv_ntrks.shape = ",pv_ntrks.shape)
-    print("pv_cat.shape = ", pv_cat.shape)
-    print("sv_loc_x.shape = ", sv_loc_x.shape)
-    print("sv_loc_y.shape = ", sv_loc_y.shape)
-    print("sv_loc.shape = ", sv_loc.shape)
-    print("sv_ntrks.shape = ", sv_ntrks.shape)
-    print("sv_cat.shape = ", sv_cat.shape)
-    print("recon_x.shape = ",recon_x.shape)
-    print("recon_y.shape = ",recon_y.shape)
-    print("recon_z.shape = ",recon_z.shape)
-    print("recon_tx.shape = ",recon_tx.shape)
-    print("recon_ty.shape = ",recon_ty.shape)
-    print("poca_x.shape = ",poca_x.shape)
-    print("poca_y.shape = ",poca_y.shape)
-    print("poca_z.shape = ",poca_z.shape)
-    print("poca_KDE_A.shape = ",poca_KDE_A.shape)
-    print("poca_KDE_A_xMax.shape = ",poca_KDE_A_xMax.shape)
-    print("poca_KDE_A_yMax.shape = ",poca_KDE_A_yMax.shape)
-    print("poca_KDE_B.shape = ",poca_KDE_B.shape)
-    print("poca_KDE_B_xMax.shape = ",poca_KDE_B_xMax.shape)
-    print("poca_KDE_B_yMax.shape = ",poca_KDE_B_yMax.shape)
+## mds    for msg in msgs:
+## mds         print(" ", msg)
+## mds 
+## mds     print("X.shape = ",X.shape)
+## mds     print("Y.shape = ",Y.shape)
+## mds     print("Xmax.shape = ",Xmax.shape)
+## mds     print("Ymax.shape = ",Ymax.shape)
+## mds     print("pv_loc_x.shape = ",pv_loc_x.shape)
+## mds     print("pv_loc_y.shape = ",pv_loc_y.shape)
+## mds     print("pv_loc.shape = ",pv_loc.shape)
+## mds     print("pv_ntrks.shape = ",pv_ntrks.shape)
+## mds     print("pv_cat.shape = ", pv_cat.shape)
+## mds     print("sv_loc_x.shape = ", sv_loc_x.shape)
+## mds     print("sv_loc_y.shape = ", sv_loc_y.shape)
+## mds     print("sv_loc.shape = ", sv_loc.shape)
+## mds     print("sv_ntrks.shape = ", sv_ntrks.shape)
+## mds     print("sv_cat.shape = ", sv_cat.shape)
+## mds     print("recon_x.shape = ",recon_x.shape)
+## mds     print("recon_y.shape = ",recon_y.shape)
+## mds     print("recon_z.shape = ",recon_z.shape)
+## mds     print("recon_tx.shape = ",recon_tx.shape)
+## mds     print("recon_ty.shape = ",recon_ty.shape)
+## mds     print("poca_x.shape = ",poca_x.shape)
+## mds     print("poca_y.shape = ",poca_y.shape)
+## mds     print("poca_z.shape = ",poca_z.shape)
+## mds     print("poca_KDE_A.shape = ",poca_KDE_A.shape)
+## mds     print("poca_KDE_A_xMax.shape = ",poca_KDE_A_xMax.shape)
+## mds     print("poca_KDE_A_yMax.shape = ",poca_KDE_A_yMax.shape)
+## mds     print("poca_KDE_B.shape = ",poca_KDE_B.shape)
+## mds     print("poca_KDE_B_xMax.shape = ",poca_KDE_B_xMax.shape)
+## mds     print("poca_KDE_B_yMax.shape = ",poca_KDE_B_yMax.shape)
 
     return OutputData(
         X,

@@ -1540,6 +1540,228 @@ class AllCNN8Layer_Ca_Two_KDE_withPfc(nn.Module):
         return neuronValues
 ########## -- end of AllCNN8Layer_Ca_TwoKDE_withPfc ----
 
+#############  --  begin Two_KDE all CNN  with perturbative features, all convolutional ########
+class AllCNN8Layer_Ca_Two_KDE_withPcnn(nn.Module):
+## same as SimpleCNN7Layer_Ca_Two_KDE, except that 
+## the fully connected layer at the end is replaced with a CNN layer
+    softplus = torch.nn.Softplus()
+    def __init__(self):
+        super(AllCNN8Layer_Ca_Two_KDE_withPcnn, self).__init__()
+     
+        self.batchNumber = 0
+
+        self.conv1=nn.Conv1d(
+            in_channels = 2,
+            out_channels = 25,  ## was 20 in Two_KDE
+            kernel_size = 25,
+            stride = 1,
+            padding = (25 - 1) // 2
+        )
+
+        assert self.conv1.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+
+        self.conv2=nn.Conv1d(
+            in_channels = self.conv1.out_channels,
+            out_channels = 25,  ## was 10 in Two_KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.conv2.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+        self.conv3=nn.Conv1d(
+            in_channels = self.conv2.out_channels,
+            out_channels = 25, ## was 10 in Two_KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.conv3.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+        self.conv4=nn.Conv1d(
+            in_channels = self.conv3.out_channels,
+            out_channels = 25, ## was 10 in Two_KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.conv4.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+
+        self.conv5=nn.Conv1d(
+            in_channels = self.conv4.out_channels,
+            out_channels = 25, ## new layer compared to Two_KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.conv5.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+
+        self.conv6=nn.Conv1d(
+            in_channels = self.conv5.out_channels,
+            out_channels = 25, ## new layer compared to Two_KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.conv6.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+
+        self.conv7=nn.Conv1d(
+            in_channels = self.conv6.out_channels,
+            out_channels = 1,
+            kernel_size = 5,
+            stride = 1,
+            padding = (5 - 1) // 2
+        )
+
+        assert self.conv7.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+
+        self.conv1dropout = nn.Dropout(0.15)
+        self.conv2dropout = nn.Dropout(0.15)
+        self.conv3dropout = nn.Dropout(0.15)
+        self.conv4dropout = nn.Dropout(0.15)
+        self.conv5dropout = nn.Dropout(0.15)
+        self.conv6dropout = nn.Dropout(0.15)
+        self.conv7dropout = nn.Dropout(0.15)
+
+        self.fc1 = nn.Linear(
+            in_features = 4000 * self.conv7.out_channels,
+            out_features = 4000)
+
+
+## the "finalFilter" is meant to replace the fully connected layer with a
+## convolutional layer that extends over the full range where we saw
+## significant structure in the 4K x 4K matrix
+        self.finalFilter=nn.Conv1d(
+            in_channels = self.conv7.out_channels,
+            out_channels = 1,
+            kernel_size = 91,
+            stride = 1,
+            padding = (91 - 1) // 2
+        )
+
+        assert self.finalFilter.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+##  now use similar names for processing the "perturbative" features
+##  use more channels in the first two layers than were used earlier,
+##  just for fun
+        self.ppConv1=nn.Conv1d(
+            in_channels = 2,
+            out_channels = 20,  ## was 10 when used with original KDE
+            kernel_size = 25,
+            stride = 1,
+            padding = (25 - 1) // 2
+        )
+
+        assert self.ppConv1.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' pConv."
+
+
+        self.ppConv2=nn.Conv1d(
+            in_channels = self.ppConv1.out_channels,
+            out_channels = 15,  ## was 5 when used with original KDE
+            kernel_size = 15,
+            stride = 1,
+            padding = (15 - 1) // 2
+        )
+
+        assert self.ppConv2.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' pConv."
+
+        self.ppConv3=nn.Conv1d(
+            in_channels = self.ppConv2.out_channels,
+            out_channels = 1,
+            kernel_size = 5,
+            stride = 1,
+            padding = (5 - 1) // 2
+        )
+
+        assert self.ppConv3.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' pConv."
+
+
+        self.ppFc1 = nn.Linear(
+            in_features = 4000 * self.ppConv3.out_channels,
+            out_features = 4000)
+
+## the "finalFilter" is meant to replace the fully connected layer with a
+## convolutional layer that extends over the full range where we saw
+## significant structure in the 4K x 4K matrix
+        self.ppFinalFilter=nn.Conv1d(
+            in_channels = self.ppConv3.out_channels,
+            out_channels = 1,
+            kernel_size = 31, ## was 91, but that seems tooo large for the perturbative filter
+            stride = 1,
+            padding = (31 - 1) // 2 ## padding should match kernel size
+        )
+
+        assert self.ppFinalFilter.kernel_size[0] % 2 == 1, "Kernel size should be odd for 'same' conv."
+
+    def forward(self, neuronValues):
+
+## in the method definition, neuronValues corresponds to (poca_KDE_A,poca_KDE_B,
+## poca_KDE_A_xMax,poca_KDE_A_yMax)
+## here, we will use the name x0 to denote the (poca_KDE_A,poca_KDE_B) feature set and
+## the name x1 to denote the (poca_KDE_A_xMax,poca_KDE_A_yMax) feature set
+## see collectdata_poca_KDE.py for code that prepares the data
+## mds        print('neuronValues.size = ',neuronValues.size())
+## --> [64,4,4000] for batch size 64
+        x0 = neuronValues[:,0:2,:]  ## picks out the 0 & 1 feature sets, (poca_KDE_A,poca_KDE_B)
+        x1 = neuronValues[:,2:4,:]  ## picks out the 2 & 3 feature sets, (poca_KDE_A_x0max0,poca_KDE_A_yMax0)
+        leaky = nn.LeakyReLU(0.01)
+        relu = nn.LeakyReLU(0.00)
+        x0 = leaky(self.conv1(x0))
+        x0 = self.conv1dropout(x0)
+        x0 = leaky(self.conv2(x0))
+        x0 = self.conv2dropout(x0)
+        x0 = leaky(self.conv3(x0))
+        x0 = self.conv3dropout(x0)
+        x0 = leaky(self.conv4(x0))
+        x0 = self.conv4dropout(x0)
+        x0 = leaky(self.conv5(x0))
+        x0 = self.conv5dropout(x0)
+        x0 = leaky(self.conv6(x0))
+        x0 = self.conv6dropout(x0)
+        x0 = leaky(self.conv7(x0))
+        x0 = self.conv7dropout(x0)
+
+        x0 = self.finalFilter(x0)
+
+        # Remove empty middle shape diminsion
+        x0 = x0.view(x0.shape[0], x0.shape[-1])
+
+        x0 = self.softplus(x0)
+
+##  now create an "architecture" for the perturbative element
+##  similar to the original SimpleCNN3Layer  model with
+##  3 convolutional layers followed by a fully connected layer
+##  as this began to learn very quickly
+        x1 = leaky(self.ppConv1(x1))
+        x1 = self.conv1dropout(x1)
+        x1 = leaky(self.ppConv2(x1))
+        x1 = self.conv2dropout(x1)
+        x1 = leaky(self.ppConv3(x1))
+        # Remove empty middle shape diminsion
+##        x1 = x1.view(x1.shape[0], x1.shape[-1])
+        x1 = self.conv3dropout(x1)
+        x1 = 1.0 - self.ppFinalFilter(x1)
+        x1 = x1.view(x1.shape[0], x1.shape[-1])
+
+        neuronValues = relu(x0*x1)
+        if self.batchNumber<1:
+            print("x0 = ",x0)
+            print("x1 = ",x1)
+            print("neuronValues = ",neuronValues)
+            self.batchNumber = self.batchNumber +1
+        return neuronValues
+########## -- end of AllCNN8Layer_Ca_TwoKDE_withPcnn ----
+
 class TwoFeatures_CNN4Layer_D35(nn.Module):
     def __init__(self):
         super(TwoFeatures_CNN4Layer_D35, self).__init__()
