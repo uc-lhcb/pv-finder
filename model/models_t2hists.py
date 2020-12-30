@@ -222,28 +222,35 @@ class TracksToHists_A(nn.Module):
         y = leaky(self.conv2(y))
         y = self.conv2dropout(y)
 
-##        print('at point B, y.shape = ',y.shape)
+## mds dec28        print('at point B, y.shape = ',y.shape)
 # Remove empty middle shape diminsion
         y = y.view(y.shape[0], y.shape[-1])
-####        print('at point Ba, y.shape = ',y.shape)
+## mds dec28        print('at point Ba, y.shape = ',y.shape)
         y = self.fc1(y)   ####  a fully connected layer
 ##        y = self.finalFilter(y)  #### a convolutional layer
         y = y.view(nEvts,-1,4000)
-## ## ##        print('at point C, y.shape = ',y.shape)
+## mds dec28        print('at point C, y.shape = ',y.shape)
+##  -->  at point C, y.shape =  torch.Size([16, 1, 4000])
         y = self.softplus(y)
 
         y_prime = y.view(-1,4000)
-## mds## ##         print("y_prime.shape = ",y_prime.shape)
+## mds dec28        print("y_prime.shape = ",y_prime.shape)
+##  -->  y_prime.shape =  torch.Size([16, 4000])
        
 ## mds##         print("y_pred[:,0:10] =  ",y_pred[:,0:10])
-## mds        print("y_prime[:,0:10] =  ",y_prime[:,0:10])
+## mds dec28        print("y_prime[:,0:10] =  ",y_prime[:,0:10])
         
         y_pred = torch.mul(y_prime,0.001)
 
-## end of code copied from TracksToKDE_Ellipsoids_DDplusCNN
+##  
+
+
+## end of code copied from TracksToKDE_Ellipsoids_DDplus
 ## at this point, "y_pred" is a "predicted" poca ellipsoid probability KDE
 
-        x = y_pred
+## it seems that the shape wanted by the convolutional layers is
+##  torch.Size([nEvts,1,4000]), as in y, not y_prime
+        x = torch.mul(y,0.001)
 
 ##  code from SimpleCNN5Layer_Ca.py with "hist" prepended to 
 ##  layer names so they are distinct
@@ -264,7 +271,7 @@ class TracksToHists_A(nn.Module):
         x = self.hist_conv5dropout(x)
         x = self.hist_fc1(x)
 
-        x = torch.nn.softplus(x)
+        x = self.softplus(x)
 
         return x
 
