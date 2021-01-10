@@ -511,6 +511,7 @@ class TracksToHists_B(nn.Module):
         y = self.conv1dropout(y)
         y = leaky(self.conv2(y))
         y = self.conv2dropout(y)
+        print('y.shape = ',y.shape)
 
 ## mds dec28        print('at point B, y.shape = ',y.shape)
 # Remove empty middle shape diminsion
