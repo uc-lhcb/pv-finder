@@ -511,11 +511,12 @@ class TracksToHists_B(nn.Module):
         y = self.conv1dropout(y)
         y = leaky(self.conv2(y))
         y = self.conv2dropout(y)
-        print('y.shape = ',y.shape)
+##        print('y.shape = ',y.shape)
 
 ## mds dec28        print('at point B, y.shape = ',y.shape)
-# Remove empty middle shape diminsion
-        y = y.view(y.shape[0], y.shape[-1])
+# Remove empty middle shape diminsion when used with  self.fc1
+#  BUT not when using self.finalFilter
+##        y = y.view(y.shape[0], y.shape[-1])
 ## mds dec28        print('at point Ba, y.shape = ',y.shape)
 ##        y = self.fc1(y)   ####  a fully connected layer
 ##  replace the final, fully connected layer with a 
