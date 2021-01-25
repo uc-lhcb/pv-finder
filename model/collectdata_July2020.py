@@ -100,12 +100,12 @@ def collect_t2kde_data(
 ## mds for testing only            print("maxLen = ",maxLen)
             
             maxLen = 600 ## for safety:  800 >> 481, which is what was seen for 100 evts
-            padded_pocaz = np.zeros((nEvts,maxLen))
-            padded_pocax = np.zeros((nEvts,maxLen))
-            padded_pocay = np.zeros((nEvts,maxLen))
-            padded_tx    = np.zeros((nEvts,maxLen))
-            padded_ty    = np.zeros((nEvts,maxLen))
-            padded_sigma = np.zeros((nEvts,maxLen))
+            padded_pocaz = np.zeros((nEvts,maxLen))-99.
+            padded_pocax = np.zeros((nEvts,maxLen))-99.
+            padded_pocay = np.zeros((nEvts,maxLen))-99.
+            padded_tx    = np.zeros((nEvts,maxLen))-99.
+            padded_ty    = np.zeros((nEvts,maxLen))-99.
+            padded_sigma = np.zeros((nEvts,maxLen))-99.
 
             for i, e in enumerate(pocaz):
                 fillingLength = min(len(e),maxLen)

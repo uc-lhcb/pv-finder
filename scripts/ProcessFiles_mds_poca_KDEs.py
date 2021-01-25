@@ -29,16 +29,20 @@ from model.utilities import Timer
 
 
 def main(output_fname, files):
+    print("output_fname = ",output_fname)
+    print("files = ",files)
     outputs = []
     futures = []
-
     for f in files:
+        print("f = ",f)
         assert f.exists(), f"{f} must be an existing file"
 
     outputs = [process_root_file(f) for f in files]
+    print("len(outputs) = ",len(outputs))
+    print("len(outputs[0]) = ",len(outputs[0]))
 
     # Convert list of OutputDatas to one OutData
-    with Timer(start="Concatinating..."):
+    with Timer(start="Concatenating..."):
         outputs = concatenate_data(outputs)
 
     with Timer(start=f"Saving to {output_fname}..."):

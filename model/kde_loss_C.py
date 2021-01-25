@@ -41,6 +41,30 @@ class Loss(torch.nn.Module):
 ##        plt.plot(y_kde, color="r")
 ##        plt.show()
 
-        return 100.*torch.sum((y_kde - x) ** 2)
+        # Compute r, only including non-nan values. r will probably be shorter than x and y.
+        valid = ~torch.isnan(y_kde)
+        r = torch.abs((x[valid] + self.epsilon) / (y_kde[valid] + self.epsilon))
 
-        return beta
+        # Compute -log(2r/(r² + 1))
+        alpha = -torch.log(2*r / (r**2 + 1))
+        alpha = alpha * (1.0 + self.coefficient * torch.exp(-r))
+
+        # Sum up the alpha values, and divide by the length of x and y. Note this is not quite
+        # a .mean(), since alpha can be a bit shorter than x and y due to masking.
+        beta = alpha.sum() / 4000
+
+## let's add a chi-square type of term to give the values farther from zero
+## more weight in the cost function
+        
+        sigma = 0.01
+        diff = torch.sub(x[valid],y_kde[valid])
+        diff = diff/sigma
+        chisq = torch.mul(diff,diff)
+        ave_chisq = chisq.sum()/4000
+
+## take a weighted sum of the two contributions to the cost function.
+## without the chisq term, the algorithm gets beta to just below 10.
+## let's try 10% beta and 90% ave_chisq to start
+
+
+        return 0.1*beta + 0.9*ave_chisq

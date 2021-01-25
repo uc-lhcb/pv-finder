@@ -30,6 +30,12 @@ from .utilities import Timer
 from .jagged import concatenate
 import awkward
 
+import matplotlib.pyplot as plt
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 10
+fig_size[1] = 4
+plt.rcParams["figure.figsize"] = fig_size
+
 dtype_X = np.float16
 dtype_Y = np.float16
 
@@ -263,10 +269,23 @@ def process_root_file(filepath, sd_1=0.1):
         major_axis_y = tree["POCA_major_axis_y"].array()
         major_axis_z = tree["POCA_major_axis_z"].array()
 
+
 ## calculate the slope [tan(theta) in the (r,z) plane] of the major
 ## axis to use for scaling the magnitudes of the minor axis magnitudes
         perp = np.sqrt(np.square(major_axis_x)+np.square(major_axis_y))
         slope = np.abs(np.divide(perp,major_axis_z))  ## take abs as this will be a scaling factor
+        print("slope.shape = ",slope.shape)
+        print("slope[0].shape = ", slope[0].shape)
+        print("slope[0][0].shape = ",slope[0][0].shape)
+        print("slope[1].shape = ", slope[1].shape)
+        print("slope[0][0] = ",slope[0][0])
+        print("slope[1][0] = ",slope[1][0])
+        print("slope[2][0] = ",slope[2][0])
+        print("slope[3][0] = ",slope[3][0])
+        print("slope[4][0] = ",slope[4][0])
+        print("slope[5][0] = ",slope[5][0])
+        print("slope[6][0] = ",slope[6][0])
+        print("slope[7][0] = ",slope[7][0])
 ## -----------
 
         minor_axis1_x = tree["POCA_minor_axis1_x"].array()
@@ -275,23 +294,191 @@ def process_root_file(filepath, sd_1=0.1):
 
 ##  calculate magnitude of minor_axis1 for re-scaling, etc, then re-scale
         m1_mag = np.sqrt(np.square(minor_axis1_x) + np.square(minor_axis1_y) + np.square(minor_axis1_z))
-        factor1 = np.divide(slope,m1_mag)
-        minor_axis1_x = np.multiply(factor1,minor_axis1_x)
-        minor_axis1_y = np.multiply(factor1,minor_axis1_y)
-        minor_axis1_z = np.multiply(factor1,minor_axis1_z)
-## ----------
+## mds         print("m1_mag[0][0] = ",m1_mag[0][0])
+## mds         print("m1_mag[1][0] = ",m1_mag[1][0])
+## mds         print("m1_mag[2][0] = ",m1_mag[2][0])
+## mds         print("m1_mag[3][0] = ",m1_mag[3][0])
+## mds         print("m1_mag[4][0] = ",m1_mag[4][0])
+## mds         print("m1_mag[5][0] = ",m1_mag[5][0])
+## mds         print("m1_mag[6][0] = ",m1_mag[6][0])
+## mds         print("m1_mag[7][0] = ",m1_mag[7][0])
+## mds         factor1 = np.divide(slope,m1_mag)
+## mds         print("factor1[0][0] = ",factor1[0][0])
+## mds         print("factor1[1][0] = ",factor1[1][0])
+## mds         print("factor1[2][0] = ",factor1[2][0])
+## mds         print("factor1[3][0] = ",factor1[3][0])
+## mds         print("factor1[4][0] = ",factor1[4][0])
+## mds         print("factor1[5][0] = ",factor1[5][0])
+## mds         print("factor1[6][0] = ",factor1[6][0])
+## mds         print("factor1[7][0] = ",factor1[7][0])
+## mds         print("  ")
+## mds         minor_axis1_x = np.multiply(factor1,minor_axis1_x)
+## mds         minor_axis1_y = np.multiply(factor1,minor_axis1_y)
+## mds         minor_axis1_z = np.multiply(factor1,minor_axis1_z)
+## mds ## ----------
 
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
+        m2_mag = np.sqrt(np.square(minor_axis2_x) + np.square(minor_axis2_y) + np.square(minor_axis2_z))
+        for iEvt in range(20):
+            print("iEvt = ",iEvt)
+            print("recon_x & poca_x[iEvt][0]      = ",recon_x[iEvt][0],poca_x[iEvt][0])
+            print("recon_y & poca_y[iEvt][0]      = ",recon_y[iEvt][0],poca_y[iEvt][0])
+            print("recon_z & poca_z[iEvt][0]      = ",recon_z[iEvt][0],poca_z[iEvt][0])
+            print("recon_tx[iEvt][0]     = ",recon_tx[iEvt][0])
+            print("recon_ty[iEvt][0]     = ",recon_ty[iEvt][0])
+            print("major_axis_x[iEvt][0] = ",major_axis_x[iEvt][0])
+            print("major_axis_y[iEvt][0] = ",major_axis_y[iEvt][0])
+            print("major_axis_z[iEvt][0] = ",major_axis_z[iEvt][0])
+            print("slope[iEvt][0] =        ",slope[iEvt][0])
+            print("minor_axis1_x[iEvt][0] = ",minor_axis1_x[iEvt][0])
+            print("minor_axis1_y[iEvt][0] = ",minor_axis1_y[iEvt][0])
+            print("minor_axis1_z[iEvt][0] = ",minor_axis1_z[iEvt][0])
+            print("m1_mag =                 ",m1_mag[iEvt][0])
+            print("minor_axis2_x[iEvt][0] = ",minor_axis2_x[iEvt][0])
+            print("minor_axis2_y[iEvt][0] = ",minor_axis2_y[iEvt][0])
+            print("minor_axis2_z[iEvt][0] = ",minor_axis2_z[iEvt][0])
+            print("m2_mag =                 ",m2_mag[iEvt][0])
+            print("  ")
+## mds        print("poca_x[0][:] =   ", poca_x[0][:])
+###### -- make some plots for debugging
+        for iEvt in range(10):
+          iEvtStr = str(iEvt)
+          plt.figure()
+          plt.hist(poca_x[iEvt][:], bins=100, range=[-0.25,0.25], density=False, facecolor="b")
+          plt.savefig("../plots/poca_x_"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.hist(poca_y[iEvt][:], bins=100, range=[-0.25,0.25], density=False, facecolor="violet")
+          plt.savefig("../plots/poca_y_"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.hist(poca_z[iEvt][:], bins=800, range=[-100.,300.], density=False, facecolor="blueviolet")
+          plt.savefig("../plots/poca_z_"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.hist(np.abs(major_axis_x[iEvt][:]), bins=100, range=[0.,0.4], density=False, facecolor="blueviolet")
+          plt.xlabel("sigma_x")
+          plt.ylabel("entries per 4 microns")
+          plt.savefig("../plots/hist_sigma_x"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.hist(np.abs(major_axis_y[iEvt][:]), bins=100, range=[0.,0.4], density=False, facecolor="blueviolet")
+          plt.xlabel("sigma_y")
+          plt.ylabel("entries per 4 microns")
+          plt.savefig("../plots/hist_sigma_y"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.hist(np.abs(major_axis_z[iEvt][:]), bins=100, range=[0.,10.], density=False, facecolor="b")
+          plt.xlabel("sigma_z")
+          plt.ylabel("entries per 100 microns")
+          plt.savefig("../plots/hist_sigma_z"+iEvtStr+".png")
+          plt.close()
+
+          logSigmaZ = np.log(np.abs(major_axis_z[iEvt][:]))
+          plt.hist(logSigmaZ, bins=100, range=[-5.0,5.0], density=False, facecolor="b")
+          plt.xlabel("log(sigma_z)")
+          plt.ylabel("entries per 0.1")
+          plt.savefig("../plots/hist_log_sigma_z"+iEvtStr+".png")
+          plt.close()
+
+          plt.figure()
+          plt.plot(poca_z[iEvt][:],poca_x[iEvt][:], color = 'blue', marker = "o", markersize=2, markerfacecolor="cyan", label = "poca_z v pocax", linestyle = "None")
+          plt.plot(poca_z[iEvt][:],poca_y[iEvt][:], color = 'red', marker = "o", markersize=2, markerfacecolor="orange", label = "poca_z v pocay", linestyle = "None")
+          plt.legend(loc="upper right")
+          plt.axis([-100., 200., -0.10, 0.10])
+          plt.xlabel("poca_z", fontsize=14)
+          plt.ylabel("poca_x/y ",fontsize=14)
+          plt.savefig("../plots/poca_scatter_"+iEvtStr+".png")
+          plt.close()
+
+          poca_r = np.sqrt(np.square(poca_x[iEvt][:]),np.square(poca_y[iEvt][:]))
+          plt.figure()
+          plt.plot(poca_z[iEvt][:],poca_r[:], color = 'blue', marker = "o", markersize=2, markerfacecolor="green", label = "poca_z v poca_r", linestyle = "None")
+          plt.legend(loc="upper right")
+          plt.axis([-100., 200., 0.00, 0.14])
+          plt.xlabel("poca_z", fontsize=14)
+          plt.ylabel("poca_r ",fontsize=14)
+          plt.savefig("../plots/poca_scatter_r_"+iEvtStr+".png")
+          plt.close()
+
+          mask = poca_r < 0.10
+          good_poca_x = poca_x[iEvt][mask]
+          good_major_axis_x = np.abs(major_axis_x[iEvt][mask])
+          good_major_axis_y = np.abs(major_axis_y[iEvt][mask])
+          good_major_axis_z = np.abs(major_axis_z[iEvt][mask])
+          good_poca_y = poca_y[iEvt][mask]
+          good_poca_r = poca_r[mask]
+
+          plt.plot( good_poca_x, good_major_axis_x, color="g", marker="o", markersize=4, linestyle = "None")
+          plt.axis([-0.1,0.1,0.0,0.2])
+          plt.xlabel("poca_x", fontsize=14)
+          plt.ylabel("abs(major_axis_x)", fontsize=14)
+          plt.savefig("../plots/scatter_sigma_x_"+iEvtStr+".png")
+          plt.close()
+         
+          fig_size = plt.rcParams["figure.figsize"]
+          fig_size[0] = 6
+          fig_size[1] = 6
+          plt.rcParams["figure.figsize"] = fig_size 
+
+          plt.plot(good_major_axis_x, good_major_axis_y, color="b", marker="o", markersize=4, linestyle = "None")
+          plt.axis([0.0,0.2,0.0,0.2])
+          plt.xlabel("abs(major_axis_x)", fontsize=14)
+          plt.ylabel("abs(major_axis_y)", fontsize=14)
+          plt.savefig("../plots/sigma_v_sigma_"+iEvtStr+".png")
+          plt.close()
+
+          good_major_axis_perp = np.sqrt(np.square(good_major_axis_x)+np.square(good_major_axis_y))
+          plt.plot(good_major_axis_perp, good_major_axis_z, color="b", marker="o", markersize=4, linestyle = "None")
+          plt.axis([0.0,0.2,0.0,5.0])
+          plt.xlabel("abs(major_axis_perp)", fontsize=14)
+          plt.ylabel("abs(major_axis_z)", fontsize=14)
+          plt.savefig("../plots/sigma_perp_sigma_z"+iEvtStr+".png")
+          plt.close()
+                   
+          plt.plot(good_poca_r, good_major_axis_z, color="b", marker="o", markersize=4, linestyle = "None")
+          plt.axis([0.0,0.1,0.0,5.0])
+          plt.xlabel("abs(poca_r)", fontsize=14)
+          plt.ylabel("abs(major_axis_z)", fontsize=14)
+          plt.savefig("../plots/poca_r_V_sigma_z"+iEvtStr+".png")
+          plt.close()
+                   
+
 
 ##  calculate magnitude of minor_axis2 for re-scaling, etc, then re-scale
-        m2_mag = np.sqrt(np.square(minor_axis2_x) + np.square(minor_axis2_y) + np.square(minor_axis2_z))
-        factor2 = np.divide(slope,m2_mag)
-        minor_axis2_x = np.multiply(factor2,minor_axis2_x)
-        minor_axis2_y = np.multiply(factor2,minor_axis2_y)
-        minor_axis2_z = np.multiply(factor2,minor_axis2_z)
-## ----------
+## mds         print("m2_mag[0][0] = ",m2_mag[0][0])
+## mds         print("m2_mag[1][0] = ",m2_mag[1][0])
+## mds         print("m2_mag[2][0] = ",m2_mag[2][0])
+## mds         print("m2_mag[3][0] = ",m2_mag[3][0])
+## mds         print("m2_mag[4][0] = ",m2_mag[4][0])
+## mds         print("m2_mag[5][0] = ",m2_mag[5][0])
+## mds         print("m2_mag[6][0] = ",m2_mag[6][0])
+## mds         print("m2_mag[7][0] = ",m2_mag[7][0])
+## mds         factor2 = np.divide(slope,m2_mag)
+## mds         print("factor2[0][0] = ",factor2[0][0])
+## mds         print("factor2[1][0] = ",factor2[1][0])
+## mds         print("factor2[2][0] = ",factor2[2][0])
+## mds         print("factor2[3][0] = ",factor2[3][0])
+## mds         print("factor2[4][0] = ",factor2[4][0])
+## mds         print("factor2[5][0] = ",factor2[5][0])
+## mds         print("factor2[6][0] = ",factor2[6][0])
+## mds         print("factor2[7][0] = ",factor2[7][0])
+## mds         print("  ")
+## mds         minor_axis2_x = np.multiply(factor2,minor_axis2_x)
+## mds         minor_axis2_y = np.multiply(factor2,minor_axis2_y)
+## mds         minor_axis2_z = np.multiply(factor2,minor_axis2_z)
+## mds         print("minor_axis2[0][0] = ", minor_axis2_x[0][0], minor_axis2_y[0][0], minor_axis2_z[0][0])
+## mds         print("minor_axis2[1][0] = ", minor_axis2_x[1][0], minor_axis2_y[1][0], minor_axis2_z[1][0])
+## mds         print("minor_axis2[2][0] = ", minor_axis2_x[2][0], minor_axis2_y[2][0], minor_axis2_z[2][0])
+## mds         print("minor_axis2[3][0] = ", minor_axis2_x[3][0], minor_axis2_y[3][0], minor_axis2_z[3][0])
+## mds ## ----------
 
         poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X) 
         poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) 
