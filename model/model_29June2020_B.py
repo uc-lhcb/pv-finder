@@ -61,8 +61,8 @@ class UNet4SC(nn.Module):
 
         x = self.up1(x) # 500
         x = self.up2(torch.cat([x, x4], 1)) # 1000
-        x = self.up3(torch.cat([x, x3], 1)) #2000
-        x = self.up4(torch.cat([x, x2], 1)) #4000
+        x = self.up3(torch.cat([x, x3], 1)) # 2000
+        x = self.up4(torch.cat([x, x2], 1)) # 4000
 
         logits_x0 = self.outc(torch.cat([x, x1], 1))
 

@@ -1423,7 +1423,8 @@ class All_CNN6Layer_B(nn.Module):
 
 '''
 Same as All_CNN6Layer_A but with one skip connection
-This is a test to see whether skip connections increases performance, which would allow for a reduced network size.
+This is a test to see whether skip connections increases performance, which would allow for a reduced network size
+or better efficiency/false positive ratio.
 '''
 class All_CNN6Layer_C(nn.Module):
     softplus = torch.nn.Softplus()
