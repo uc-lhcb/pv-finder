@@ -897,6 +897,7 @@ class SimpleCNN5Layer_C(nn.Module):
 class SimpleCNN5Layer_Ca(nn.Module):
 ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
 ## with Softplus activation
+    softplus = torch.nn.Softplus()
     def __init__(self):
         super(SimpleCNN5Layer_Ca, self).__init__()
 
@@ -981,7 +982,7 @@ class SimpleCNN5Layer_Ca(nn.Module):
         x = self.conv5dropout(x)
         x = self.fc1(x)
 
-        x = torch.nn.softplus(x)
+        x = self.softplus(x)
 
         return x
 class SimpleCNN5Layer_Ca_Two_KDE(nn.Module):
