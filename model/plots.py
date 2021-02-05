@@ -136,13 +136,15 @@ def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_r=(), va
 
     lax.set_xlabel("Epochs")
 
-    if train[0]!=train_r[0] and train_r[0]==1:    
-        lax.set_ylabel("Relative costs variation")
-        #lax.set_ylabel("Relative train variation", color="b")
-        #tax.set_ylabel("Relative validation variation", color="r")
+    if len(train)>0:
+        if train[0]!=train_r[0] and train_r[0]==1:    
+            lax.set_ylabel("Relative costs variation")
+            #lax.set_ylabel("Relative train variation", color="b")
+            #tax.set_ylabel("Relative validation variation", color="r")
+        else:
+            lax.set_ylabel("Train", color="b")
     else:
         lax.set_ylabel("Train", color="b")
-        tax.set_ylabel("Variation", color="r")
         
     ax.set_yscale("log")
     ax.legend()
