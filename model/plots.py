@@ -115,7 +115,7 @@ def dual_train_plots(x=(), train=(), validation=(), eff=(), FP_rate=(), *, axs=N
     tax.legend(loc="lower left")
     return ax, tax, lax, lines
 
-def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_f=(), validation_f=(), *, axs=None):
+def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_r=(), validation_r=(), *, axs=None):
 
     if axs is None:
         fig, axs = plt.subplots(1, 2, figsize=(10, 5))
@@ -127,16 +127,21 @@ def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_f=(), va
     lines["train"], = ax.plot(x, train, "o-", label="Train")
     lines["val"], = ax.plot(x, validation, "o-", label="Validation")
 
-    lines["train_f"], = lax.plot(x, train_f, "o-b", label="Train")
-    lines["validation_f"], = tax.plot(x, validation_f, "o-r", label="Validation")
+    lines["train_r"], = lax.plot(x, train_r, "o-b", label="Train")
+    lines["validation_r"], = tax.plot(x, validation_r, "o-r", label="Validation")
 
     ax.set_xlabel("Epochs")
     ax.set_ylabel("Cost")
 
     lax.set_xlabel("Epochs")
-    lax.set_ylabel("Relative train variation", color="b")
-    tax.set_ylabel("Relative validation variation", color="r")
 
+    if train[0]!=train_r[0] and train_r[0]==1:    
+        lax.set_ylabel("Relative train variation", color="b")
+        tax.set_ylabel("Relative validation variation", color="r")
+    else:
+        lax.set_ylabel("Train", color="b")
+        tax.set_ylabel("Variation", color="r")
+        
     ax.set_yscale("log")
     ax.legend()
     lax.legend(loc="upper right")
