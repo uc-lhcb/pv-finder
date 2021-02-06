@@ -3079,7 +3079,7 @@ class FourFeature_CNN7Layer_D(nn.Module):
 
         return neuronValues
 
-%%%%%%%%%%%%%%%%%%%
+###################
 
 
 class AllCNN6Layer_Ca(nn.Module):
@@ -3177,11 +3177,11 @@ class AllCNN6Layer_Ca(nn.Module):
         x = self.conv4dropout(x)
         x = leaky(self.conv5(x))
 
-        # Remove empty middle shape diminsion
-        x = x.view(x.shape[0], x.shape[-1])
-
         x = self.conv5dropout(x)
         x = self.finalFilter(x)
+
+        # Remove empty middle shape diminsion
+        x = x.view(x.shape[0], x.shape[-1])
 
         x = self.softplus(x)
 
