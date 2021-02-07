@@ -146,7 +146,7 @@ def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_r=(), va
     else:
         lax.set_ylabel("Train", color="b")
         
-    ax.set_yscale("log")
+    #ax.set_yscale("log")
     ax.legend()
     #lax.legend(loc="upper right")
     lax.legend()
