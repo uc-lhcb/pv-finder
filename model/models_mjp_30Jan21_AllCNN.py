@@ -935,7 +935,7 @@ class ACN_1_6L_RC1(nn.Module):
 
         return x
     
-class ACN_2_6L_RC1(nn.Module):
+class ACN_2_6L_1S_BN_RC1(nn.Module):
     '''
     This is used to pretrain the X feature set
     '''
@@ -1053,7 +1053,7 @@ class ACN_2_6L_RC1(nn.Module):
 
         return x0
 
-class ACN_3_6L_RC1(nn.Module):
+class ACN_3_6L_1S_BN_RC1(nn.Module):
     '''
     This is used to pretrain the (x,y) feature set
     '''
@@ -1234,7 +1234,7 @@ class ACN_3_6L_RC1(nn.Module):
 
         return neuronValues
 
-class ACN_4_P_6L_RC1_C(nn.Module):
+class ACN_4_P_6L_1S_BN_RC1_C(nn.Module):
     ## This is the perturbative model
     def __init__(self):
         super(ACN_4_P_6L_RC1_C, self).__init__()
