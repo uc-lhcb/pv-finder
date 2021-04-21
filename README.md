@@ -55,3 +55,41 @@ docker login gitlab-registry.cern.ch
 docker push gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder
 ```
 
+## Run PV Finder in the LHCb software stack ("the trigger")
+
+Setup your own lhcb stack (in this way we can ensure that PVFinder can be compiled against LHCb software) https://gitlab.cern.ch/rmatev/lb-stack-setup. The stack setup works best on lxplus.
+
+The lb-stack-setup README contains many useful informations for further development, here we only need
+```sh
+curl https://gitlab.cern.ch/rmatev/lb-stack-setup/raw/master/setup.py | python3 - stack
+```
+then open the config for editing
+```sh
+$EDITOR utils/config.json
+```
+and add the following:
+```json
+    "binaryTag": "x86_64-centos7-clang10-opt",
+    "defaultProjects": [
+      "Moore"
+    ],
+    "gitBranch": {
+      "Detector": "v0-patches",
+      "default": "CNNVertexFinder"
+    },
+    "lcgVersion": "97a",
+    "gitGroup": {
+      "Detector": "lhcb",
+      "default": "mstahl"
+    },
+    "dataPackages": [
+    ],
+    "lbenvPath": "/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1110/stable/linux-64"
+```
+After that, you can type `make` and let the stack compile (takes about 1 to 2 hours if eveything works fine).
+With that configuration, we make sure that a snapshot of the entire stack (taken from private forks under `mstahl`) is used, which we know runs. We have also freezed lcg and lbenv versions, as well as the binary tag to be able to work with torch-script.
+
+After compiling, you should be able to run commands like 
+```sh
+Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_FTv6.py Moore/Hlt/RecoConf/options/hlt1_reco_pvchecker.py 2>&1 | tee CNNVertexFinder.log
+```
