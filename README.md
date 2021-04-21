@@ -84,7 +84,10 @@ and add the following:
     },
     "dataPackages": [
     ],
-    "lbenvPath": "/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1110/stable/linux-64"
+    "lbenvPath": "/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1110/stable/linux-64",
+    "cmakeFlags": {
+        "Moore": "-DLOKI_BUILD_FUNCTOR_CACHE=OFF"
+    }
 ```
 After that, you can type `make` and let the stack compile (takes about 1 to 2 hours if eveything works fine).
 With that configuration, we make sure that a snapshot of the entire stack (taken from private forks under `mstahl`) is used, which we know runs. We have also freezed lcg and lbenv versions, as well as the binary tag to be able to work with torch-script.
