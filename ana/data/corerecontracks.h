@@ -6,6 +6,7 @@ template <class T> struct CoreReconTracksIO : public CoreIO<T, double> {
     using CoreIO<T, double>::CoreIO;
     using Vec = VecIO<T, double>;
 
+    /// Reconstructed track information
     Vec recon_x{this, "recon_x"};
     Vec recon_y{this, "recon_y"};
     Vec recon_z{this, "recon_z"};

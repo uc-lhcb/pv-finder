@@ -11,16 +11,22 @@ template <class T> struct DataPVsIO : public CoreIO<T, float> {
     using CoreIO<T, float>::CoreIO;
     using Vec = VecIO<T, float>;
 
+    /// Category of primary vertex, 1 if enough tracks, 0 for not enough tracks, -1 for no tracks
     Vec pv_cat{this, "pv_cat"};
+    /// Location of primary vertex
     Vec pv_loc{this, "pv_loc"};
     Vec pv_loc_x{this, "pv_loc_x"};
     Vec pv_loc_y{this, "pv_loc_y"};
+    /// Number of tracks associated with primary vertex
     Vec pv_ntrks{this, "pv_ntrks"};
-
+    
+    /// Category of secondary vertex, 1 if enough tracks, 0 for not enough tracks, -1 for no tracks
     Vec sv_cat{this, "sv_cat"};
+    /// Location of secondary vertex
     Vec sv_loc{this, "sv_loc"};
     Vec sv_loc_x{this, "sv_loc_x"};
     Vec sv_loc_y{this, "sv_loc_y"};
+    /// Number of tracks associated with secondary vertex
     Vec sv_ntrks{this, "sv_ntrks"};
 
     // sv_n and pv_n are no longer present
