@@ -3,6 +3,7 @@ channels:
     - conda-forge
 dependencies:
     - python>=3.6
+    - awkward<1
     - cmake
     - h5py
     - jupyterlab
@@ -20,4 +21,4 @@ dependencies:
     - root
     - scipy
     - tqdm
-    - uproot
+    - uproot<4
