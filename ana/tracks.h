@@ -163,6 +163,6 @@ inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
         self.recon_pocax->push_back(bpoca.x());
         self.recon_pocay->push_back(bpoca.y());
         self.recon_pocaz->push_back(bpoca.z());
-        self.recon_sigmapocaxy->push_back(tchi2/3.<=2. ? 0.05 : 0.05+(tchi2-2.)*0.05/4.);
+        self.recon_sigmapocaxy->push_back(tchi2 / 3. <= 2. ? 0.05 : 0.05 + (tchi2 - 2.) * 0.05 / 4.);
     }
 }

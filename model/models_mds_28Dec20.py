@@ -967,6 +967,7 @@ class SimpleCNN5Layer_Ca(nn.Module):
     ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
     ## with Softplus activation
     softplus = torch.nn.Softplus()
+
     def __init__(self):
         super().__init__()
 
@@ -1043,10 +1044,10 @@ class SimpleCNN5Layer_Ca(nn.Module):
 
     def forward(self, x):
 
-        print("x.shape = ",x.shape)
-        if (self.counter == 0):
-          print("x.shape = ",x.shape)
-          self.counter = self.counter+1
+        print("x.shape = ", x.shape)
+        if self.counter == 0:
+            print("x.shape = ", x.shape)
+            self.counter = self.counter + 1
         leaky = nn.LeakyReLU(0.01)
         x = leaky(self.conv1(x))
         x = self.conv1dropout(x)

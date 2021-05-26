@@ -4,7 +4,7 @@
 ## basic structure derived from collectdata_mdsA.py
 ## but adapted so that X will return a tensor built from
 ## the awkward arrays of track parameters
-## to be used as the feature set for algorithm and Y will return the 
+## to be used as the feature set for algorithm and Y will return the
 ## KDE and associate Xmax and Ymax values to be used in the cost function.
 ##
 ##  building X requires "padding" the awkward array content so it
@@ -68,26 +68,25 @@ def collect_t2kde_data(
             ## a is *probably* 4000 and b is *probably* N, but it could be the other
             ## way around;  check iwth .shape
 
-## Here we read in the KDE itself plus the values of x and y where the KDE is maximal for 
-## each bin of z. It appears that in the test file the original KDE values .AND. the values 
-## of Xmax and Ymax have been divided by 2500. This should have been done only for the 
-## KDE values, so Xmax and Ymax are re-scaled to better use the dynamic range available 
-## using np.float16
+            ## Here we read in the KDE itself plus the values of x and y where the KDE is maximal for
+            ## each bin of z. It appears that in the test file the original KDE values .AND. the values
+            ## of Xmax and Ymax have been divided by 2500. This should have been done only for the
+            ## KDE values, so Xmax and Ymax are re-scaled to better use the dynamic range available
+            ## using np.float16
 
-            
             kernel = np.asarray(f["kernel"])
-            Xmax = 2500.*np.asarray(f["Xmax"])
-            Ymax = 2500.*np.asarray(f["Ymax"]) 
-            
-            Y = ja.concatenate((kernel,Xmax,Ymax),axis=1).astype(dtype_Y)
-            
-## now build the feature set from the relevant tracks' parameters
-## we need to usse "afile" to account for the variable length
-## structure of the awkward arrays
-        
+            Xmax = 2500.0 * np.asarray(f["Xmax"])
+            Ymax = 2500.0 * np.asarray(f["Ymax"])
+
+            Y = ja.concatenate((kernel, Xmax, Ymax), axis=1).astype(dtype_Y)
+
+            ## now build the feature set from the relevant tracks' parameters
+            ## we need to usse "afile" to account for the variable length
+            ## structure of the awkward arrays
+
             afile = awkward.hdf5(f)
-            
-            pocaz = np.asarray(0.001*afile["recon_pocaz"].astype(dtype_Y))
+
+            pocaz = np.asarray(0.001 * afile["recon_pocaz"].astype(dtype_Y))
             pocax = np.asarray(afile["recon_pocax"].astype(dtype_Y))
             pocay = np.asarray(afile["recon_pocay"].astype(dtype_Y))
             pocaTx = np.asarray(afile["recon_tx"].astype(dtype_Y))
@@ -95,43 +94,62 @@ def collect_t2kde_data(
             pocaSigmapocaxy = np.asarray(afile["recon_sigmapocaxy"].astype(dtype_Y))
             nEvts = len(pocaz)
 
-## mds for testing only            for i in range(nEvts-1):
-## mds for testing only                maxLen = max(maxLen,len(pocaz[i]))
-## mds for testing only            print("maxLen = ",maxLen)
-            
+            ## mds for testing only            for i in range(nEvts-1):
+            ## mds for testing only                maxLen = max(maxLen,len(pocaz[i]))
+            ## mds for testing only            print("maxLen = ",maxLen)
 
-##  mark non-track data with -99 as a flag
-            maxLen = 600 ## for safety:  600 >> 481, which is what was seen for 100 evts
-            padded_pocaz = np.zeros((nEvts,maxLen))-99.
-            padded_pocax = np.zeros((nEvts,maxLen))-99.
-            padded_pocay = np.zeros((nEvts,maxLen))-99.
-            padded_tx    = np.zeros((nEvts,maxLen))-99.
-            padded_ty    = np.zeros((nEvts,maxLen))-99.
-            padded_sigma = np.zeros((nEvts,maxLen))-99.
+            ##  mark non-track data with -99 as a flag
+            maxLen = (
+                600  ## for safety:  600 >> 481, which is what was seen for 100 evts
+            )
+            padded_pocaz = np.zeros((nEvts, maxLen)) - 99.0
+            padded_pocax = np.zeros((nEvts, maxLen)) - 99.0
+            padded_pocay = np.zeros((nEvts, maxLen)) - 99.0
+            padded_tx = np.zeros((nEvts, maxLen)) - 99.0
+            padded_ty = np.zeros((nEvts, maxLen)) - 99.0
+            padded_sigma = np.zeros((nEvts, maxLen)) - 99.0
 
             for i, e in enumerate(pocaz):
-                fillingLength = min(len(e),maxLen)
-                padded_pocaz[i,:fillingLength] = pocaz[i][:fillingLength].astype(dtype_Y)
-                padded_pocax[i,:fillingLength] = pocax[i][:fillingLength].astype(dtype_Y)
-                padded_pocay[i,:fillingLength] = pocay[i][:fillingLength].astype(dtype_Y)
-                padded_tx[i,:fillingLength] = pocaTx[i][:fillingLength].astype(dtype_Y)
-                padded_ty[i,:fillingLength] = pocaTy[i][:fillingLength].astype(dtype_Y)
-                padded_sigma[i,:fillingLength] = pocaSigmapocaxy[i][:fillingLength].astype(dtype_Y)
+                fillingLength = min(len(e), maxLen)
+                padded_pocaz[i, :fillingLength] = pocaz[i][:fillingLength].astype(
+                    dtype_Y
+                )
+                padded_pocax[i, :fillingLength] = pocax[i][:fillingLength].astype(
+                    dtype_Y
+                )
+                padded_pocay[i, :fillingLength] = pocay[i][:fillingLength].astype(
+                    dtype_Y
+                )
+                padded_tx[i, :fillingLength] = pocaTx[i][:fillingLength].astype(dtype_Y)
+                padded_ty[i, :fillingLength] = pocaTy[i][:fillingLength].astype(dtype_Y)
+                padded_sigma[i, :fillingLength] = pocaSigmapocaxy[i][
+                    :fillingLength
+                ].astype(dtype_Y)
 
-            padded_pocaz = padded_pocaz[:,np.newaxis,:]
-            padded_pocax = padded_pocax[:,np.newaxis,:]
-            padded_pocay = padded_pocay[:,np.newaxis,:]
-            padded_tx = padded_tx[:,np.newaxis,:]
-            padded_ty = padded_ty[:,np.newaxis,:]
-            padded_sigma = padded_sigma[:,np.newaxis,:]
+            padded_pocaz = padded_pocaz[:, np.newaxis, :]
+            padded_pocax = padded_pocax[:, np.newaxis, :]
+            padded_pocay = padded_pocay[:, np.newaxis, :]
+            padded_tx = padded_tx[:, np.newaxis, :]
+            padded_ty = padded_ty[:, np.newaxis, :]
+            padded_sigma = padded_sigma[:, np.newaxis, :]
 
-            X = ja.concatenate((padded_pocaz,padded_pocax,padded_pocay,padded_tx,padded_ty,padded_sigma),axis=1).astype(dtype_X)
+            X = ja.concatenate(
+                (
+                    padded_pocaz,
+                    padded_pocax,
+                    padded_pocay,
+                    padded_tx,
+                    padded_ty,
+                    padded_sigma,
+                ),
+                axis=1,
+            ).astype(dtype_X)
 
-## mds            print("X = ",X)
-            print("len(X) = ",len(X))
+            ## mds            print("X = ",X)
+            print("len(X) = ", len(X))
             Xlist.append(X)
             Ylist.append(Y)
-            print("len(Xlist) = ",len(Xlist))
+            print("len(Xlist) = ", len(Xlist))
     X = np.concatenate(Xlist, axis=0)
     Y = np.concatenate(Ylist, axis=0)
     print("outer loop X.shape = ", X.shape)
@@ -151,12 +169,11 @@ def collect_t2kde_data(
         dataset = TensorDataset(x_t, y_t)
 
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, **kargs)
-    print("x_t.shape = ",x_t.shape)
+    print("x_t.shape = ", x_t.shape)
     print("x_t.shape[0] = ", x_t.shape[0])
     print("x_t.shape[1] = ", x_t.shape[1])
     nFeatures = 6
-    x_t.view(x_t.shape[0],nFeatures,-1)
-    print("x_t.shape = ",x_t.shape)
-    
-    
+    x_t.view(x_t.shape[0], nFeatures, -1)
+    print("x_t.shape = ", x_t.shape)
+
     return loader

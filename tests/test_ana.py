@@ -22,7 +22,9 @@ def makehist_core(*, split: bool, dat: Path, build: Path):
     shutil.copy(DAT_DIR / pv, dat / pv)
 
     if split:
-        output = subprocess.run([build / "make_tracks", "10pvs", "data", dat], **kwargs).stdout
+        output = subprocess.run(
+            [build / "make_tracks", "10pvs", "data", dat], **kwargs
+        ).stdout
         output += subprocess.run(
             [build / "make_histogram_from_tracks", "10pvs", "trks", dat], **kwargs
         ).stdout

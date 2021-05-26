@@ -4,7 +4,7 @@
 ##  and two poca KDEs, one summing the probabilities and another the probability^2 values.
 ##  He has also scaled the original KDEs by a 100 (divided them by 100) so they
 ##  are typically the same magnitude as the new poca KDEs.
-##  [the probabilities are calculated using exp(0.5*chisq) where we probably 
+##  [the probabilities are calculated using exp(0.5*chisq) where we probably
 ##  need to additionally account for sqrt{determinant of the inverse covariance
 ##  matrix} and (perhaps) the "usual" (2*pi)^{=3/2}.]
 ##
@@ -50,28 +50,28 @@ OutputData = namedtuple(
         "recon_z",
         "recon_tx",
         "recon_ty",
-## mds        "recon_pocax",
-## mds        "recon_pocay",
-## mds        "recon_pocaz",
-## mds        "recon_sigmapocaxy",
-        "poca_x",		## poca ellipsoid center, x coordinate
-	"poca_y",		## poca ellipsoid center, y coordinate
-	"poca_z",		## poca ellipsoid center, z coordinate
-	"major_axis_x",		## for poca ellipsoid
-	"major_axis_y",		## for poca ellipsoid
-	"major_axis_z",		## for poca ellipsoid
-	"minor_axis1_x",	## for poca ellipsoid
-	"minor_axis1_y",	## for poca ellipsoid
-	"minor_axis1_z",	## for poca ellipsoid
-	"minor_axis2_x",	## for poca ellipsoid
-	"minor_axis2_y",	## for poca ellipsoid
-	"minor_axis2_z",	## for poca ellipsoid
-        "poca_KDE_A",		## KDE calculated from summing probabilities
-	"poca_KDE_A_xMax",	## x value where poca_KDE_A was found
-	"poca_KDE_A_yMax",	## y value where poca_KDE_A was found
-        "poca_KDE_B",		## KDE calculated from summing probability square values
-	"poca_KDE_B_xMax",	## x value where poca_KDE_B was found
-	"poca_KDE_B_yMax",	## y value where poca_KDE_B was found
+        ## mds        "recon_pocax",
+        ## mds        "recon_pocay",
+        ## mds        "recon_pocaz",
+        ## mds        "recon_sigmapocaxy",
+        "poca_x",  ## poca ellipsoid center, x coordinate
+        "poca_y",  ## poca ellipsoid center, y coordinate
+        "poca_z",  ## poca ellipsoid center, z coordinate
+        "major_axis_x",  ## for poca ellipsoid
+        "major_axis_y",  ## for poca ellipsoid
+        "major_axis_z",  ## for poca ellipsoid
+        "minor_axis1_x",  ## for poca ellipsoid
+        "minor_axis1_y",  ## for poca ellipsoid
+        "minor_axis1_z",  ## for poca ellipsoid
+        "minor_axis2_x",  ## for poca ellipsoid
+        "minor_axis2_y",  ## for poca ellipsoid
+        "minor_axis2_z",  ## for poca ellipsoid
+        "poca_KDE_A",  ## KDE calculated from summing probabilities
+        "poca_KDE_A_xMax",  ## x value where poca_KDE_A was found
+        "poca_KDE_A_yMax",  ## y value where poca_KDE_A was found
+        "poca_KDE_B",  ## KDE calculated from summing probability square values
+        "poca_KDE_B_xMax",  ## x value where poca_KDE_B was found
+        "poca_KDE_B_yMax",  ## y value where poca_KDE_B was found
     ),
 )
 
@@ -97,12 +97,12 @@ def concatenate_data(outputs):
         concatenate(o.recon_z for o in outputs),
         concatenate(o.recon_tx for o in outputs),
         concatenate(o.recon_ty for o in outputs),
-## mds        concatenate(o.recon_pocax for o in outputs),
-## mds        concatenate(o.recon_pocay for o in outputs),
-## mds        concatenate(o.recon_pocaz for o in outputs),
-## mds        concatenate(o.recon_sigmapocaxy for o in outputs),
-##
-##  the following 18 lines added 200922
+        ## mds        concatenate(o.recon_pocax for o in outputs),
+        ## mds        concatenate(o.recon_pocay for o in outputs),
+        ## mds        concatenate(o.recon_pocaz for o in outputs),
+        ## mds        concatenate(o.recon_sigmapocaxy for o in outputs),
+        ##
+        ##  the following 18 lines added 200922
         concatenate(o.poca_x for o in outputs),
         concatenate(o.poca_y for o in outputs),
         concatenate(o.poca_z for o in outputs),
@@ -135,13 +135,21 @@ def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
     hf.create_dataset("sv_other", data=od.Y[3], compression=compression)
     hf.create_dataset("Xmax", data=od.Xmax, compression=compression)
     hf.create_dataset("Ymax", data=od.Ymax, compression=compression)
-##  added 200922
+    ##  added 200922
     hf.create_dataset("poca_KDE_A", data=od.poca_KDE_A, compression=compression)
-    hf.create_dataset("poca_KDE_A_xMax", data=od.poca_KDE_A_xMax, compression=compression)
-    hf.create_dataset("poca_KDE_A_yMax", data=od.poca_KDE_A_yMax, compression=compression)
+    hf.create_dataset(
+        "poca_KDE_A_xMax", data=od.poca_KDE_A_xMax, compression=compression
+    )
+    hf.create_dataset(
+        "poca_KDE_A_yMax", data=od.poca_KDE_A_yMax, compression=compression
+    )
     hf.create_dataset("poca_KDE_B", data=od.poca_KDE_B, compression=compression)
-    hf.create_dataset("poca_KDE_B_xMax", data=od.poca_KDE_B_xMax, compression=compression)
-    hf.create_dataset("poca_KDE_B_yMax", data=od.poca_KDE_B_yMax, compression=compression)
+    hf.create_dataset(
+        "poca_KDE_B_xMax", data=od.poca_KDE_B_xMax, compression=compression
+    )
+    hf.create_dataset(
+        "poca_KDE_B_yMax", data=od.poca_KDE_B_yMax, compression=compression
+    )
 
     akdh5 = awkward.hdf5(hf)
     akdh5["pv_loc_x"] = od.pv_loc_x
@@ -159,12 +167,12 @@ def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
     akdh5["recon_z"] = od.recon_z
     akdh5["recon_tx"] = od.recon_tx
     akdh5["recon_ty"] = od.recon_ty
-## mds    akdh5["recon_pocax"] = od.recon_pocax
-## mds    akdh5["recon_pocay"] = od.recon_pocay
-## mds    akdh5["recon_pocaz"] = od.recon_pocaz
-## mds    akdh5["recon_sigmapocaxy"] = od.recon_sigmapocaxy
+    ## mds    akdh5["recon_pocax"] = od.recon_pocax
+    ## mds    akdh5["recon_pocay"] = od.recon_pocay
+    ## mds    akdh5["recon_pocaz"] = od.recon_pocaz
+    ## mds    akdh5["recon_sigmapocaxy"] = od.recon_sigmapocaxy
 
-##  added 200922
+    ##  added 200922
     akdh5["poca_x"] = od.poca_x
     akdh5["poca_y"] = od.poca_y
     akdh5["poca_z"] = od.poca_z
@@ -204,17 +212,17 @@ def process_root_file(filepath, sd_1=0.1):
     with Timer(start=f"Loading file: {name}"):
         tree = uproot.open(str(filepath))["kernel"]
 
-## mds 10 Sept 2020        X = (tree["zdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
-## mds 10 Sept 2020        Xmax = (tree["xmax"].array() / 2500.0).astype(
-##        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
-## in origdata_mdsA (for original KDEs) we divided by 2500
-## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
+        ## mds 10 Sept 2020        X = (tree["zdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
+        ## mds 10 Sept 2020        Xmax = (tree["xmax"].array() / 2500.0).astype(
+        ##        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
+        ## in origdata_mdsA (for original KDEs) we divided by 2500
+        ## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
         X = (tree["oldzdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
-        print("at creation, X.shape = ",X.shape)
+        print("at creation, X.shape = ", X.shape)
         Xmax = (tree["oldxmax"].array() / 2500.0).astype(
             dtype_X
         )  # Location of max z in x   <OPTIONAL>
-## mds 10 Sept 2020        Ymax = (tree["ymax"].array() / 2500.0).astype(
+        ## mds 10 Sept 2020        Ymax = (tree["ymax"].array() / 2500.0).astype(
         Ymax = (tree["oldymax"].array() / 2500.0).astype(
             dtype_X
         )  # Location of max z in y   <OPTIONAL>
@@ -241,15 +249,15 @@ def process_root_file(filepath, sd_1=0.1):
         recon_z = tree["recon_z"].array()
         recon_tx = tree["recon_tx"].array()
         recon_ty = tree["recon_ty"].array()
-## mds        recon_pocax = tree["recon_pocax"].array()
-## mds        recon_pocay = tree["recon_pocay"].array()
-## mds        recon_pocaz = tree["recon_pocaz"].array()
-## mds        recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
-## 200922 mds  add the following variables; note that the names of the 
-##             Python variables differ from those of the ROOT variables
-##  the "scaling" factors of 50.0 and 2500.0 may change after Marian
-##  updates the KDE calculations to account for the determinants of
-##  the inverse covariance matrices. 
+        ## mds        recon_pocax = tree["recon_pocax"].array()
+        ## mds        recon_pocay = tree["recon_pocay"].array()
+        ## mds        recon_pocaz = tree["recon_pocaz"].array()
+        ## mds        recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
+        ## 200922 mds  add the following variables; note that the names of the
+        ##             Python variables differ from those of the ROOT variables
+        ##  the "scaling" factors of 50.0 and 2500.0 may change after Marian
+        ##  updates the KDE calculations to account for the determinants of
+        ##  the inverse covariance matrices.
         poca_x = tree["POCA_center_x"].array()
         poca_y = tree["POCA_center_y"].array()
         poca_z = tree["POCA_center_z"].array()
@@ -262,17 +270,17 @@ def process_root_file(filepath, sd_1=0.1):
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
-        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X) 
-        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X) 
-        poca_KDE_B_xMax = (tree["POCA_sqxmax"].array() / 2500.0).astype(dtype_X) 
-        poca_KDE_B_yMax = (tree["POCA_sqymax"].array() / 2500.0).astype(dtype_X) 
+        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X)
+        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X)
+        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X)
+        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X)
+        poca_KDE_B_xMax = (tree["POCA_sqxmax"].array() / 2500.0).astype(dtype_X)
+        poca_KDE_B_yMax = (tree["POCA_sqymax"].array() / 2500.0).astype(dtype_X)
         poca_KDE_A_xMax[0 == poca_KDE_A] = 0
         poca_KDE_A_yMax[0 == poca_KDE_A] = 0
         poca_KDE_B_xMax[0 == poca_KDE_B] = 0
         poca_KDE_B_yMax[0 == poca_KDE_B] = 0
-##  end of 200922 additions 
+        ##  end of 200922 additions
 
         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
@@ -383,37 +391,37 @@ def process_root_file(filepath, sd_1=0.1):
                                 f"Ignored hit at bin {N_bin} at {mean:.4g} in event {i}, column {n}"
                             )
 
-## mds    for msg in msgs:
-## mds         print(" ", msg)
-## mds 
-## mds     print("X.shape = ",X.shape)
-## mds     print("Y.shape = ",Y.shape)
-## mds     print("Xmax.shape = ",Xmax.shape)
-## mds     print("Ymax.shape = ",Ymax.shape)
-## mds     print("pv_loc_x.shape = ",pv_loc_x.shape)
-## mds     print("pv_loc_y.shape = ",pv_loc_y.shape)
-## mds     print("pv_loc.shape = ",pv_loc.shape)
-## mds     print("pv_ntrks.shape = ",pv_ntrks.shape)
-## mds     print("pv_cat.shape = ", pv_cat.shape)
-## mds     print("sv_loc_x.shape = ", sv_loc_x.shape)
-## mds     print("sv_loc_y.shape = ", sv_loc_y.shape)
-## mds     print("sv_loc.shape = ", sv_loc.shape)
-## mds     print("sv_ntrks.shape = ", sv_ntrks.shape)
-## mds     print("sv_cat.shape = ", sv_cat.shape)
-## mds     print("recon_x.shape = ",recon_x.shape)
-## mds     print("recon_y.shape = ",recon_y.shape)
-## mds     print("recon_z.shape = ",recon_z.shape)
-## mds     print("recon_tx.shape = ",recon_tx.shape)
-## mds     print("recon_ty.shape = ",recon_ty.shape)
-## mds     print("poca_x.shape = ",poca_x.shape)
-## mds     print("poca_y.shape = ",poca_y.shape)
-## mds     print("poca_z.shape = ",poca_z.shape)
-## mds     print("poca_KDE_A.shape = ",poca_KDE_A.shape)
-## mds     print("poca_KDE_A_xMax.shape = ",poca_KDE_A_xMax.shape)
-## mds     print("poca_KDE_A_yMax.shape = ",poca_KDE_A_yMax.shape)
-## mds     print("poca_KDE_B.shape = ",poca_KDE_B.shape)
-## mds     print("poca_KDE_B_xMax.shape = ",poca_KDE_B_xMax.shape)
-## mds     print("poca_KDE_B_yMax.shape = ",poca_KDE_B_yMax.shape)
+    ## mds    for msg in msgs:
+    ## mds         print(" ", msg)
+    ## mds
+    ## mds     print("X.shape = ",X.shape)
+    ## mds     print("Y.shape = ",Y.shape)
+    ## mds     print("Xmax.shape = ",Xmax.shape)
+    ## mds     print("Ymax.shape = ",Ymax.shape)
+    ## mds     print("pv_loc_x.shape = ",pv_loc_x.shape)
+    ## mds     print("pv_loc_y.shape = ",pv_loc_y.shape)
+    ## mds     print("pv_loc.shape = ",pv_loc.shape)
+    ## mds     print("pv_ntrks.shape = ",pv_ntrks.shape)
+    ## mds     print("pv_cat.shape = ", pv_cat.shape)
+    ## mds     print("sv_loc_x.shape = ", sv_loc_x.shape)
+    ## mds     print("sv_loc_y.shape = ", sv_loc_y.shape)
+    ## mds     print("sv_loc.shape = ", sv_loc.shape)
+    ## mds     print("sv_ntrks.shape = ", sv_ntrks.shape)
+    ## mds     print("sv_cat.shape = ", sv_cat.shape)
+    ## mds     print("recon_x.shape = ",recon_x.shape)
+    ## mds     print("recon_y.shape = ",recon_y.shape)
+    ## mds     print("recon_z.shape = ",recon_z.shape)
+    ## mds     print("recon_tx.shape = ",recon_tx.shape)
+    ## mds     print("recon_ty.shape = ",recon_ty.shape)
+    ## mds     print("poca_x.shape = ",poca_x.shape)
+    ## mds     print("poca_y.shape = ",poca_y.shape)
+    ## mds     print("poca_z.shape = ",poca_z.shape)
+    ## mds     print("poca_KDE_A.shape = ",poca_KDE_A.shape)
+    ## mds     print("poca_KDE_A_xMax.shape = ",poca_KDE_A_xMax.shape)
+    ## mds     print("poca_KDE_A_yMax.shape = ",poca_KDE_A_yMax.shape)
+    ## mds     print("poca_KDE_B.shape = ",poca_KDE_B.shape)
+    ## mds     print("poca_KDE_B_xMax.shape = ",poca_KDE_B_xMax.shape)
+    ## mds     print("poca_KDE_B_yMax.shape = ",poca_KDE_B_yMax.shape)
 
     return OutputData(
         X,
@@ -435,26 +443,26 @@ def process_root_file(filepath, sd_1=0.1):
         recon_z,
         recon_tx,
         recon_ty,
-## mds        recon_pocax,
-## mds        recon_pocay,
-## mds        recon_pocaz,
-## mds        recon_sigmapocaxy,
-        poca_x,               ## poca ellipsoid center, x coordinate
-        poca_y,               ## poca ellipsoid center, y coordinate
-        poca_z,               ## poca ellipsoid center, z coordinate
-        major_axis_x,         ## for poca ellipsoid
-        major_axis_y,         ## for poca ellipsoid
-        major_axis_z,         ## for poca ellipsoid
-        minor_axis1_x,        ## for poca ellipsoid
-        minor_axis1_y,        ## for poca ellipsoid
-        minor_axis1_z,        ## for poca ellipsoid
-        minor_axis2_x,        ## for poca ellipsoid
-        minor_axis2_y,        ## for poca ellipsoid
-        minor_axis2_z,        ## for poca ellipsoid
-        poca_KDE_A,           ## KDE calculated from summing probabilities
-        poca_KDE_A_xMax,      ## x value where poca_KDE_A was found
-        poca_KDE_A_yMax,      ## y value where poca_KDE_A was found
-        poca_KDE_B,           ## KDE calculated from summing probability square values
-        poca_KDE_B_xMax,      ## x value where poca_KDE_B was found
-        poca_KDE_B_yMax,      ## y value where poca_KDE_B was found
-    ) 
+        ## mds        recon_pocax,
+        ## mds        recon_pocay,
+        ## mds        recon_pocaz,
+        ## mds        recon_sigmapocaxy,
+        poca_x,  ## poca ellipsoid center, x coordinate
+        poca_y,  ## poca ellipsoid center, y coordinate
+        poca_z,  ## poca ellipsoid center, z coordinate
+        major_axis_x,  ## for poca ellipsoid
+        major_axis_y,  ## for poca ellipsoid
+        major_axis_z,  ## for poca ellipsoid
+        minor_axis1_x,  ## for poca ellipsoid
+        minor_axis1_y,  ## for poca ellipsoid
+        minor_axis1_z,  ## for poca ellipsoid
+        minor_axis2_x,  ## for poca ellipsoid
+        minor_axis2_y,  ## for poca ellipsoid
+        minor_axis2_z,  ## for poca ellipsoid
+        poca_KDE_A,  ## KDE calculated from summing probabilities
+        poca_KDE_A_xMax,  ## x value where poca_KDE_A was found
+        poca_KDE_A_yMax,  ## y value where poca_KDE_A was found
+        poca_KDE_B,  ## KDE calculated from summing probability square values
+        poca_KDE_B_xMax,  ## x value where poca_KDE_B was found
+        poca_KDE_B_yMax,  ## y value where poca_KDE_B was found
+    )

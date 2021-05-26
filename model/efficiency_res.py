@@ -21,7 +21,7 @@ class ValueSet_res(NamedTuple):
 
     @property
     def eff_rate(self):
-        if self.real_pvs==0:
+        if self.real_pvs == 0:
             return self.real_pvs
         else:
             return self.S / self.real_pvs
@@ -34,7 +34,7 @@ class ValueSet_res(NamedTuple):
         message = f"Found {self.S} of {self.real_pvs}, added {self.FP} (eff {self.eff_rate:.2%})"
         if self.events > 1:
             message += f" ({self.fp_rate:.3} FP/event)"
-        #if self.S != self.Sp:
+        # if self.S != self.Sp:
         #    message += f" ({self.S} != {self.Sp})"
         return message
 
@@ -48,7 +48,7 @@ class ValueSet_res(NamedTuple):
 
     def pretty(self):
         s_message = f"Successes: {self.S:,}"
-        return fr"""\        
+        return fr"""\
 Real PVs in validation set: {self.real_pvs:,}
 {s_message}
 Missed true PVs: {self.MT:,}
@@ -56,47 +56,33 @@ False positives: {self.FP:,}
 Efficiency of detecting real PVs: {self.eff_rate:.2%}
 False positive rate: {self.fp_rate:.3}"""
 
-    
 
 #####################################################################################
 @numba.jit(
-    numba.float32[:](
-        numba.float32[:],
-        numba.float32,
-        numba.float32,
-        numba.int32
-    ),
-    locals={
-        "integral": numba.float32,
-        "sum_weights_locs": numba.float32
-    },
+    numba.float32[:](numba.float32[:], numba.float32, numba.float32, numba.int32),
+    locals={"integral": numba.float32, "sum_weights_locs": numba.float32},
     nopython=True,
 )
-def pv_locations_res(
-    targets,
-    threshold,
-    integral_threshold,
-    min_width
-):
+def pv_locations_res(targets, threshold, integral_threshold, min_width):
     """
     Compute the z positions from the input KDE using the parsed criteria.
-    
+
     Inputs:
-      * targets: 
+      * targets:
           Numpy array of KDE values (predicted or true)
 
-      * threshold: 
+      * threshold:
           The threshold for considering an "on" value - such as 1e-2
 
-      * integral_threshold: 
+      * integral_threshold:
           The total integral required to trigger a hit - such as 0.2
 
-      * min_width: 
+      * min_width:
           The minimum width (in bins) of a feature - such as 2
 
     Returns:
       * array of float32 values corresponding to the PV z positions
-      
+
     """
     # Counter of "active bins" i.e. with values above input threshold value
     state = 0
@@ -120,10 +106,10 @@ def pv_locations_res(
 
         if (targets[i] < threshold or i == len(targets) - 1) and state > 0:
 
-            # Record a PV only if 
+            # Record a PV only if
             if state >= min_width and integral >= integral_threshold:
                 # Adding '+0.5' to account for the bin width (i.e. 50 microns)
-                items[nitems] = (sum_weights_locs / integral) + 0.5 
+                items[nitems] = (sum_weights_locs / integral) + 0.5
                 nitems += 1
 
             # reset state
@@ -135,39 +121,35 @@ def pv_locations_res(
     # handled by above if len
 
     return items[:nitems]
+
+
 #####################################################################################
 
 
 #####################################################################################
 @numba.jit(
-    numba.float32[:](
-        numba.float32[:],
-        numba.float32[:]
-    ), 
+    numba.float32[:](numba.float32[:], numba.float32[:]),
     nopython=True,
 )
-def filter_nans_res(
-    items,
-    mask
-):
+def filter_nans_res(items, mask):
     """
     Method to mask bins in the predicted KDE array if the corresponding bin in the true KDE array is 'nan'.
-    
+
     Inputs:
-      * items: 
+      * items:
           Numpy array of predicted PV z positions
 
-      * mask: 
+      * mask:
           Numpy array of KDE values (true PVs)
 
 
     Returns:
       * Numpy array of predicted PV z positions
-      
+
     """
     # Create empty array with shape array of predicted PV z positions
     retval = np.empty_like(items)
-    # Counter of 
+    # Counter of
     max_index = 0
     # Loop over the predicted PV z positions
     for item in items:
@@ -178,6 +160,8 @@ def filter_nans_res(
             max_index += 1
 
     return retval[:max_index]
+
+
 #####################################################################################
 
 
@@ -189,76 +173,92 @@ def filter_nans_res(
         numba.float32[:],
         numba.float32,
         numba.float32,
-        numba.int16
-    ), 
+        numba.int16,
+    ),
     nopython=True,
 )
 def get_resolution(
-    target_PVs_loc,
-    true_PVs_nTracks,
-    true_PVs_z,
-    nsig_res,
-    min_res,
-    debug
+    target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug
 ):
-    
+
     """
     Compute the resolution as a function of true_PVs_nTracks
 
     Inputs:
-      * target_PVs_loc: 
+      * target_PVs_loc:
           Numpy array of computed z positions of the true PVs (using KDEs)
 
-      * true_PVs_nTracks: 
-          Numpy array with the number of tracks originating from the true PV 
+      * true_PVs_nTracks:
+          Numpy array with the number of tracks originating from the true PV
           Ordered from the generator level (random in z)
 
-      * true_PVs_z: 
+      * true_PVs_z:
           Numpy array with the z position of the true PVs (from generator).
-          Ordered from the generator level (random in z) 
-          It is necessary when computing the resolution (association between 
+          Ordered from the generator level (random in z)
+          It is necessary when computing the resolution (association between
           the correct true PV and the corresponding number of tracks)
 
-      * nsig_res: 
-          Empirical value representing the number of sigma wrt to the std resolution 
+      * nsig_res:
+          Empirical value representing the number of sigma wrt to the std resolution
           as a function of true_PVs_nTracks - such as 5
 
-      * min_res: 
+      * min_res:
           Minimal resolution value (in terms of bins) for the search window - such as 3
 
-      * debug: 
+      * debug:
           flag to print output for debugging purposes
 
 
-    Ouputs: 
+    Ouputs:
         Numpy array of filtered (nTracks>4) and sorted (in z values) expected resolution on the true PVs z position.
     """
-    
-    # First get the number of tracks for true PVs with true_PVs_nTracks > 4, 
+
+    # First get the number of tracks for true PVs with true_PVs_nTracks > 4,
     # and sorted in ascending z value position:
-    #filtered_and_sorted_true_PVs_nTracks = np.empty(len(true_PVs_z[true_PVs_nTracks > 4]), np.float32)
-    filtered_and_sorted_true_PVs_nTracks = [i[1] for i in sorted( zip((true_PVs_z[true_PVs_nTracks > 4]), true_PVs_nTracks[true_PVs_nTracks > 4]))]
+    # filtered_and_sorted_true_PVs_nTracks = np.empty(len(true_PVs_z[true_PVs_nTracks > 4]), np.float32)
+    filtered_and_sorted_true_PVs_nTracks = [
+        i[1]
+        for i in sorted(
+            zip(
+                (true_PVs_z[true_PVs_nTracks > 4]),
+                true_PVs_nTracks[true_PVs_nTracks > 4],
+            )
+        )
+    ]
 
     if debug:
-        print("Sorted number of tracks (get_resolution): ",filtered_and_sorted_true_PVs_nTracks)
+        print(
+            "Sorted number of tracks (get_resolution): ",
+            filtered_and_sorted_true_PVs_nTracks,
+        )
 
-    # then compute the resolution using the following constants 
+    # then compute the resolution using the following constants
     # used in calculating pvRes from Ref LHCb-PUB-2017-005
     A_res = 926.0
     B_res = 0.84
     C_res = 10.7
     filtered_and_sorted_res = np.empty_like(target_PVs_loc)
-    
+
     for i in range(len(filtered_and_sorted_true_PVs_nTracks)):
-        filtered_and_sorted_res[i] = (nsig_res*0.01* (A_res * np.power(filtered_and_sorted_true_PVs_nTracks[i], -1 * B_res) + C_res))
-    #filtered_and_sorted_res = (nsig_res*0.01* (A_res * np.power(filtered_and_sorted_true_PVs_nTracks, -1.0 * B_res) + C_res))
+        filtered_and_sorted_res[i] = (
+            nsig_res
+            * 0.01
+            * (
+                A_res * np.power(filtered_and_sorted_true_PVs_nTracks[i], -1 * B_res)
+                + C_res
+            )
+        )
+    # filtered_and_sorted_res = (nsig_res*0.01* (A_res * np.power(filtered_and_sorted_true_PVs_nTracks, -1.0 * B_res) + C_res))
 
     # Replace resolution values below min_res by min_res itself
-    filtered_and_sorted_res = np.where(filtered_and_sorted_res < min_res, min_res, filtered_and_sorted_res)
-    
-    return filtered_and_sorted_res
-#####################################################################################
+    filtered_and_sorted_res = np.where(
+        filtered_and_sorted_res < min_res, min_res, filtered_and_sorted_res
+    )
 
+    return filtered_and_sorted_res
+
+
+#####################################################################################
 
 
 #####################################################################################
@@ -272,165 +272,171 @@ def get_resolution(
         numba.float32,
         numba.float32,
         numba.float32,
-        numba.int32, 
-        numba.int16
+        numba.int32,
+        numba.int16,
     ),
     nopython=True,
 )
 def found_PVs(
-    truth, 
-    predict, 
-    true_PVs_nTracks, 
-    true_PVs_z, 
-    nsig_res, 
-    min_res, 
-    threshold, 
-    integral_threshold, 
-    min_width, 
-    debug
+    truth,
+    predict,
+    true_PVs_nTracks,
+    true_PVs_z,
+    nsig_res,
+    min_res,
+    threshold,
+    integral_threshold,
+    min_width,
+    debug,
 ):
     """
     Method to obtain the list of found true PVs (i.e. list of true PV that are matched to predicted PV).
 
     Inputs:
-      * truth: 
+      * truth:
           Numpy array of truth values
 
-      * predict: 
+      * predict:
           Numpy array of predictions
 
-      * true_PVs_nTracks: 
-          Numpy array with the number of tracks originating from the true PV 
+      * true_PVs_nTracks:
+          Numpy array with the number of tracks originating from the true PV
           Ordered from the generator level (random in z)
 
-      * true_PVs_z: 
+      * true_PVs_z:
           Numpy array with the z position of the true PVs.
-          Ordered from the generator level (random in z) 
-          It is necessary when computing the resolution (association between 
+          Ordered from the generator level (random in z)
+          It is necessary when computing the resolution (association between
           the correct true PV and the corresponding number of tracks)
 
-      * nsig_res: 
-          Empirical value representing the number of sigma wrt to the std resolution 
+      * nsig_res:
+          Empirical value representing the number of sigma wrt to the std resolution
           as a function of true_PVs_nTracks - such as 5
 
-      * min_res: 
+      * min_res:
           Minimal resolution value (in terms of bins) for the search window - such as 3
 
-      * threshold: 
+      * threshold:
           The threshold for considering an "on" value - such as 1e-2
 
-      * integral_threshold: 
+      * integral_threshold:
           The total integral required to trigger a hit - such as 0.2
 
-      * min_width: 
+      * min_width:
           The minimum width (in bins) of a feature - such as 2
 
-      * debug: 
+      * debug:
           flag to print output for debugging purposes
 
 
-    Ouputs: 
+    Ouputs:
         Numpy array of '0=not matched' or '1=matched' acting like booleans.
     """
-    
+
     # Get the z position from the true KDEs distribution
     target_PVs_loc = pv_locations_res(truth, threshold, integral_threshold, min_width)
     # Get the z position from the predicted KDEs distribution
     pred_PVs_loc = pv_locations_res(predict, threshold, integral_threshold, min_width)
 
-    # Using the filter_nans_res method to mask the PVs in 'pred_PVs_loc' 
-    # where the corresponding bins in truth are 'nan' 
+    # Using the filter_nans_res method to mask the PVs in 'pred_PVs_loc'
+    # where the corresponding bins in truth are 'nan'
     filtered_pred_PVs_loc = filter_nans_res(pred_PVs_loc, truth)
 
     # Get the true PV resolutions, sorted by ascending z value position
-    # The sorting in z values is important, because the arrays target_PVs_loc 
-    # and pred_PVs_loc obtained from 'pv_locations_res' are sorted by ascending z values 
+    # The sorting in z values is important, because the arrays target_PVs_loc
+    # and pred_PVs_loc obtained from 'pv_locations_res' are sorted by ascending z values
     # (by construction from the KDEs histograms)
-    filtered_and_sorted_res = get_resolution(target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug)
-    
-    # Initialize the array to an array of zeros with target_PVs_loc shape 
-    found_PVs = np.zeros(target_PVs_loc.shape,dtype=numba.int16)
+    filtered_and_sorted_res = get_resolution(
+        target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug
+    )
+
+    # Initialize the array to an array of zeros with target_PVs_loc shape
+    found_PVs = np.zeros(target_PVs_loc.shape, dtype=numba.int16)
 
     # Loop over the true PVs
     for i in range(len(target_PVs_loc)):
-        # Get the window of interest: [min_val, max_val] 
+        # Get the window of interest: [min_val, max_val]
         # The window is obtained from the value of z of the true PV 'i'
         # +/- the resolution as a function of the number of tracks for the true PV 'i'
-        min_val = target_PVs_loc[i]-filtered_and_sorted_res[i]
-        max_val = target_PVs_loc[i]+filtered_and_sorted_res[i]
+        min_val = target_PVs_loc[i] - filtered_and_sorted_res[i]
+        max_val = target_PVs_loc[i] + filtered_and_sorted_res[i]
         # Loop over the 'filtered' predicted PVs
-        for j in range(len(filtered_pred_PVs_loc)):                
-            if min_val <= filtered_pred_PVs_loc[j] and filtered_pred_PVs_loc[j] <= max_val:
-                # If condition is met, then the element 'i' 
-                # of the found_PVs array is set to '1' 
+        for j in range(len(filtered_pred_PVs_loc)):
+            if (
+                min_val <= filtered_pred_PVs_loc[j]
+                and filtered_pred_PVs_loc[j] <= max_val
+            ):
+                # If condition is met, then the element 'i'
+                # of the found_PVs array is set to '1'
                 found_PVs[i] = 1
-                # the predicted PV is removed from the original array to avoid associating 
+                # the predicted PV is removed from the original array to avoid associating
                 # one true PV to multiple predicted PVs
                 # (this could happen for PVs with close z values)
-                filtered_pred_PVs_loc = np.delete(filtered_pred_PVs_loc,[j])
+                filtered_pred_PVs_loc = np.delete(filtered_pred_PVs_loc, [j])
                 # Since a true PV and a predicted PV where matched, go to the next true PV 'i'
                 break
             else:
                 # In case, no predicted PV could be associated with the true PV 'i'
                 # then found_PVs[i] is set to '0'
                 found_PVs[i] = 0
-        
+
     return found_PVs
+
+
 #####################################################################################
 
 
 #####################################################################################
 @numba.jit(
-    numba.int16[:](
-        numba.float32[:],
-        numba.uint16[:],
-        numba.float32[:],
-        numba.int16
-    ), 
+    numba.int16[:](numba.float32[:], numba.uint16[:], numba.float32[:], numba.int16),
     nopython=True,
 )
-def get_nTracks_sorted(
-    target_PVs_loc,
-    true_PVs_nTracks,
-    true_PVs_z,
-    debug
-):
+def get_nTracks_sorted(target_PVs_loc, true_PVs_nTracks, true_PVs_z, debug):
     """
     Method to obtain the filtered and sorted list of number of tracks associated to each PVs
 
     Input argument:
-      * target_PVs_loc: 
+      * target_PVs_loc:
           Numpy array of computed z positions of the true PVs (using KDEs)
 
-      * true_PVs_nTracks: 
-          Numpy array with the number of tracks originating from the true PV 
+      * true_PVs_nTracks:
+          Numpy array with the number of tracks originating from the true PV
           Ordered from the generator level (random in z)
 
-      * true_PVs_z: 
+      * true_PVs_z:
           Numpy array with the z position of the true PVs.
-          Ordered from the generator level (random in z) 
-          It is necessary when computing the resolution (association between 
+          Ordered from the generator level (random in z)
+          It is necessary when computing the resolution (association between
           the correct true PV and the corresponding number of tracks)
 
-      * debug: 
+      * debug:
           flag to print output for debugging purposes
     """
 
     # Get an empty array fo shape target_PVs_loc with values of type 'int16'
-    filtered_and_sorted_true_PVs_nTracks = np.empty(target_PVs_loc.shape,dtype=numba.int16)
-    
-    # Sorted loop over the true PVs using the z position in 'true_PVs_z' 
-    # with the condition 'true_PVs_nTracks > 4'. 
+    filtered_and_sorted_true_PVs_nTracks = np.empty(
+        target_PVs_loc.shape, dtype=numba.int16
+    )
+
+    # Sorted loop over the true PVs using the z position in 'true_PVs_z'
+    # with the condition 'true_PVs_nTracks > 4'.
     # Fill the array with the associated number of tracks.
-    j=0
-    for i in sorted( zip(true_PVs_z[true_PVs_nTracks > 4], true_PVs_nTracks[true_PVs_nTracks > 4])):
+    j = 0
+    for i in sorted(
+        zip(true_PVs_z[true_PVs_nTracks > 4], true_PVs_nTracks[true_PVs_nTracks > 4])
+    ):
         filtered_and_sorted_true_PVs_nTracks[j] = int(i[1])
-        j+=1
-     
+        j += 1
+
     if debug:
-        print("Sorted number of tracks (get_nTracks_sorted): ",filtered_and_sorted_true_PVs_nTracks)
+        print(
+            "Sorted number of tracks (get_nTracks_sorted): ",
+            filtered_and_sorted_true_PVs_nTracks,
+        )
 
     return filtered_and_sorted_true_PVs_nTracks
+
+
 #####################################################################################
 
 
@@ -443,83 +449,78 @@ def get_nTracks_sorted(
         numba.float32[:],
         numba.float32,
         numba.float32,
-        numba.int16
+        numba.int16,
     ),
     nopython=True,
 )
 def compare_res(
-    target_PVs_loc,
-    pred_PVs_loc,
-    true_PVs_nTracks,
-    true_PVs_z,
-    nsig_res,
-    min_res,
-    debug
+    target_PVs_loc, pred_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug
 ):
     """
-    Method to compute the efficiency counters: 
+    Method to compute the efficiency counters:
     - succeed    = number of successfully predicted PVs
     - missed     = number of missed true PVs
     - false_pos  = number of predicted PVs not matching any true PVs
 
     Inputs argument:
-      * target_PVs_loc: 
+      * target_PVs_loc:
           Numpy array of computed z positions of the true PVs (using KDEs)
 
-      * pred_PVs_loc: 
+      * pred_PVs_loc:
           Numpy array of computed z positions of the predicted PVs (using KDEs)
 
-      * true_PVs_nTracks: 
-          Numpy array with the number of tracks originating from the true PV 
+      * true_PVs_nTracks:
+          Numpy array with the number of tracks originating from the true PV
           Ordered from the generator level (random in z)
 
-      * true_PVs_z: 
+      * true_PVs_z:
           Numpy array with the z position of the true PVs.
-          Ordered from the generator level (random in z) 
-          It is necessary when computing the resolution (association between 
+          Ordered from the generator level (random in z)
+          It is necessary when computing the resolution (association between
           the correct true PV and the corresponding number of tracks)
 
-      * nsig_res: 
-          Empirical value representing the number of sigma wrt to the std resolution 
+      * nsig_res:
+          Empirical value representing the number of sigma wrt to the std resolution
           as a function of true_PVs_nTracks - such as 5
 
-      * min_res: 
+      * min_res:
           Minimal resolution value (in terms of bins) for the search window - such as 3
 
-      * debug: 
+      * debug:
           flag to print output for debugging purposes
-    
-    
+
+
     Returns:
         succeed, missed, false_pos
     """
-    
+
     # Counters that will be iterated and returned by this method
     succeed = 0
     missed = 0
     false_pos = 0
-    
+
     # Get the true PV resolutions, sorted by ascending z value position
-    # The sorting in z values is important, because the arrays target_PVs_loc 
-    # and pred_PVs_loc obtained from 'pv_locations_res' are sorted by ascending z values 
+    # The sorting in z values is important, because the arrays target_PVs_loc
+    # and pred_PVs_loc obtained from 'pv_locations_res' are sorted by ascending z values
     # (by construction from the KDEs histograms)
-    filtered_and_sorted_res = get_resolution(target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug)
-    
+    filtered_and_sorted_res = get_resolution(
+        target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug
+    )
+
     if debug:
         print("")
-        print("pred_PVs_loc = ",pred_PVs_loc)
-        print("target_PVs_loc = ",target_PVs_loc)
-        print("resolutions : ",filtered_and_sorted_res)
+        print("pred_PVs_loc = ", pred_PVs_loc)
+        print("target_PVs_loc = ", target_PVs_loc)
+        print("resolutions : ", filtered_and_sorted_res)
         print("")
-        print("len(pred_PVs_loc) =",len(pred_PVs_loc))
-        print("len(target_PVs_loc) =",len(target_PVs_loc))
+        print("len(pred_PVs_loc) =", len(pred_PVs_loc))
+        print("len(target_PVs_loc) =", len(target_PVs_loc))
         print("")
         print("")
 
-    
     # Get the number of predicted PVs
     len_pred_PVs_loc = len(pred_PVs_loc)
-    # Get the number of true PVs 
+    # Get the number of true PVs
     len_target_PVs_loc = len(target_PVs_loc)
 
     # Decide whether we have predicted equally or more PVs than trully present
@@ -528,91 +529,91 @@ def compare_res(
         if debug:
             print("In len(pred_PVs_loc) >= len(target_PVs_loc)")
 
-        # Since we have N(pred_PVs) >= N(true_PVs), 
-        # we loop over the pred_PVs, and check each one of them to decide 
-        # whether they should be labelled as S, FP. 
+        # Since we have N(pred_PVs) >= N(true_PVs),
+        # we loop over the pred_PVs, and check each one of them to decide
+        # whether they should be labelled as S, FP.
         # The number of MT is computed as: N(true_PVs) - S
         # Here the number of iteration is fixed to the original number of predicted PVs
         for i in range(len_pred_PVs_loc):
             if debug:
-                print("pred_PVs_loc = ",pred_PVs_loc[i])
+                print("pred_PVs_loc = ", pred_PVs_loc[i])
             # flag to check if the predicted PV is being matched to a true PV
             matched = 0
             # Now looping over the true PVs.
             for j in range(len(target_PVs_loc)):
-                # Get the window of interest: [min_val, max_val] 
+                # Get the window of interest: [min_val, max_val]
                 # The window is obtained from the value of z of the true PV 'j'
                 # +/- the resolution as a function of the number of tracks for the true PV 'j'
-                min_val = target_PVs_loc[j]-filtered_and_sorted_res[j]
-                max_val = target_PVs_loc[j]+filtered_and_sorted_res[j]
+                min_val = target_PVs_loc[j] - filtered_and_sorted_res[j]
+                max_val = target_PVs_loc[j] + filtered_and_sorted_res[j]
                 if debug:
-                    print("resolution = ",(max_val-min_val)/2.)
-                    print("min_val = ",min_val)
-                    print("max_val = ",max_val)
-                # If condition is met, then the predicted PV is labelled as 'matched', 
+                    print("resolution = ", (max_val - min_val) / 2.0)
+                    print("min_val = ", min_val)
+                    print("max_val = ", max_val)
+                # If condition is met, then the predicted PV is labelled as 'matched',
                 # and the number of success is incremented by 1
                 if min_val <= pred_PVs_loc[i] and pred_PVs_loc[i] <= max_val:
                     matched = 1
                     succeed += 1
                     if debug:
-                        print("succeed = ",succeed)
-                    # the true PV is removed from the original array to avoid associating 
+                        print("succeed = ", succeed)
+                    # the true PV is removed from the original array to avoid associating
                     # one predicted PV to multiple true PVs
                     # (this could happen for PVs with close z values)
-                    target_PVs_loc = np.delete(target_PVs_loc,[j])
+                    target_PVs_loc = np.delete(target_PVs_loc, [j])
                     # also remove the associated resolution to avoid mis-matching the array dimensions
-                    filtered_and_sorted_res = np.delete(filtered_and_sorted_res,[j])
+                    filtered_and_sorted_res = np.delete(filtered_and_sorted_res, [j])
                     # Since a predicted PV and a true PV where matched, go to the next predicted PV 'i'
                     break
             # In case, no true PV could be associated with the predicted PV 'i'
             # then it is assigned as a FP answer
-            if not matched:                
-                false_pos +=1
+            if not matched:
+                false_pos += 1
                 if debug:
-                    print("false_pos = ",false_pos)
-        # the number of missed true PVs is simply the difference between the original 
+                    print("false_pos = ", false_pos)
+        # the number of missed true PVs is simply the difference between the original
         # number of true PVs and the number of successfully matched true PVs
-        missed = (len_target_PVs_loc-succeed)
+        missed = len_target_PVs_loc - succeed
         if debug:
-            print("missed = ",missed)
+            print("missed = ", missed)
 
     else:
         if debug:
             print("In len(pred_PVs_loc) < len(target_PVs_loc)")
-        # Since we have N(pred_PVs) < N(true_PVs), 
-        # we loop over the true_PVs, and check each one of them to decide 
-        # whether they should be labelled as S, MT. 
+        # Since we have N(pred_PVs) < N(true_PVs),
+        # we loop over the true_PVs, and check each one of them to decide
+        # whether they should be labelled as S, MT.
         # The number of FP is computed as: N(pred_PVs) - S
         # Here the number of iteration is fixed to the original number of true PVs
         for i in range(len_target_PVs_loc):
             if debug:
-                print("target_PVs_loc = ",target_PVs_loc[i])
-            # Get the window of interest: [min_val, max_val] 
+                print("target_PVs_loc = ", target_PVs_loc[i])
+            # Get the window of interest: [min_val, max_val]
             # The window is obtained from the value of z of the true PV 'i'
             # +/- the resolution as a function of the number of tracks for the true PV 'i'
-            min_val = target_PVs_loc[i]-filtered_and_sorted_res[i]
-            max_val = target_PVs_loc[i]+filtered_and_sorted_res[i]
+            min_val = target_PVs_loc[i] - filtered_and_sorted_res[i]
+            max_val = target_PVs_loc[i] + filtered_and_sorted_res[i]
             if debug:
-                print("resolution = ",(max_val-min_val)/2.)
-                print("min_val = ",min_val)
-                print("max_val = ",max_val)
+                print("resolution = ", (max_val - min_val) / 2.0)
+                print("min_val = ", min_val)
+                print("max_val = ", max_val)
             # flag to check if the true PV is being matched to a predicted PV
             matched = 0
             # Now looping over the predicted PVs.
-            for j in range(len(pred_PVs_loc)):                
+            for j in range(len(pred_PVs_loc)):
                 if debug:
-                    print("pred_PVs_loc = ",pred_PVs_loc[j])
-                # If condition is met, then the true PV is labelled as 'matched', 
+                    print("pred_PVs_loc = ", pred_PVs_loc[j])
+                # If condition is met, then the true PV is labelled as 'matched',
                 # and the number of success is incremented by 1
                 if min_val <= pred_PVs_loc[j] and pred_PVs_loc[j] <= max_val:
                     matched = 1
                     succeed += 1
                     if debug:
-                        print("succeed = ",succeed)
-                    # the predicted PV is removed from the original array to avoid associating 
+                        print("succeed = ", succeed)
+                    # the predicted PV is removed from the original array to avoid associating
                     # one true PV to multiple predicted PVs
                     # (this could happen for PVs with close z values)
-                    pred_PVs_loc = np.delete(pred_PVs_loc,[j])
+                    pred_PVs_loc = np.delete(pred_PVs_loc, [j])
                     # Since a predicted PV and a true PV where matched, go to the next true PV 'i'
                     break
             # In case, no predicted PV could be associated with the true PV 'i'
@@ -620,15 +621,17 @@ def compare_res(
             if not matched:
                 missed += 1
                 if debug:
-                    print("missed = ",missed)
-                    
-        # the number of false positive predicted PVs is simply the difference between the original 
+                    print("missed = ", missed)
+
+        # the number of false positive predicted PVs is simply the difference between the original
         # number of predicted PVs and the number of successfully matched predicted PVs
-        false_pos = (len_pred_PVs_loc - succeed)
+        false_pos = len_pred_PVs_loc - succeed
         if debug:
-            print("false_pos = ",false_pos)
+            print("false_pos = ", false_pos)
 
     return succeed, missed, false_pos
+
+
 #####################################################################################
 
 
@@ -644,7 +647,7 @@ def compare_res(
         numba.float32,
         numba.float32,
         numba.int32,
-        numba.int16
+        numba.int16,
     ),
     nopython=True,
 )
@@ -658,7 +661,7 @@ def numba_efficiency_res(
     threshold,
     integral_threshold,
     min_width,
-    debug
+    debug,
 ):
     """
     Function copied from 'efficiency.py', which now returns 3 values instead of 4. Two values of counted successes are computed in 'efficiency.py', S and Sp, the latter being the number of successes when using the filter_nans method on the true KDE inputs. By default, the number of successes (S in this script) is being computed using the filter_nans_res method.
@@ -669,18 +672,27 @@ def numba_efficiency_res(
     # Get the z position from the predicted KDEs distribution
     predict_values = pv_locations_res(predict, threshold, integral_threshold, min_width)
 
-    
-    # Using the filter_nans_res method to 'mask' the bins in 'predict_values' 
-    # where the corresponding bins in truth are 'nan' 
+    # Using the filter_nans_res method to 'mask' the bins in 'predict_values'
+    # where the corresponding bins in truth are 'nan'
     filtered_predict_values = filter_nans_res(predict_values, truth)
 
-    # Get the efficiency values: 
-    # - S (number of successfully predicted PVs); 
-    # - MT (missed true PVs); 
+    # Get the efficiency values:
+    # - S (number of successfully predicted PVs);
+    # - MT (missed true PVs);
     # - FP (false positive predicted PVs)
-    S, MT, FP = compare_res(true_values, filtered_predict_values, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug)
+    S, MT, FP = compare_res(
+        true_values,
+        filtered_predict_values,
+        true_PVs_nTracks,
+        true_PVs_z,
+        nsig_res,
+        min_res,
+        debug,
+    )
 
     return S, MT, FP
+
+
 #####################################################################################
 
 
@@ -689,13 +701,13 @@ def efficiency_res(
     truth,
     predict,
     true_PVs_nTracks,
-    true_PVs_z, 
+    true_PVs_z,
     nsig_res,
     min_res,
     threshold,
     integral_threshold,
     min_width,
-    debug
+    debug,
 ):
     """
     Compute three values: The number of succeses (S), the number of missed true
@@ -703,39 +715,39 @@ def efficiency_res(
     is computed twice, and both values are returned.
 
     Inputs:
-      * truth: 
+      * truth:
           Numpy array of truth values
 
-      * predict: 
+      * predict:
           Numpy array of predictions
 
-      * true_PVs_nTracks: 
+      * true_PVs_nTracks:
           The number of tracks originating from the true PV used to compute diff(true_PVs_nTracks)
 
-      * true_PVs_z: 
+      * true_PVs_z:
           Z position of the true PVs used to assign the correct true PV to true_PVs_nTracks
 
-      * nsig_res: 
-          Empirical value representing the number of sigma wrt to the std resolution 
+      * nsig_res:
+          Empirical value representing the number of sigma wrt to the std resolution
           as a function of true_PVs_nTracks - such as 5
 
-      * min_res: 
+      * min_res:
           Minimal resolution value (in terms of bins) for the search window - such as 3
 
-      * threshold: 
+      * threshold:
           The threshold for considering an "on" value - such as 1e-2
 
-      * integral_threshold: 
+      * integral_threshold:
           The total integral required to trigger a hit - such as 0.2
 
-      * min_width: 
+      * min_width:
           The minimum width (in bins) of a feature - such as 2
 
-      * debug: 
+      * debug:
           flag to print output for debugging purposes
 
 
-    Ouputs: 
+    Ouputs:
         ValueSet(S, Sp, MT, FP)
 
     This algorithm computes the weighted mean, and uses that.
@@ -746,9 +758,20 @@ def efficiency_res(
 
     return ValueSet_res(
         *numba_efficiency_res(
-            truth, predict, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, threshold, integral_threshold, min_width, debug
+            truth,
+            predict,
+            true_PVs_nTracks,
+            true_PVs_z,
+            nsig_res,
+            min_res,
+            threshold,
+            integral_threshold,
+            min_width,
+            debug,
         )
     )
+
+
 #####################################################################################
 
 

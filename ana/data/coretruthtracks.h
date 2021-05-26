@@ -10,7 +10,7 @@ template <class T> struct CoreTruthTracksIO : public CoreIO<T, double> {
     Vec prt_px{this, "prt_px"};
     Vec prt_py{this, "prt_py"};
     Vec prt_pz{this, "prt_pz"};
-    
+
     /// Location of particle
     Vec prt_x{this, "prt_x"};
     Vec prt_y{this, "prt_y"};

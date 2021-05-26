@@ -19,7 +19,7 @@ template <class T> struct DataPVsIO : public CoreIO<T, float> {
     Vec pv_loc_y{this, "pv_loc_y"};
     /// Number of tracks associated with primary vertex
     Vec pv_ntrks{this, "pv_ntrks"};
-    
+
     /// Category of secondary vertex, 1 if enough tracks, 0 for not enough tracks, -1 for no tracks
     Vec sv_cat{this, "sv_cat"};
     /// Location of secondary vertex

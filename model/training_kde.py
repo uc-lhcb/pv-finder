@@ -96,7 +96,6 @@ model: {model}"""
 
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
 
-
     # Loop for n_epochs
     for epoch in epoch_iterator:
         training_start_time = time.time()
@@ -123,7 +122,7 @@ model: {model}"""
         write(
             f"Epoch {epoch}: train={cost_epoch:.6}, val={val_epoch:.6}, took {time_epoch:.5} s"
         )
-##        write(f"  Validation {cur_val_eff}")
+        ##        write(f"  Validation {cur_val_eff}")
 
         yield Results(epoch, cost_epoch, val_epoch, time_epoch)
 

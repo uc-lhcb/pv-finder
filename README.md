@@ -92,7 +92,7 @@ and add the following:
 After that, you can type `make` and let the stack compile (takes about 1 to 2 hours if eveything works fine).
 With that configuration, we make sure that a snapshot of the entire stack (taken from private forks under `mstahl`) is used, which we know runs. We have also freezed lcg and lbenv versions, as well as the binary tag to be able to work with torch-script.
 
-After compiling, you should be able to run commands like 
+After compiling, you should be able to run commands like
 ```sh
 Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_FTv6.py Moore/Hlt/RecoConf/options/hlt1_reco_pvchecker.py 2>&1 | tee CNNVertexFinder.log
 ```

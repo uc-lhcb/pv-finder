@@ -8,7 +8,7 @@ def plot_truth_vs_predict(truth, predict, ax=None):
     if ax is None:
         fig, ax = plt.subplots(figsize=(18, 2))
 
-    non_zero, = np.nonzero(np.round(truth + predict, 4))
+    (non_zero,) = np.nonzero(np.round(truth + predict, 4))
 
     ax.plot(-truth, label="Truth")
     ax.plot(predict, label="Prediction")
@@ -96,11 +96,11 @@ def dual_train_plots(x=(), train=(), validation=(), eff=(), FP_rate=(), *, axs=N
     tax = lax.twinx()
 
     lines = dict()
-    lines["train"], = ax.plot(x, train, "o-", label="Train")
-    lines["val"], = ax.plot(x, validation, "o-", label="Validation")
+    (lines["train"],) = ax.plot(x, train, "o-", label="Train")
+    (lines["val"],) = ax.plot(x, validation, "o-", label="Validation")
 
-    lines["eff"], = lax.plot(x, eff, "o-b", label="Eff")
-    lines["fp"], = tax.plot(x, FP_rate, "o-r", label="FP rate")
+    (lines["eff"],) = lax.plot(x, eff, "o-b", label="Eff")
+    (lines["fp"],) = tax.plot(x, FP_rate, "o-r", label="FP rate")
 
     ax.set_xlabel("Epochs")
     ax.set_ylabel("Cost")
@@ -115,43 +115,46 @@ def dual_train_plots(x=(), train=(), validation=(), eff=(), FP_rate=(), *, axs=N
     tax.legend(loc="lower left")
     return ax, tax, lax, lines
 
-def dual_train_plots_tracks_to_KDE(x=(), train=(), validation=(), train_r=(), validation_r=(), *, axs=None):
+
+def dual_train_plots_tracks_to_KDE(
+    x=(), train=(), validation=(), train_r=(), validation_r=(), *, axs=None
+):
 
     if axs is None:
         fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
     ax, lax = axs
-    #tax = lax.twinx()
+    # tax = lax.twinx()
 
     lines = dict()
-    lines["val"], = ax.plot(x, validation, "o-r", label="Validation")
-    lines["train"], = ax.plot(x, train, "o-b", label="Train")
+    (lines["val"],) = ax.plot(x, validation, "o-r", label="Validation")
+    (lines["train"],) = ax.plot(x, train, "o-b", label="Train")
 
-    lines["validation_r"], = lax.plot(x, validation_r, "o-r", label="Validation")
-    lines["train_r"], = lax.plot(x, train_r, "o-b", label="Train")
-    #lines["validation_r"], = tax.plot(x, validation_r, "o-r", label="Validation")
+    (lines["validation_r"],) = lax.plot(x, validation_r, "o-r", label="Validation")
+    (lines["train_r"],) = lax.plot(x, train_r, "o-b", label="Train")
+    # lines["validation_r"], = tax.plot(x, validation_r, "o-r", label="Validation")
 
     ax.set_xlabel("Epochs")
     ax.set_ylabel("Cost")
 
     lax.set_xlabel("Epochs")
 
-    if len(train)>0:
-        if train[0]!=train_r[0] and train_r[0]==1:    
+    if len(train) > 0:
+        if train[0] != train_r[0] and train_r[0] == 1:
             lax.set_ylabel("Relative costs variation")
-            #lax.set_ylabel("Relative train variation", color="b")
-            #tax.set_ylabel("Relative validation variation", color="r")
+            # lax.set_ylabel("Relative train variation", color="b")
+            # tax.set_ylabel("Relative validation variation", color="r")
         else:
             lax.set_ylabel("Train", color="b")
     else:
         lax.set_ylabel("Train", color="b")
-        
-    #ax.set_yscale("log")
+
+    # ax.set_yscale("log")
     ax.legend()
-    #lax.legend(loc="upper right")
+    # lax.legend(loc="upper right")
     lax.legend()
-    #tax.legend(loc="lower left")
-    #return ax, tax, lax, lines
+    # tax.legend(loc="lower left")
+    # return ax, tax, lax, lines
     return ax, lax, lines
 
 

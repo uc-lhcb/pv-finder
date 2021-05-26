@@ -11,7 +11,7 @@ Results = namedtuple("Results", ["epoch", "cost", "val", "time", "eff_val"])
 
 ## change difference from 5.0 to 7.5 to see what change in eff-v-FP this produces
 PARAM_EFF = {
-    "difference": 7.5,   ## was 5.0 in training.py
+    "difference": 7.5,  ## was 5.0 in training.py
     "threshold": 1e-2,
     "integral_threshold": 0.2,
     "min_width": 3,

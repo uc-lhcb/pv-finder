@@ -137,20 +137,14 @@ xexp = "(((x-[0])<[2])?[3]:[4])+[1]+[5]"
 
 # Expression for the upper/lower foil as a function of z (parameter 5).
 uexp = "10+" + "+".join(  # Flat section.
-    
-        "(x>[%i]-3.5&&x<=[%i])*(-6.5/3.5*(x-[%i]+3.5))"  # Slope to tip.
-        "+(x>[%i]&&x<=[%i]+3.5)*(6.5/3.5*(x-[%i])-6.5)"  # Slope from tip.
-        % tuple([i] * 6)
-        for i in range(0, len(uzs))
-    
+    "(x>[%i]-3.5&&x<=[%i])*(-6.5/3.5*(x-[%i]+3.5))"  # Slope to tip.
+    "+(x>[%i]&&x<=[%i]+3.5)*(6.5/3.5*(x-[%i])-6.5)" % tuple([i] * 6)  # Slope from tip.
+    for i in range(0, len(uzs))
 )
 lexp = "-10+" + "+".join(  # Flat section.
-    
-        "(x>[%i]-3.5&&x<=[%i])*(6.5/3.5*(x-[%i]+3.5))"  # Slope to tip.
-        "+(x>[%i]&&x<=[%i]+3.5)*(-6.5/3.5*(x-[%i])+6.5)"  # Slope from tip.
-        % tuple([i] * 6)
-        for i in range(0, len(uzs))
-    
+    "(x>[%i]-3.5&&x<=[%i])*(6.5/3.5*(x-[%i]+3.5))"  # Slope to tip.
+    "+(x>[%i]&&x<=[%i]+3.5)*(-6.5/3.5*(x-[%i])+6.5)" % tuple([i] * 6)  # Slope from tip.
+    for i in range(0, len(uzs))
 )
 
 # Write the upper foil to file.
