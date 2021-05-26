@@ -171,7 +171,7 @@ def run(lname, tEvt):
         ttree.Fill()
         itime = time.time() - start
         ttime += itime
-        if iEvt % 100 is 0:
+        if iEvt % 100 == 0:
           print(
             "{} Evt {}/{}, {:3} PVs, {:3} tracks in {:.3} s".format(
                 name, iEvt, tEvt, npv, writer.size("pvr_z"), itime
