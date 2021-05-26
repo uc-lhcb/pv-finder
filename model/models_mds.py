@@ -3,7 +3,7 @@ from torch import nn
 
 class SimpleCNN2Layer(nn.Module):
     def __init__(self):
-        super(SimpleCNN2Layer, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1, out_channels=5, kernel_size=25, stride=1, padding=12
@@ -37,7 +37,7 @@ class SimpleCNN2Layer(nn.Module):
 
 class SimpleCNN3Layer(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -102,7 +102,7 @@ class SimpleCNN3Layer(nn.Module):
 ## 180808  mds  add a 3-layer model with drop-out following layers 1 and 3
 class SimpleCNN3Layer_A(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer_A, self).__init__()
+        super().__init__()
         # input channel size 1, output channel size 15
         self.nChan_out_layer1 = 20
         kernel_size_layer1 = 25

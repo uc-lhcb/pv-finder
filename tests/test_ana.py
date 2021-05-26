@@ -103,7 +103,7 @@ def test_with_uproot_single(makehist_single, branchname):
     arange = np.arange(len(arr1))
     arrdiff = np.stack([arange // 4000, arange % 4000, arr1, arr2]).T[~diff]
     for row in arrdiff:
-        print("{0:1g} {1:4g} : {2:11g} <-> {3:11g}".format(*row))
+        print("{:1g} {:4g} : {:11g} <-> {:11g}".format(*row))
     np.testing.assert_allclose(arr1, arr2, rtol=1e-04, atol=1e-07)
 
 
@@ -116,5 +116,5 @@ def test_with_uproot_split(makehist_split, branchname):
     arange = np.arange(len(arr1))
     arrdiff = np.stack([arange // 4000, arange % 4000, arr1, arr2]).T[~diff]
     for row in arrdiff:
-        print("{0:1g} {1:4g} : {2:11g} <-> {3:11g}".format(*row))
+        print("{:1g} {:4g} : {:11g} <-> {:11g}".format(*row))
     np.testing.assert_allclose(arr1, arr2, rtol=1e-04, atol=1e-07)

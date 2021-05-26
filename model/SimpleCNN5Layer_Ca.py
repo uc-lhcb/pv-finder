@@ -2,7 +2,7 @@ class SimpleCNN5Layer_Ca(nn.Module):
 ## same as SimpleCNN5Layer_C, except that sigmoid activation is replaced
 ## with Softplus activation
     def __init__(self):
-        super(SimpleCNN5Layer_Ca, self).__init__()
+        super().__init__()
 
         self.conv1=nn.Conv1d(
             in_channels = 1,

@@ -3,7 +3,7 @@ import sys
 import time
 
 
-class DummyTqdmFile(object):
+class DummyTqdmFile:
     """Dummy file-like that will write to tqdm"""
 
     __slots__ = ("file", "progress")
@@ -56,7 +56,7 @@ def import_progress_bar(notebook):
     return progress
 
 
-class Timer(object):
+class Timer:
     __slots__ = "message verbose start_time".split()
 
     def __init__(self, message=None, start=None, verbose=True):

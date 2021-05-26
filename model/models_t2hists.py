@@ -10,7 +10,7 @@ class TracksToHists_A(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToHists_A,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -200,7 +200,7 @@ class TracksToHists_A(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)
@@ -288,7 +288,7 @@ class TracksToHists_B(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToHists_B,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -490,7 +490,7 @@ class TracksToHists_B(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)
@@ -582,7 +582,7 @@ class TracksToHists_C(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToHists_C,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -784,7 +784,7 @@ class TracksToHists_C(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)

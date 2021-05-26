@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf-8
 
 # Get the current script directory
 from pathlib import Path

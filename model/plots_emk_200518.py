@@ -190,4 +190,4 @@ def ellipse_parameters_for_plotting(alpha_xy, beta_xy, gamma_xy, delta_xy, A, C)
     theta = 0.5*math.pi
 
 ## the Ellipse() method in matplotlib.patches wants andgles in degrees
-  return a, b, 180.*theta/math.pi  
+  return a, b, 180.*theta/math.pi

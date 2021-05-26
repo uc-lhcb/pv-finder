@@ -12,7 +12,7 @@ class TracksToKDE_A(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(TracksToKDE_A,self).__init__()
+        super().__init__()
        
 
         self.layer1 = nn.Linear(
@@ -77,7 +77,7 @@ class TracksToKDE_B(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self, nOut1=12, nOut2=15):
-        super(TracksToKDE_B,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -127,7 +127,7 @@ class TracksToKDE_C(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self, nOut1=12, nOut2=15):
-        super(TracksToKDE_C,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -197,7 +197,7 @@ class TracksToKDE_D(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self, nOut1=12, nOut2=15, nOut3=25):
-        super(TracksToKDE_D,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -273,7 +273,7 @@ class TracksToKDE_Ellipsoids(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self, nOut1=12, nOut2=15, nOut3=25):
-        super(TracksToKDE_Ellipsoids,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -350,7 +350,7 @@ class TracksToKDE_Ellipsoids_SevenLayerCake(nn.Module):
 
     def __init__(self, nOut1=25, nOut2=25, nOut3=25,
                        nOut4=25, nOut5=25, nOut6=50):
-        super(TracksToKDE_Ellipsoids_SevenLayerCake,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -447,7 +447,7 @@ class TracksToKDE_Ellipsoids_DirtyDozen(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25):
-        super(TracksToKDE_Ellipsoids_DirtyDozen,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -575,7 +575,7 @@ class TracksToKDE_Ellipsoids_Skipper(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25):
-        super(TracksToKDE_Ellipsoids_Skipper,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -723,7 +723,7 @@ class TracksToKDE_Ellipsoids_DDplus(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToKDE_Ellipsoids_DDplus,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -857,7 +857,7 @@ class TracksToKDE_Ellipsoids_DDplus(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)
@@ -906,7 +906,7 @@ class TracksToKDE_Ellipsoids_DDplusCNN(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToKDE_Ellipsoids_DDplusCNN,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -1040,7 +1040,7 @@ class TracksToKDE_Ellipsoids_DDplusCNN(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)
@@ -1090,7 +1090,7 @@ class TracksToKDE_DDplusplus(nn.Module):
                        nOut4=25, nOut5=25, nOut6=50,
                        nOut7=25, nOut8=25, nOut9=50,
                        nOut10=25, nOut11=25, latentChannels=8):
-        super(TracksToKDE_DDplusplus,self).__init__()
+        super().__init__()
 
         self.nOut1 = nOut1
         self.nOut2 = nOut2
@@ -1220,7 +1220,7 @@ class TracksToKDE_DDplusplus(nn.Module):
         x = leaky(self.layer9(x))
         x = leaky(self.layer10(x))
         x = leaky(self.layer11(x))
-        x = leaky((self.layer12new(x)))  ## produces self.latentChannels*4000 bin feature
+        x = leaky(self.layer12new(x))  ## produces self.latentChannels*4000 bin feature
 
 ## at this point x should have the contents expected in the following line
         x = x.view(nEvts,nTrks,self.latentChannels,4000)

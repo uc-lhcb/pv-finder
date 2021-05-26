@@ -48,7 +48,7 @@ class ValueSet_res(NamedTuple):
 
     def pretty(self):
         s_message = f"Successes: {self.S:,}"
-        return f"""\        
+        return fr"""\        
 Real PVs in validation set: {self.real_pvs:,}
 {s_message}
 Missed true PVs: {self.MT:,}

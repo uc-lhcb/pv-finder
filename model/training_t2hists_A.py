@@ -65,7 +65,7 @@ def trainNet(
 
     # Print all of the hyperparameters of the training iteration
     if not notebook:
-        print("{0:=^80}".format(" HYPERPARAMETERS "))
+        print("{:=^80}".format(" HYPERPARAMETERS "))
         print(
             f"""\
 n_epochs: {n_epochs}

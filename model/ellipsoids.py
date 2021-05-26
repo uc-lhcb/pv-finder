@@ -10,25 +10,25 @@ Up to translation, a general ellipsoid can be written in the form
 for some positive-definite coefficient matrix 
 
 $$
-\left(\begin{array}{ccc}
+\\left(\begin{array}{ccc}
 A & D & E \\
 D & B & F \\
 E & F & C \\
-\end{array}\right)
+\\end{array}\right)
 $$
 
 1. For definiteness, project the ellipsoid to the (𝑥,𝑦)-plane along the 𝑧-axis, and call the image the shadow. A point 𝑝=(𝑥,𝑦,𝑧) on the ellipsoid projects to the boundary of the shadow if and only if the tangent plane to the ellipsoid at 𝑝 is parallel to the 𝑧-axis, if and only if 
 
 $$ 
-0 = \frac{\partial}{\partial z} \left ( A x^2 + B y^2 + C z^2 + s ( D x y + E x z + F y z ) \right ) \cdot ( p - p_0) \, ,
+0 = \frac{\\partial}{\\partial z} \\left ( A x^2 + B y^2 + C z^2 + s ( D x y + E x z + F y z ) \right ) \\cdot ( p - p_0) \\, ,
 $$
 
 Our ellipsoids have minor and major axes that (generally) are not parallel to the usual $ x $, $ y $, and $ z $ axes.  Let's label them as the $ u_1 $, $ u_2 $ and $ u_3 $ axes:
 
 The surface of the ellipsoid is now defined by the equation
-$$ \left ( \frac{\vec x \cdot \hat u_1}{a} \right )^2 +  
-   \left ( \frac{\vec x \cdot \hat u_2}{b} \right )^2 +
-   \left ( \frac{\vec x \cdot \hat u_3}{c} \right )^2  = 1
+$$ \\left ( \frac{\vec x \\cdot \\hat u_1}{a} \right )^2 +  
+   \\left ( \frac{\vec x \\cdot \\hat u_2}{b} \right )^2 +
+   \\left ( \frac{\vec x \\cdot \\hat u_3}{c} \right )^2  = 1
 $$
 where 
 $$ a = | minorAxis_1 | $$
@@ -36,34 +36,34 @@ $$ b = | minorAxis_2 | $$
 $$ c = | majorAxis | $$
 
 This leads us to define
-$$ \vec u_1 = \hat u1 / | minorAxis_1 | $$
-$$ \vec u_2 = \hat u2 / | minorAxis_2 | $$
-$$ \vec u_3 = \hat u_3 / | majorAxis | $$
+$$ \vec u_1 = \\hat u1 / | minorAxis_1 | $$
+$$ \vec u_2 = \\hat u2 / | minorAxis_2 | $$
+$$ \vec u_3 = \\hat u_3 / | majorAxis | $$
 
 
 With this notation, the equation for the ellipse becomes
 
-$$ (\vec x \cdot \vec u_1)^2 + ( \vec x \cdot u_2)^2 +
-   (\vec x \cdot \vec u_3)^2 = 1
+$$ (\vec x \\cdot \vec u_1)^2 + ( \vec x \\cdot u_2)^2 +
+   (\vec x \\cdot \vec u_3)^2 = 1
    $$
    
   and writing the corrdinates of a point as $ \vec x = (x, y, z) $ it becomes
   
-  $$ (x \, u_{1x} + y \, u _{1y} + z \, u_{1z})^2 +
-     (x \, u_{2x} + y \, u _{2y} + z \, u_{2z})^2 +
-     (x \, u_{3x} + y \, u _{3y} + z \, u_{3z})^2  = 1
+  $$ (x \\, u_{1x} + y \\, u _{1y} + z \\, u_{1z})^2 +
+     (x \\, u_{2x} + y \\, u _{2y} + z \\, u_{2z})^2 +
+     (x \\, u_{3x} + y \\, u _{3y} + z \\, u_{3z})^2  = 1
   $$
   
   or
   
   $$ \begin{array}{ccc}
-    (u_{1x}^2 + u_{2x}^2 + u_{3x}^2) \, x^2 & + & \\
-    (u_{1y}^2 + u_{2y}^2 + u_{3y}^2) \, y^2 & + & \\
-    (u_{1z}^2 + u_{2z}^2 + u_{3z}^2) \, z^2 & + & \\
-    2 \left ( u_{1x}u_{1y} + u_{2x}u_{2y} + u_{3x}u_{3y} \right ) xy & + & \\
-    2 \left ( u_{1y}u_{1z} + u_{2y}u_{2z} + u_{3y}u_{3z} \right ) yz & + & \\
-    2 \left ( u_{1z}u_{1x} + u_{2z}u_{2x} + u_{3z}u_{3x} \right ) zx & = & 1
-     \end{array}
+    (u_{1x}^2 + u_{2x}^2 + u_{3x}^2) \\, x^2 & + & \\
+    (u_{1y}^2 + u_{2y}^2 + u_{3y}^2) \\, y^2 & + & \\
+    (u_{1z}^2 + u_{2z}^2 + u_{3z}^2) \\, z^2 & + & \\
+    2 \\left ( u_{1x}u_{1y} + u_{2x}u_{2y} + u_{3x}u_{3y} \right ) xy & + & \\
+    2 \\left ( u_{1y}u_{1z} + u_{2y}u_{2z} + u_{3y}u_{3z} \right ) yz & + & \\
+    2 \\left ( u_{1z}u_{1x} + u_{2z}u_{2x} + u_{3z}u_{3x} \right ) zx & = & 1
+     \\end{array}
   $$
   
   from which we can extract the forms of $ A $, $ B $, etc.:
@@ -75,7 +75,7 @@ $$ (\vec x \cdot \vec u_1)^2 + ( \vec x \cdot u_2)^2 +
        D & = & u_{1x}u_{1y} + u_{2x}u_{2y} + u_{3x}u_{3y} \\
        E & = & u_{1z}u_{1x} + u_{2z}u_{2x} + u_{3z}u_{3x} \\
        F & = & u_{1y}u_{1z} + u_{2y}u_{2z} + u_{3y}u_{3z} \\
-     \end{array}
+     \\end{array}
   $$
 """
 import numpy as np

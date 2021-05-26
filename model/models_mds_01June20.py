@@ -5,7 +5,7 @@ import numpy as np
 
 class SimpleCNN2Layer(nn.Module):
     def __init__(self):
-        super(SimpleCNN2Layer, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1, out_channels=5, kernel_size=25, stride=1, padding=12
@@ -39,7 +39,7 @@ class SimpleCNN2Layer(nn.Module):
 
 class SimpleCNN3Layer(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -103,7 +103,7 @@ class SimpleCNN3Layer(nn.Module):
 
 class SimpleCNN3Layer_A(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer_A, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -168,7 +168,7 @@ class SimpleCNN3Layer_A(nn.Module):
 
 class SimpleCNN4Layer_A(nn.Module):
     def __init__(self):
-        super(SimpleCNN4Layer_A, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -251,7 +251,7 @@ class SimpleCNN4Layer_A(nn.Module):
 
 class SimpleCNN3Layer_B(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer_B, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -318,7 +318,7 @@ class SimpleCNN3Layer_B(nn.Module):
 
 class SimpleCNN3Layer_C(nn.Module):
     def __init__(self):
-        super(SimpleCNN3Layer_C, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -385,7 +385,7 @@ class SimpleCNN3Layer_C(nn.Module):
 
 class All_CNN3Layer_C(nn.Module):
     def __init__(self):
-        super(All_CNN3Layer_C, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -456,7 +456,7 @@ class All_CNN3Layer_C(nn.Module):
 
 class SimpleCNN4Layer_C(nn.Module):
     def __init__(self):
-        super(SimpleCNN4Layer_C, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -538,7 +538,7 @@ class SimpleCNN4Layer_C(nn.Module):
 
 class SimpleCNN4Layer_D(nn.Module):
     def __init__(self):
-        super(SimpleCNN4Layer_D, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -620,7 +620,7 @@ class SimpleCNN4Layer_D(nn.Module):
 
 class SimpleCNN4Layer_D35(nn.Module):
     def __init__(self):
-        super(SimpleCNN4Layer_D35, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -704,7 +704,7 @@ class SimpleCNN4Layer_D35_sp(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(SimpleCNN4Layer_D35_sp, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -786,7 +786,7 @@ class SimpleCNN4Layer_D35_sp(nn.Module):
 
 class SimpleCNN4Layer_D25(nn.Module):
     def __init__(self):
-        super(SimpleCNN4Layer_D25, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -868,7 +868,7 @@ class SimpleCNN4Layer_D25(nn.Module):
 
 class SimpleCNN5Layer_C(nn.Module):
     def __init__(self):
-        super(SimpleCNN5Layer_C, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -968,7 +968,7 @@ class SimpleCNN5Layer_Ca(nn.Module):
     ## with Softplus activation
     softplus = torch.nn.Softplus()
     def __init__(self):
-        super(SimpleCNN5Layer_Ca, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -1067,7 +1067,7 @@ class All_CNN6Layer_A(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(All_CNN6Layer_A, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=1,
@@ -1177,7 +1177,7 @@ class All_CNN6Layer_A(nn.Module):
 
 class TwoFeatures_CNN4Layer_D35(nn.Module):
     def __init__(self):
-        super(TwoFeatures_CNN4Layer_D35, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=2,
@@ -1261,7 +1261,7 @@ class TwoFeatures_CNN4Layer_D35(nn.Module):
 ## but a lower dropout rate.
 class TwoFeatures_CNN4Layer_D15(nn.Module):
     def __init__(self):
-        super(TwoFeatures_CNN4Layer_D15, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=2,
@@ -1345,7 +1345,7 @@ class TwoFeatures_CNN4Layer_D15(nn.Module):
 class TwoFeature_CNN5Layer_Ca(nn.Module):
     ## with Softplus activation
     def __init__(self):
-        super(TwoFeature_CNN5Layer_Ca, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=2,
@@ -1444,7 +1444,7 @@ class TwoFeature_CNN5Layer_A(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(TwoFeature_CNN5Layer_A, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=2,
@@ -1543,7 +1543,7 @@ class TwoFeature_CNN6Layer_A(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(TwoFeature_CNN6Layer_A, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv1d(
             in_channels=2,
@@ -1664,7 +1664,7 @@ class FourFeature_CNN6Layer_A(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(FourFeature_CNN6Layer_A, self).__init__()
+        super().__init__()
 
         ## as noted in the comments above, the first convolutional layer
         ## should have a different name than use in TwoFeature_CNN6Layer_A
@@ -1803,7 +1803,7 @@ class FourFeature_CNN6Layer_B(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(FourFeature_CNN6Layer_B, self).__init__()
+        super().__init__()
         ##
         ##  we will re-use the names of the convolutional layers from TwoFeature_CNN6Layer_A
         ##  for the (X,Xsq) feature set; then use similar (but different) names for
@@ -2104,7 +2104,7 @@ class FourFeature_CNN6Layer_D(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(FourFeature_CNN6Layer_D, self).__init__()
+        super().__init__()
         ##
         ##  we will re-use the names of the convolutional layers from TwoFeature_CNN6Layer_A
         ##  for the (X,Xsq) feature set; then use similar (but different) names for
@@ -2374,7 +2374,7 @@ class FourFeature_CNN7Layer_D(nn.Module):
     softplus = torch.nn.Softplus()
 
     def __init__(self):
-        super(FourFeature_CNN7Layer_D, self).__init__()
+        super().__init__()
         ##
         ##  we will re-use the names of the convolutional  first four layers from
         ##  FourFeature__CNN6Layer_D

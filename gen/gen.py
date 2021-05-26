@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function, division
 import argparse
 
 parser = argparse.ArgumentParser(description="Generate some traks")
@@ -35,13 +34,13 @@ from writer import prtStable, heavyFlavor, Writer, hitSel, Hits
 
 
 def run(lname, tEvt):
-    name = "{}.root".format(lname)
+    name = f"{lname}.root"
     myhash = abs(hash(lname)) % 900000000
     print("Producing", tEvt, "tracks to", name, "with hash:", myhash)
     # Initialize Pythia.
     random = ROOT.TRandom3(myhash)
     pythia = pythia8.Pythia("", False)
-    pythia.readString("Random:seed = {}".format(myhash))
+    pythia.readString(f"Random:seed = {myhash}")
     pythia.readString("Print:quiet = on")
     pythia.readString("SoftQCD:all = on")
     pythia.init()
@@ -195,7 +194,7 @@ if __name__ == "__main__":
 
         with PoolExecutor(max_workers=args.threads) as pool:
             futures = [
-                pool.submit(run, "{}_{}".format(args.name, i), args.events)
+                pool.submit(run, f"{args.name}_{i}", args.events)
                 for i in range(args.start, args.start + args.threads)
             ]
             stime = sum(f.result() for f in futures)
