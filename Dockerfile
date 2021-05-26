@@ -1,7 +1,4 @@
-FROM continuumio/miniconda3:4.6.14
-
-COPY environment.yml /tmp/environment.yml
-
-RUN conda env create -qf /tmp/environment.yml
-
-RUN echo "source activate pvfinder" > ~/.bashrc
+FROM mambaorg/micromamba:0.13.1
+COPY env.yaml /root/env.yaml
+RUN micromamba install -y -n base -f /root/env.yaml && \
+    micromamba clean --all --yes

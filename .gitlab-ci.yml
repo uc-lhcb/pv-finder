@@ -1,15 +1,25 @@
-image: "gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest"
 
-# Complete recipe if not using container:
-#image: "continuumio/miniconda:4.6.14"
-before_script:
-#  - conda env create -qf environment.yml
- - source activate pvfinder
+lint:
+  image: "python:3.9"
+  variables:
+    PRE_COMMIT_HOME: $CI_PROJECT_DIR/.cache/pre-commit
+    PIP_CACHE_DIR: $CI_PROJECT_DIR/.cache/pip
+  cache:
+    paths:
+      - ${PRE_COMMIT_HOME}
+      - ${PIP_CACHE_DIR}
+  before_script:
+    - pip install pre-commit
+  script:
+    - pre-commit run -a
+
 
 pytest:
+  image: "gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest"
+
   only:
     - master
-    - merge_requests
+    - merge_request
 
   script:
     - pytest
