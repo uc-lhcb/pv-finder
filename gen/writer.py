@@ -18,7 +18,7 @@ class Writer:
         self.null = ROOT.vector("double")(1, 0)
 
     def init(self, tree):
-        for key, val in self.vars.iteritems():
+        for key, val in self.vars.items():
             tree.Branch(key, val)
 
     def add(self, var):
@@ -44,7 +44,7 @@ class Writer:
         return self.vars[var].size()
 
     def clear(self):
-        for key, val in self.vars.iteritems():
+        for key, val in self.vars.items():
             val.clear()
 
 

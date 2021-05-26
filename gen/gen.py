@@ -35,7 +35,7 @@ from writer import prtStable, heavyFlavor, Writer, hitSel, Hits
 
 
 def run(lname, tEvt):
-    name = "/data/schreihf/PvFinder/pv_{}.root".format(lname)
+    name = "{}.root".format(lname)
     myhash = abs(hash(lname)) % 900000000
     print("Producing", tEvt, "tracks to", name, "with hash:", myhash)
     # Initialize Pythia.
@@ -171,7 +171,8 @@ def run(lname, tEvt):
         ttree.Fill()
         itime = time.time() - start
         ttime += itime
-        print(
+        if iEvt % 100 == 0:
+          print(
             "{} Evt {}/{}, {:3} PVs, {:3} tracks in {:.3} s".format(
                 name, iEvt, tEvt, npv, writer.size("pvr_z"), itime
             )

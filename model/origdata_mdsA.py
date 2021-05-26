@@ -30,22 +30,24 @@ OutputData = namedtuple(
         "sv_loc_y",
         "sv_loc",
         "sv_ntracks",
-        "sv_cat",
-        "recon_x",
-        "recon_y",
-        "recon_z",
-        "recon_tx",
-        "recon_ty",
-        "recon_pocax",
-        "recon_pocay",
-        "recon_pocaz",
-        "recon_sigmapocaxy",
+        "sv_cat"
     ),
 )
 
+VerboseOutputData = namedtuple("VerboseOutputData",OutputData._fields+(
+    "recon_x",
+    "recon_y",
+    "recon_z",
+    "recon_tx",
+    "recon_ty",
+    "recon_pocax",
+    "recon_pocay",
+    "recon_pocaz",
+    "recon_sigmapocaxy"))
 
-def concatenate_data(outputs):
-    return OutputData(
+
+def concatenate_data(outputs, verbose_tracking=False):
+    od = OutputData(
         np.concatenate([o.X for o in outputs]),
         np.concatenate([o.Y for o in outputs], 1),
         np.concatenate([o.Xmax for o in outputs]),
@@ -59,7 +61,11 @@ def concatenate_data(outputs):
         concatenate(o.sv_loc_y for o in outputs),
         concatenate(o.sv_loc for o in outputs),
         concatenate(o.sv_ntracks for o in outputs),
-        concatenate(o.sv_cat for o in outputs),
+        concatenate(o.sv_cat for o in outputs))
+    if not verbose_tracking:
+        return od
+    else :
+      return VerboseOutputData(*(od),
         concatenate(o.recon_x for o in outputs),
         concatenate(o.recon_y for o in outputs),
         concatenate(o.recon_z for o in outputs),
@@ -72,7 +78,7 @@ def concatenate_data(outputs):
     )
 
 
-def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
+def save_data_hdf5(hf, od, filelist=None, compression="lzf", verbose_tracking=False):
     dset = hf.create_dataset("kernel", data=od.X, compression=compression)
     if filelist:
         dset.attrs["files"] = np.string_(",".join(str(s.stem) for s in filelist))
@@ -95,15 +101,16 @@ def save_data_hdf5(hf, od, filelist=None, compression="lzf"):
     akdh5["sv_loc"] = od.sv_loc
     akdh5["sv_ntracks"] = od.sv_ntracks
     akdh5["sv_cat"] = od.sv_cat
-    akdh5["recon_x"] = od.recon_x
-    akdh5["recon_y"] = od.recon_y
-    akdh5["recon_z"] = od.recon_z
-    akdh5["recon_tx"] = od.recon_tx
-    akdh5["recon_ty"] = od.recon_ty
-    akdh5["recon_pocax"] = od.recon_pocax
-    akdh5["recon_pocay"] = od.recon_pocay
-    akdh5["recon_pocaz"] = od.recon_pocaz
-    akdh5["recon_sigmapocaxy"] = od.recon_sigmapocaxy
+    if verbose_tracking:
+        akdh5["recon_x"] = od.recon_x
+        akdh5["recon_y"] = od.recon_y
+        akdh5["recon_z"] = od.recon_z
+        akdh5["recon_tx"] = od.recon_tx
+        akdh5["recon_ty"] = od.recon_ty
+        akdh5["recon_pocax"] = od.recon_pocax
+        akdh5["recon_pocay"] = od.recon_pocay
+        akdh5["recon_pocaz"] = od.recon_pocaz
+        akdh5["recon_sigmapocaxy"] = od.recon_sigmapocaxy
 
     return dset
 
@@ -119,7 +126,7 @@ def norm_cdf(mu, sigma, x):
     return 0.5 * (1 + math.erf((x - mu) / (sigma * math.sqrt(2.0))))
 
 
-def process_root_file(filepath, sd_1=0.1):
+def process_root_file(filepath, sd_1=0.1, verbose_tracking=False):
 
     name = filepath.stem
     ##  take the following  constants used in calculating pvRes from LHCb-PUB-2017-005
@@ -156,15 +163,16 @@ def process_root_file(filepath, sd_1=0.1):
         sv_loc_y = tree["sv_loc_y"].array()
         sv_ntrks = tree["sv_ntrks"].array()
         sv_cat = tree["sv_cat"].array()
-        recon_x = tree["recon_x"].array()
-        recon_y = tree["recon_y"].array()
-        recon_z = tree["recon_z"].array()
-        recon_tx = tree["recon_tx"].array()
-        recon_ty = tree["recon_ty"].array()
-        recon_pocax = tree["recon_pocax"].array()
-        recon_pocay = tree["recon_pocay"].array()
-        recon_pocaz = tree["recon_pocaz"].array()
-        recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
+        if(verbose_tracking):
+            recon_x = tree["recon_x"].array()
+            recon_y = tree["recon_y"].array()
+            recon_z = tree["recon_z"].array()
+            recon_tx = tree["recon_tx"].array()
+            recon_ty = tree["recon_ty"].array()
+            recon_pocax = tree["recon_pocax"].array()
+            recon_pocay = tree["recon_pocay"].array()
+            recon_pocaz = tree["recon_pocaz"].array()
+            recon_sigmapocaxy = tree["recon_sigmapocaxy"].array()
 
         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
@@ -278,7 +286,7 @@ def process_root_file(filepath, sd_1=0.1):
     for msg in msgs:
         print(" ", msg)
 
-    return OutputData(
+    od = OutputData(
         X,
         Y,
         Xmax,
@@ -292,14 +300,19 @@ def process_root_file(filepath, sd_1=0.1):
         sv_loc_y,
         sv_loc,
         sv_ntrks,
-        sv_cat,
-        recon_x,
-        recon_y,
-        recon_z,
-        recon_tx,
-        recon_ty,
-        recon_pocax,
-        recon_pocay,
-        recon_pocaz,
-        recon_sigmapocaxy,
+        sv_cat
     )
+    if not verbose_tracking:
+        return od
+    else:
+        return VerboseOutputData(*(od),
+            recon_x,
+            recon_y,
+            recon_z,
+            recon_tx,
+            recon_ty,
+            recon_pocax,
+            recon_pocay,
+            recon_pocaz,
+            recon_sigmapocaxy)
+
