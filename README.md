@@ -63,7 +63,10 @@ The lb-stack-setup README contains many useful informations for further developm
 ```sh
 curl https://gitlab.cern.ch/rmatev/lb-stack-setup/raw/master/setup.py | python3 - stack
 ```
-then open the config for editing
+
+### Instructions for running only PV finding (without tuple dumping)
+
+Open the `lb-stack-setup` configuration for editing
 ```sh
 $EDITOR utils/config.json
 ```
@@ -96,3 +99,25 @@ After compiling, you should be able to run commands like
 ```sh
 Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_FTv6.py Moore/Hlt/RecoConf/options/hlt1_reco_pvchecker.py 2>&1 | tee CNNVertexFinder.log
 ```
+
+### Instructions for running PV finding with tuple dumping
+
+This works similar to the steps shown before, but we need to pick up different git branches:
+
+```json
+"gitBranch": {
+      "Detector": "v0-patches",
+      "LHCb": "CNNVF_PVFTuple",
+      "Rec": "CNNVF_PVFTuple",
+      "Moore": "CNNVF_PVFTuple",
+      "default": "CNNVertexFinder"
+    },
+```
+
+The rest of the config needs to be as above. After compiling, we can run `CNNVertexFinder` as before and also `PVFinder` which allows to dump 
+n-tuples in addition. For example:
+```sh
+Moore/run gaudirun.py '$MOOREROOT/options/force_functor_cache.py' '$MOOREROOT/options/ft_decoding_v6.py' '$MOOREROOT/tests/options/xdigi_minbias_input_and_conds_ftv6.py' --option 'from Moore import options; options.input_files=["root://x509up_u60317@eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00091829/0000/00091829_00000087_1.xdigi"]' '$RECOCONFROOT/options/hlt1_PV_reco.py'
+```
+
+Be aware to set the correct conditions tags and other Moore options in the Moore config files. For larger n-tuple productions, it makes sense to make properties like `DumpOutputName` of PVFinder available in the respective Moore configuration [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/hlt1_tracking.py#L229), [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/standalone.py#L65) and [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/options/hlt1_PV_reco.py) to be able to follow [this](https://gitlab.cern.ch/mstahl/Moore/-/snippets/979#note_3936427) idea.
