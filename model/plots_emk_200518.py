@@ -191,3 +191,58 @@ def ellipse_parameters_for_plotting(alpha_xy, beta_xy, gamma_xy, delta_xy, A, C)
 
 ## the Ellipse() method in matplotlib.patches wants andgles in degrees
   return a, b, 180.*theta/math.pi  
+
+
+def getPVsAndSVs(event, PV, SV, min_z, max_z):
+
+    pvXY = []
+    pvZX = []
+    pvZY = []
+    
+    for x,y,z,n,cat in zip(PV.x[event], PV.y[event], PV.z[event], PV.n[event], PV.cat[event]):
+        if min_z < z < max_z:
+                    
+            pvXY.append([x,y])
+            pvZX.append([z,x]) 
+            pvZY.append([z,y])
+            
+    
+    svXY = []
+    svZX = []
+    svZY = []
+    
+    for x,y,z,n,cat in zip(SV.x[event], SV.y[event], SV.z[event], SV.n[event], SV.cat[event]):
+        if min_z < z < max_z:
+                    
+            svXY.append([x,y])
+            svZX.append([z,x]) 
+            svZY.append([z,y])
+            
+    return pvXY, pvZX, pvZY, svXY, svZX, svZY
+
+def calcProb(p1,p2,m1,m2,ma):
+    xvec = np.zeros(3)
+    xvec[0] = p2[0]-p1[0]
+    xvec[1] = p2[1]-p1[1]
+    xvec[2] = p2[2]-p1[2]
+    magsqm1 = np.dot(m1,m1)
+    magsqm2 = np.dot(m2,m2)
+    magsqma = np.dot(ma,ma)
+    u1 = m1/np.sqrt(magsqm1)
+    u2 = m2/np.sqrt(magsqm2)
+    u3 = ma/np.sqrt(magsqma)
+    chisq = np.square(np.dot(xvec,u1))/magsqm1 + np.square(np.dot(xvec,u2))/magsqm2 + np.square(np.dot(xvec,u3))/magsqma
+    prob = math.exp(-0.5*chisq)
+   
+    return prob 
+
+def updateProb(xGrid, yGrid, zGrid, p2, m1, m2, ma):
+    
+    pGrid = np.zeros(zGrid.shape)
+    
+    for i in range(len(zGrid[:,0])):
+        for j in range(len(zGrid[0,:])):
+            current_point = [xGrid[i,j], yGrid[i,j], zGrid[i,j]]
+            pGrid[i,j] = calcProb(current_point,p2,m1,m2,ma)
+            
+    return pGrid
