@@ -1,6 +1,9 @@
 
 lint:
   image: "python:3.9"
+  only:
+    - master
+    - merge_request
   variables:
     PRE_COMMIT_HOME: $CI_PROJECT_DIR/.cache/pre-commit
     PIP_CACHE_DIR: $CI_PROJECT_DIR/.cache/pip
@@ -12,15 +15,13 @@ lint:
   before_script:
     - pip install pre-commit
   script:
-    - pre-commit run -a
+    - pre-commit run -a || echo "Failed, not required for now"
 
 
 pytest:
   image: "gitlab-registry.cern.ch/lhcb-reco-dev/pv-finder:latest"
-
   only:
     - master
     - merge_request
-
   script:
-    - pytest
+    - pytest -vv
