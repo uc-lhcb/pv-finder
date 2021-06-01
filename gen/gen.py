@@ -53,8 +53,9 @@ def run(lname, tEvt):
     tfile = ROOT.TFile(name, "RECREATE")
     ttree = ROOT.TTree("data", "")
 
-    # Create the writer handler, add branches, and initialize.
-    writer = Writer()
+    # New interface
+    # Create the writer handler and add branches
+    writer = Writer(ttree)
     writer.add("pvr_x")
     writer.add("pvr_y")
     writer.add("pvr_z")
@@ -77,7 +78,7 @@ def run(lname, tEvt):
     writer.add("prt_hits")
     writer.add("prt_pvr")
     writer.add("ntrks_prompt")
-    writer.init(ttree)
+
 
     number_rejected_events = 0
 
@@ -105,19 +106,19 @@ def run(lname, tEvt):
             # pvr x and y spead can be found https://arxiv.org/pdf/1410.0149.pdf page 42. z dependent
             ## [-1000,-750, -500, -250] # mm
 
-            writer.var("pvr_x", xPv)
-            writer.var("pvr_y", yPv)
-            writer.var("pvr_z", zPv)
+            writer["pvr_x"].append(xPv)
+            writer["pvr_y"].append(yPv)
+            writer["pvr_z"].append(zPv)
             number_of_detected_particles = 0
             # find heavy flavor SVs
             for prt in pythia.event:
                 if not heavyFlavor(prt.id()):
                     continue
                 # TODO: require particles with hits from the SVs
-                writer.var("svr_x", prt.xDec() + xPv)
-                writer.var("svr_y", prt.yDec() + yPv)
-                writer.var("svr_z", prt.zDec() + zPv)
-                writer.var("svr_pvr", ipv)
+                writer["svr_x"].append(prt.xDec() + xPv)
+                writer["svr_y"].append(prt.yDec() + yPv)
+                writer["svr_z"].append(prt.zDec() + zPv)
+                writer["svr_pvr"].append(ipv)
 
             for prt in pythia.event:
                 if not prt.isFinal or prt.charge() == 0:
@@ -141,16 +142,16 @@ def run(lname, tEvt):
                 if len(hits) > 2 and abs(zPv - prt.zProd()) < 0.001:
                     number_of_detected_particles += 1
                     # if prt.pAbs() < 0.2: print 'slow!', prt.pAbs(), prt.id()
-                writer.var("prt_pid", prt.id())
-                writer.var("prt_px", prt.px())
-                writer.var("prt_py", prt.py())
-                writer.var("prt_pz", prt.pz())
-                writer.var("prt_e", prt.e())
-                writer.var("prt_x", prt.xProd())
-                writer.var("prt_y", prt.yProd())
-                writer.var("prt_z", prt.zProd())
-                writer.var("prt_pvr", ipv)
-                writer.var("prt_hits", len(hits))
+                writer["prt_pid"].append(prt.id())
+                writer["prt_px"].append(prt.px())
+                writer["prt_py"].append(prt.py())
+                writer["prt_pz"].append(prt.pz())
+                writer["prt_e"].append(prt.e())
+                writer["prt_x"].append(prt.xProd())
+                writer["prt_y"].append(prt.yProd())
+                writer["prt_z"].append(prt.zProd())
+                writer["prt_pvr"].append(ipv)
+                writer["prt_hits"].append(len(hits))
                 for xHit, yHit, zHit in hits:
                     # xHit_recorded, yHit_recorded, zHit_recorded = np.random.uniform(-0.0275,0.0275)+xHit, np.random.uniform(-0.0275,0.0275)+yHit, zHit # normal
                     xHit_recorded, yHit_recorded, zHit_recorded = (
@@ -158,26 +159,25 @@ def run(lname, tEvt):
                         np.random.normal(0, 0.012) + yHit,
                         zHit,
                     )  # normal
-                    writer.var("hit_x", xHit_recorded)
-                    writer.var("hit_y", yHit_recorded)
-                    writer.var("hit_z", zHit_recorded)
-                    writer.var("hit_prt", writer.size("prt_e") - 1)
+                    writer["hit_x"].append(xHit_recorded)
+                    writer["hit_y"].append(yHit_recorded)
+                    writer["hit_z"].append(zHit_recorded)
+                    writer["hit_prt"].append(len(writer["prt_e"]) - 1)
             # if number_of_detected_particles < 5: iEvt -= 1; number_rejected_events+=1; continue
-            writer.var("ntrks_prompt", number_of_detected_particles)
+            writer["ntrks_prompt"].append(number_of_detected_particles)
             ipv += 1
             if number_of_detected_particles > 0:
                 npv += 1
 
-        ttree.Fill()
         itime = time.time() - start
         ttime += itime
         if iEvt % 100 == 0:
           print(
             "{} Evt {}/{}, {:3} PVs, {:3} tracks in {:.3} s".format(
-                name, iEvt, tEvt, npv, writer.size("pvr_z"), itime
+                name, iEvt, tEvt, npv, len(writer["pvr_z"]), itime
             )
         )
-        writer.clear()
+        writer.write()
 
     # Write and close the TTree and TFile.
     ttree.Print()
