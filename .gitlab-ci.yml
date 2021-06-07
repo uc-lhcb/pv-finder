@@ -23,5 +23,7 @@ pytest:
   only:
     - master
     - merge_request
+  before_script:
+    - conda list
   script:
     - pytest -vv
