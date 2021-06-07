@@ -4,7 +4,10 @@ from __future__ import print_function
 
 from math import *
 import numpy
-import uproot
+try:
+    import uproot3 as uproot
+except ModuleNotFoundError:
+    import uproot
 
 tree = uproot.open("../dat/test_100pvs.root")["data"]
 

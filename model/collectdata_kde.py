@@ -29,9 +29,12 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     import h5py
 
-import awkward
+try:
+    import awkward0 as awkward
+except ModuleNotFoundError:
+    import awkward
 
-from awkward import JaggedArray as ja
+ja = awkward.JaggedArray
 
 dtype_X = np.float32  ## set to float32 for use on CPU; can set to float16 for GPU
 dtype_Y = np.float32  ## set to float32 for use on CPU; can set to float16 for GPU

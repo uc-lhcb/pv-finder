@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-import uproot
+try:
+    import uproot3 as uproot
+except ModuleNotFoundError:
+    import uproot
 import numpy as np
 import sys
 from pathlib import Path
