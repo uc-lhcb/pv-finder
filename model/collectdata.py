@@ -16,7 +16,10 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     import h5py
 
-import awkward
+try:
+    import awkward0 as awkward
+except ModuleNotFoundError:
+    import awkward
 
 VertexInfo = namedtuple("VertexInfo", ("x", "y", "z", "n", "cat"))
 

@@ -1,5 +1,8 @@
 from model.jagged import concatenate
-import awkward
+try:
+    import awkward0 as awkward
+except ModuleNotFoundError:
+    import awkward
 import numpy as np
 
 

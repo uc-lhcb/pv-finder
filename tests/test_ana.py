@@ -1,5 +1,8 @@
 import subprocess
-import uproot
+try:
+    import uproot3 as uproot
+except ModuleNotFoundError:
+    import uproot
 import sys
 import numpy as np
 import pathlib
