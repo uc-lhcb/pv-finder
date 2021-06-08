@@ -72,6 +72,85 @@ False positive rate: {self.fp_rate:.3}"""
     },
     nopython=True,
 )
+def pv_locations_updated_res(
+    targets,
+    threshold,
+    integral_threshold,
+    min_width
+):
+    """
+    Compute the z positions from the input KDE using the parsed criteria.
+    
+    Inputs:
+      * targets: 
+          Numpy array of KDE values (predicted or true)
+
+      * threshold: 
+          The threshold for considering an "on" value - such as 1e-2
+
+      * integral_threshold: 
+          The total integral required to trigger a hit - such as 0.2
+
+      * min_width: 
+          The minimum width (in bins) of a feature - such as 2
+
+    Returns:
+      * array of float32 values corresponding to the PV z positions
+      
+    """
+    # Counter of "active bins" i.e. with values above input threshold value
+    state = 0
+    # Sum of active bin values
+    integral = 0.0
+    # Weighted Sum of active bin values weighted by the bin location
+    sum_weights_locs = 0.0
+
+    # Make an empty array and manually track the size (faster than python array)
+    items = np.empty(150, np.float32)
+    # Number of recorded PVs
+    nitems = 0
+
+    # Loop over the bins in the KDE histogram
+    for i in range(len(targets)):
+        # If bin value above 'threshold', then trigger
+        if targets[i] >= threshold:
+            state += 1
+            integral += targets[i]
+            sum_weights_locs += i * targets[i]  # weight times location
+
+        if (targets[i] < threshold or i == len(targets) - 1) and state > 0:
+
+            # Record a PV only if 
+            if state >= min_width and integral >= integral_threshold:
+                # Adding '+0.5' to account for the bin width (i.e. 50 microns)
+                items[nitems] = (sum_weights_locs / integral) + 0.5 
+                nitems += 1
+
+            # reset state
+            state = 0
+            integral = 0.0
+            sum_weights_locs = 0.0
+
+    # Special case for final item (very rare or never occuring)
+    # handled by above if len
+
+    return items[:nitems]
+#####################################################################################
+
+#####################################################################################
+@numba.jit(
+    numba.float32[:](
+        numba.float32[:],
+        numba.float32,
+        numba.float32,
+        numba.int32
+    ),
+    locals={
+        "integral": numba.float32,
+        "sum_weights_locs": numba.float32
+    },
+    nopython=True,
+)
 def pv_locations_res(
     targets,
     threshold,
@@ -186,7 +265,8 @@ def filter_nans_res(
     numba.float32[:](
         numba.float32[:],
         numba.uint16[:],
-        numba.float32[:],
+        numba.float64[:],
+        #numba.float32[:], 
         numba.float32,
         numba.float32,
         numba.int16
@@ -243,14 +323,20 @@ def get_resolution(
         print("Sorted number of tracks (get_resolution): ",filtered_and_sorted_true_PVs_nTracks)
 
     # then compute the resolution using the following constants 
-    # used in calculating pvRes from Ref LHCb-PUB-2017-005
+    # used in calculating pvRes from Ref LHCb-PUB-2017-005 (original values in microns)
     A_res = 926.0
     B_res = 0.84
     C_res = 10.7
+
+    ## scaling factor to changes units
+    scale = 0.01 # This scale allows a correct conversion from the target histograms of 4000 bins of width 100 microns and used elsewhere in the code. 
+    #scale = 1.0 #microns
+    #scale = 0.001 #mm
+
     filtered_and_sorted_res = np.empty_like(target_PVs_loc)
     
     for i in range(len(filtered_and_sorted_true_PVs_nTracks)):
-        filtered_and_sorted_res[i] = (nsig_res*0.01* (A_res * np.power(filtered_and_sorted_true_PVs_nTracks[i], -1 * B_res) + C_res))
+        filtered_and_sorted_res[i] = nsig_res * ( scale * (A_res * np.power(filtered_and_sorted_true_PVs_nTracks[i], -1 * B_res) + C_res))
     #filtered_and_sorted_res = (nsig_res*0.01* (A_res * np.power(filtered_and_sorted_true_PVs_nTracks, -1.0 * B_res) + C_res))
 
     # Replace resolution values below min_res by min_res itself
@@ -264,10 +350,12 @@ def get_resolution(
 #####################################################################################
 @numba.jit(
     numba.int16[:](
+        numba.int16,
         numba.float32[:],
         numba.float32[:],
         numba.uint16[:],
-        numba.float32[:],
+        numba.float64[:],
+        #numba.float32[:],
         numba.float32,
         numba.float32,
         numba.float32,
@@ -277,7 +365,8 @@ def get_resolution(
     ),
     nopython=True,
 )
-def found_PVs(
+def get_PVs_label(
+    get_Preds,
     truth, 
     predict, 
     true_PVs_nTracks, 
@@ -290,7 +379,7 @@ def found_PVs(
     debug
 ):
     """
-    Method to obtain the list of found true PVs (i.e. list of true PV that are matched to predicted PV).
+    Method to obtain the PVs labels (i.e. list of true PV that are matched to predicted PV, or vice-versa).
 
     Inputs:
       * truth: 
@@ -348,34 +437,75 @@ def found_PVs(
     # (by construction from the KDEs histograms)
     filtered_and_sorted_res = get_resolution(target_PVs_loc, true_PVs_nTracks, true_PVs_z, nsig_res, min_res, debug)
     
-    # Initialize the array to an array of zeros with target_PVs_loc shape 
-    found_PVs = np.zeros(target_PVs_loc.shape,dtype=numba.int16)
-
-    # Loop over the true PVs
-    for i in range(len(target_PVs_loc)):
-        # Get the window of interest: [min_val, max_val] 
-        # The window is obtained from the value of z of the true PV 'i'
-        # +/- the resolution as a function of the number of tracks for the true PV 'i'
-        min_val = target_PVs_loc[i]-filtered_and_sorted_res[i]
-        max_val = target_PVs_loc[i]+filtered_and_sorted_res[i]
+    
+    if get_Preds==0:
+        # Initialize the array to an array of zeros with target_PVs_loc shape 
+        PVs_label = np.zeros(target_PVs_loc.shape,dtype=numba.int16)
+        # Loop over the true PVs
+        for i in range(len(target_PVs_loc)):
+            # Get the window of interest: [min_val, max_val] 
+            # The window is obtained from the value of z of the true PV 'i'
+            # +/- the resolution as a function of the number of tracks for the true PV 'i'
+            min_val = target_PVs_loc[i]-filtered_and_sorted_res[i]
+            max_val = target_PVs_loc[i]+filtered_and_sorted_res[i]
+            # Loop over the 'filtered' predicted PVs
+            for j in range(len(filtered_pred_PVs_loc)):                
+                if min_val <= filtered_pred_PVs_loc[j] and filtered_pred_PVs_loc[j] <= max_val:
+                    # If condition is met, then the element 'i' 
+                    # of the PVs_label array is set to '1' 
+                    PVs_label[i] = 1
+                    # the predicted PV is removed from the original array to avoid associating 
+                    # one true PV to multiple predicted PVs
+                    # (this could happen for PVs with close z values)
+                    filtered_pred_PVs_loc = np.delete(filtered_pred_PVs_loc,[j])
+                    # Since a true PV and a predicted PV where matched, go to the next true PV 'i'
+                    break
+                else:
+                    # In case, no predicted PV could be associated with the true PV 'i'
+                    # then PVs_label[i] is set to '0'
+                    PVs_label[i] = 0
+        return PVs_label           
+    
+    elif get_Preds==1:
+        PVs_label = np.zeros(filtered_pred_PVs_loc.shape,dtype=numba.int16)
         # Loop over the 'filtered' predicted PVs
-        for j in range(len(filtered_pred_PVs_loc)):                
-            if min_val <= filtered_pred_PVs_loc[j] and filtered_pred_PVs_loc[j] <= max_val:
-                # If condition is met, then the element 'i' 
-                # of the found_PVs array is set to '1' 
-                found_PVs[i] = 1
-                # the predicted PV is removed from the original array to avoid associating 
-                # one true PV to multiple predicted PVs
-                # (this could happen for PVs with close z values)
-                filtered_pred_PVs_loc = np.delete(filtered_pred_PVs_loc,[j])
-                # Since a true PV and a predicted PV where matched, go to the next true PV 'i'
-                break
-            else:
-                # In case, no predicted PV could be associated with the true PV 'i'
-                # then found_PVs[i] is set to '0'
-                found_PVs[i] = 0
+        for i in range(len(filtered_pred_PVs_loc)):
+
+            # Loop over the true PVs
+            for j in range(len(target_PVs_loc)):                
+
+                # Get the window of interest: [min_val, max_val] 
+                # The window is obtained from the value of z of the true PV 'i'
+                # +/- the resolution as a function of the number of tracks for the true PV 'i'
+                min_val = target_PVs_loc[j]-filtered_and_sorted_res[j]
+                max_val = target_PVs_loc[j]+filtered_and_sorted_res[j]
+
+                if min_val <= filtered_pred_PVs_loc[i] and filtered_pred_PVs_loc[i] <= max_val:
+                    # If condition is met, then the element 'i' 
+                    # of the PVs_label array is set to '1' 
+                    PVs_label[i] = 1
+
+                    # The predicted PV is removed from the original array to avoid associating 
+                    # one true PV to multiple predicted PVs
+                    # (this could happen for PVs with close z values)
+                    target_PVs_loc = np.delete(target_PVs_loc,[j])
+                    # also remove the associated resolution to avoid mis-matching the array dimensions
+                    filtered_and_sorted_res = np.delete(filtered_and_sorted_res,[j])
+                    
+                    # Since a true PV and a predicted PV where matched, go to the next true PV 'i'
+                    break
+                else:
+                    # In case, no predicted PV could be associated with the true PV 'i'
+                    # then PVs_label[i] is set to '0'
+                    PVs_label[i] = 0
+        return PVs_label           
+
+    else:
+        PVs_label = np.zeros(filtered_pred_PVs_loc.shape,dtype=numba.int16)
+        print("Wrong value for the first argument in get_PVs_label")
+        print("Needs to be either 0 (get true PV labels) or 1 (predicted PV labels)")
         
-    return found_PVs
+        return PVs_label
 #####################################################################################
 
 
@@ -384,7 +514,8 @@ def found_PVs(
     numba.int16[:](
         numba.float32[:],
         numba.uint16[:],
-        numba.float32[:],
+        numba.float64[:],
+        #numba.float32[:],
         numba.int16
     ), 
     nopython=True,
@@ -440,7 +571,8 @@ def get_nTracks_sorted(
         numba.float32[:],
         numba.float32[:],
         numba.uint16[:],
-        numba.float32[:],
+        numba.float64[:],
+        #numba.float32[:],
         numba.float32,
         numba.float32,
         numba.int16
@@ -638,7 +770,8 @@ def compare_res(
         numba.float32[:],
         numba.float32[:],
         numba.uint16[:],
-        numba.float32[:],
+        numba.float64[:],
+        #numba.float32[:],
         numba.float32,
         numba.float32,
         numba.float32,
