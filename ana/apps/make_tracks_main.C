@@ -1,7 +1,7 @@
 #include <TString.h>
 #include "CLI11.hpp"
 
-void make_tracks(TString input, TString tree, TString folder);
+void make_tracks(TString input, TString tree, TString folder, bool include_recon);
 
 
 int main(int argc, char** argv) {
@@ -18,7 +18,10 @@ int main(int argc, char** argv) {
     TString folder = "../../dat";
     app.add_option("folder,--folder", folder);
 
+    bool norecon = false;
+    app.add_flag("--norecon", norecon);
+
     CLI11_PARSE(app, argc, argv);
 
-    make_tracks(base, tree, folder);
+    make_tracks(base, tree, folder, !norecon);
 }

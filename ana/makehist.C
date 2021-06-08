@@ -6,6 +6,7 @@
 #include <TTree.h>
 #include <TH1.h>
 
+#include <memory>
 #include <iostream>
 
 void makez(AnyTracks& tracks, DataKernelOut& dk){
@@ -21,7 +22,7 @@ AnyTracks* fcn_global_tracks = nullptr;
 
 
 /// Run with e.g. root -b -q 'makehist.C+("10pvs","trks","../dat")'
-void makehist(TString input, TString tree_name, TString folder) {
+void makehist(TString input, TString tree_name, TString folder, bool include_recon = true) {
 
     TFile f(folder + "/pv_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -36,7 +37,9 @@ void makehist(TString input, TString tree_name, TString folder) {
     TTree tout("kernel", "Output");
     DataKernelOut dk(&tout);
     DataPVsOut dt(&tout);
-    CoreReconTracksOut recon_out(&tout);
+    std::unique_ptr<CoreReconTracksOut> recon_out;
+    if(include_recon)
+        recon_out.reset(new CoreReconTracksOut(&tout));
 
     for(int i=0; i<ntrack; i++) {
         dk.clear();
@@ -53,7 +56,9 @@ void makehist(TString input, TString tree_name, TString folder) {
         std::cout << " " << tracks;
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
-        copy_in(recon_out, tracks);
+
+        if(include_recon)
+            copy_in(*recon_out, tracks);
 
         makez(tracks, dk);
 
