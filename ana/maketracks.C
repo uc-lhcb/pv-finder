@@ -6,10 +6,11 @@
 #include <TTree.h>
 #include <TH1.h>
 
+#include <memory>
 #include <iostream>
 
 /// Convert raw data to tracks
-void make_tracks(TString input, TString tree_name, TString folder) {
+void make_tracks(TString input, TString tree_name, TString folder, bool include_recon = true) {
     TFile f(folder + "/pv_"+input+".root");
     TTree *t = (TTree*) f.Get(tree_name);
     if(t == nullptr)
@@ -23,7 +24,10 @@ void make_tracks(TString input, TString tree_name, TString folder) {
     TTree tout("trks", "Tracks");
     DataPVsOut dt(&tout);
 
-    CoreReconTracksOut recon_out(&tout);
+    std::unique_ptr<CoreReconTracksOut> recon_out;
+    if(include_recon)
+        recon_out.reset(new CoreReconTracksOut(&tout));
+
     CoreNHitsOut nhits_out(&tout);
     CorePVsOut pvs_out(&tout);
     CoreTruthTracksOut truth_out(&tout);
@@ -42,7 +46,8 @@ void make_tracks(TString input, TString tree_name, TString folder) {
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
 
-        copy_in(recon_out, tracks);
+        if(include_recon)
+            copy_in(*recon_out, tracks);
         pvs_out.copy_in(data_pvs);
         truth_out.copy_in(data_trks);
         nhits_out.copy_in(data_nhits);
