@@ -3,12 +3,13 @@ channels:
     - pytorch
     - conda-forge
 dependencies:
-    - python>=3.6
+    - python>=3.8
     - awkward<1
     - cmake
     - h5py
     - ipympl
     - jupyterlab
+    - line_profiler
     - matplotlib
     - nb_conda_kernels
     - ninja
@@ -18,7 +19,7 @@ dependencies:
     - pytables
     - pytest
     - pythia8
-    - root
+    - root<6.24.00
     - scipy
     - tqdm
     - uproot<4

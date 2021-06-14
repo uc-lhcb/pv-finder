@@ -2,14 +2,15 @@ name: pvfinder
 channels:
     - conda-forge
 dependencies:
-    - python>=3.6
-    - awkward>=1
+    - python>=3.8
     - awkward0
+    - awkward>=1
     - cmake
     - h5py
-    - jupyterlab
-    - matplotlib
     - ipympl
+    - jupyterlab
+    - line_profiler
+    - matplotlib
     - nb_conda_kernels
     - ninja
     - numba
@@ -19,7 +20,7 @@ dependencies:
     - pytest
     - pythia8
     - pytorch-cpu
-    - root
+    - root<6.24.00
     - scipy
     - tqdm
     - uproot3
