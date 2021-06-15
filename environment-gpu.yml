@@ -4,7 +4,8 @@ channels:
     - conda-forge
 dependencies:
     - python>=3.8
-    - awkward<1
+    - awkward0
+    - awkward>=1
     - cmake
     - h5py
     - ipympl
@@ -22,7 +23,8 @@ dependencies:
     - root<6.24.00
     - scipy
     - tqdm
-    - uproot<4
+    - uproot3
+    - uproot>=4
       # From pytorch
     - cudatoolkit
     - pytorch
