@@ -55,7 +55,7 @@ and output ROOT files are opened. The trees are then used in the constructors of
     * `CoreReconTracksIn`: Tracks specific `recon_x`, `recon_y`, `recon_z`, `recon_tx`, `recon_ty`, `recon_chi2`
 * `Core*Out`: Output (same as above, only for output)
 * `Data*Out`: Final Output
-    * `DataPVsOut`: `pv_cat`, `pv_loc`, `pv_loc_x`, `pv_loc_y`, `pv_ntracks`, `sv_cat`, `sv_loc`, `sv_loc_x`, `sv_loc_y`, `sv_ntracks`  (all float)
+    * `DataPVsOut`: `pv_cat`, `pv_loc`, `pv_loc_x`, `pv_loc_y`, `pv_ntrks`, `sv_cat`, `sv_loc`, `sv_loc_x`, `sv_loc_y`, `sv_ntrks`  (all float)
     * `DataKernelOut`: `zdata`, `xmax`, `ymax` (all 4,000 long, all float)
 
 Note that `sv_n` and `pv_n` were in `DataPVsOut`, but have been removed.
