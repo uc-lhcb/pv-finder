@@ -129,3 +129,71 @@ def collect_data(
 
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, **kargs)
     return loader
+
+
+# below added by ekauffma:
+
+def collect_poca(*files):
+    
+    #initialize lists
+    pocax_list = []
+    pocay_list = []
+    pocaz_list = []
+
+    majoraxisx_list = []
+    majoraxisy_list = []
+    majoraxisz_list = []
+
+    minoraxis1x_list = []
+    minoraxis1y_list = []
+    minoraxis1z_list = []
+    minoraxis2x_list = []
+    minoraxis2y_list = []
+    minoraxis2z_list = []
+
+    
+    #iterate through all files
+    for XY_file in files:
+        msg = f"Loaded {XY_file} in {{time:.4}} s"
+        with h5py.File(XY_file, mode="r") as XY:
+
+            #print keys in current hdf5 file
+            print(XY.keys())
+
+            afile = awkward.hdf5(XY)
+
+            #append to appropriate lists
+            pocax_list.append(afile["poca_x"])
+            pocay_list.append(afile["poca_y"])
+            pocaz_list.append(afile["poca_z"])
+
+            majoraxisx_list.append(afile["major_axis_x"])
+            majoraxisy_list.append(afile["major_axis_y"])
+            majoraxisz_list.append(afile["major_axis_z"])
+
+            minoraxis1x_list.append(afile["minor_axis1_x"])
+            minoraxis1y_list.append(afile["minor_axis1_y"])
+            minoraxis1z_list.append(afile["minor_axis1_z"])
+
+            minoraxis2x_list.append(afile["minor_axis2_x"])
+            minoraxis2y_list.append(afile["minor_axis2_y"])
+            minoraxis2z_list.append(afile["minor_axis2_z"])
+    
+    #construct pocas dictionary
+    pocas = {}
+    pocas["x"] = {"poca": concatenate(pocax_list),
+                  "major_axis": concatenate(majoraxisx_list),
+                  "minor_axis1": concatenate(minoraxis1x_list),
+                  "minor_axis2": concatenate(minoraxis2x_list)}
+
+    pocas["y"] = {"poca": concatenate(pocay_list),
+                  "major_axis": concatenate(majoraxisy_list),
+                  "minor_axis1": concatenate(minoraxis1y_list),
+                  "minor_axis2": concatenate(minoraxis2y_list)}
+
+    pocas["z"] = {"poca": concatenate(pocaz_list),
+                  "major_axis": concatenate(majoraxisz_list),
+                  "minor_axis1": concatenate(minoraxis1z_list),
+                  "minor_axis2": concatenate(minoraxis2z_list)}
+
+    return pocas
