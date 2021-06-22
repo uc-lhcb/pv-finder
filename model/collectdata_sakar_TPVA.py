@@ -151,6 +151,7 @@ def collect_poca(*files):
     minoraxis2y_list = []
     minoraxis2z_list = []
 
+    match_list = []
     
     #iterate through all files
     for XY_file in files:
@@ -178,6 +179,8 @@ def collect_poca(*files):
             minoraxis2x_list.append(afile["minor_axis2_x"])
             minoraxis2y_list.append(afile["minor_axis2_y"])
             minoraxis2z_list.append(afile["minor_axis2_z"])
+            
+            match_list.append(afile["recon_pv_key"])
     
     #construct pocas dictionary
     pocas = {}
@@ -196,4 +199,4 @@ def collect_poca(*files):
                   "minor_axis1": concatenate(minoraxis1z_list),
                   "minor_axis2": concatenate(minoraxis2z_list)}
 
-    return pocas
+    return pocas, concatenate(match_list)
