@@ -22,6 +22,8 @@ class ValueSet(NamedTuple):
 
     @property
     def eff_rate(self):
+        if self.real_pvs == 0:
+            return 0
         return self.S / self.real_pvs
 
     @property

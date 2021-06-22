@@ -1,8 +1,17 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
-
+from matplotlib.cm import get_cmap as cmap
+from matplotlib.cm import ScalarMappable
 import numpy as np
 import math
+from matplotlib.patches import Ellipse
+from matplotlib.colors import Normalize
+import h5py
+try:
+    import awkward0 as awkward
+except ModuleNotFoundError:
+    import awkward
+concatenate = awkward.concatenate
 
 def gaussian(x, pos, width):
     height = 1/(width*math.sqrt(2*math.pi))
@@ -220,6 +229,23 @@ def getPVsAndSVs(event, PV, SV, min_z, max_z):
             
     return pvXY, pvZX, pvZY, svXY, svZX, svZY
 
+def plotPVsAndSVs(event, PV, SV, min_z, max_z, axes):
+    pvXY, pvZX, pvZY, svXY, svZX, svZY = getPVsAndSVs(event, PV, SV, min_z, max_z)
+    # add circles for PV and SV centers
+    pvXY, pvZX, pvZY, svXY, svZX, svZY = getPVsAndSVs(event, PV, SV, min_z, max_z)
+    for e in pvXY:
+        axes[0].plot(e[0],e[1],color='blue',marker='o',markersize=10)
+    for e in pvZX:
+        axes[1].plot(e[0],e[1],color='blue',marker='o',markersize=10)
+    for e in pvZY:
+        axes[2].plot(e[0],e[1],color='blue',marker='o',markersize=10)
+    for e in svXY:
+        axes[0].plot(e[0],e[1],color='green',marker='o',markersize=5)
+    for e in svZX:
+        axes[1].plot(e[0],e[1],color='green',marker='o',markersize=5)
+    for e in svZY:
+        axes[2].plot(e[0],e[1],color='green',marker='o',markersize=5)
+
 def calcProb(p1,p2,m1,m2,ma):
     xvec = np.zeros(3)
     xvec[0] = p2[0]-p1[0]
@@ -236,6 +262,22 @@ def calcProb(p1,p2,m1,m2,ma):
    
     return prob 
 
+#where p1 is a Xx3 matrix, calculates probability from the corner of voxels (if widths are 0), where p1 specifies the corners
+def calcProbMat(p1,p2,m1,m2,ma,width1,width2,width3):
+    p1 = np.add(p1, np.array([width1/2, width2/2, width3/2]) )
+    xvec = np.add(p2,-p1)
+    magsqm1 = np.dot(m1,m1)
+    magsqm2 = np.dot(m2,m2)
+    magsqma = np.dot(ma,ma)
+    u1 = m1/np.sqrt(magsqm1)
+    u2 = m2/np.sqrt(magsqm2)
+    u3 = ma/np.sqrt(magsqma)
+    
+    chisq = np.square(np.dot(xvec,u1))/magsqm1 + np.square(np.dot(xvec,u2))/magsqm2 + np.square(np.dot(xvec,u3))/magsqma
+    prob = np.exp(np.multiply(-0.5,chisq))
+   
+    return prob 
+
 def updateProb(xGrid, yGrid, zGrid, p2, m1, m2, ma):
     
     pGrid = np.zeros(zGrid.shape)
@@ -246,3 +288,172 @@ def updateProb(xGrid, yGrid, zGrid, p2, m1, m2, ma):
             pGrid[i,j] = calcProb(current_point,p2,m1,m2,ma)
             
     return pGrid
+
+def getEllipses(event, pocas, min_z, max_z, axes, fig):
+    
+    trackCount = 0
+    
+    #initialize lists needed to plot ellipsoids
+    ellsXY = []
+    ellsZX = []
+    ellsZY = []
+    zpoca_vals = []
+    alphas = []
+    
+    cm = cmap("cool")
+    for j in range(len(pocas["x"]["major_axis"][event])):
+        #create three vectors corresponding to major axis and the two minor axes
+        major_axis = [pocas["x"]["major_axis"][event][j],
+                      pocas["y"]["major_axis"][event][j],
+                      pocas["z"]["major_axis"][event][j]]
+        minor_axis1 = [pocas["x"]["minor_axis1"][event][j],
+                       pocas["y"]["minor_axis1"][event][j],
+                       pocas["z"]["minor_axis1"][event][j]]
+        minor_axis2 = [pocas["x"]["minor_axis2"][event][j],
+                       pocas["y"]["minor_axis2"][event][j],
+                       pocas["z"]["minor_axis2"][event][j]]
+    
+        #calculate magnitude of major axis (used to determine alpha of ellipsoid)
+        major_axis_mag = np.sqrt(major_axis[0]**2 + major_axis[1]**2 + major_axis[2]**2)
+    
+        #determine color of ellipsoid (according to depth in z-axis)
+        color_scaling = (pocas["z"]["poca"][event][j] - min_z)/(max_z-min_z)
+        color = cm(color_scaling)
+        
+        #calculate ellipsoid parameters from three-vectors
+        A,B,C,D,E,F = six_ellipsoid_parameters(major_axis, minor_axis1, minor_axis2)
+        
+        #calculate ellipsoid parameters from three-vectors
+        A,B,C,D,E,F = six_ellipsoid_parameters(major_axis, minor_axis1, minor_axis2)
+                
+        #calculate parameters needed for x-y projection of ellipsoid
+        alpha_xy, beta_xy, gamma_xy, delta_xy = xy_parallel_projection(A, B, C, D, E ,F)
+        #calculate plotting parameters of ellipsoid
+        a_xy, b_xy, theta_xy = ellipse_parameters_for_plotting(alpha_xy,beta_xy,gamma_xy,delta_xy,A,C)
+                
+        #repeat for x,z
+        alpha_zx, beta_zx, gamma_zx, delta_zx = xy_parallel_projection(C, A, B, E, D, F)
+        a_zx, b_zx, theta_zx = ellipse_parameters_for_plotting(alpha_zx,beta_zx,gamma_zx,delta_zx,B,A)
+                
+        #repeat for y,z
+        alpha_zy, beta_zy, gamma_zy, delta_zy = xy_parallel_projection(C, B, A, F, D, E)
+        a_zy, b_zy, theta_zy = ellipse_parameters_for_plotting(alpha_zy,beta_zy,gamma_zy,delta_zy,C,A)
+        
+        #create Ellipse objects corresponding to track
+        thisEllipseXY = Ellipse([pocas["x"]["poca"][event][j], pocas["y"]["poca"][event][j]],
+                                a_xy, b_xy, theta_xy, color=color)
+        thisEllipseZX = Ellipse([pocas["z"]["poca"][event][j], pocas["x"]["poca"][event][j]],
+                                a_zx, b_zx, theta_zx, color=color)
+        thisEllipseZY = Ellipse([pocas["z"]["poca"][event][j], pocas["y"]["poca"][event][j]],
+                                a_zy, b_zy, theta_zy, color=color)
+        
+        #add ellipse to list if it falls in the z-range
+        if (pocas["z"]["poca"][event][j] >= min_z and pocas["z"]["poca"][event][j] <= max_z):
+            ellsXY.append(thisEllipseXY)
+            ellsZX.append(thisEllipseZX)
+            ellsZY.append(thisEllipseZY)
+            zpoca_vals.append(pocas["z"]["poca"][event][j])
+                    
+            #calculate opacity of ellipse
+            alpha = 0.3*major_axis_mag
+            alpha = min(alpha,1)
+            alpha = 1-alpha
+            alpha = 0.7*max(alpha, 0.05)
+            alphas.append(alpha)
+                    
+            trackCount += 1
+            
+    #sort ellipses according to depth in z-axis (so that we don't plot in a random order, makes visualization easier)
+    ellsXY = [e for _,e in sorted(zip(zpoca_vals,ellsXY), reverse = True)]
+    ellsZX = [e for _,e in sorted(zip(zpoca_vals,ellsZX), reverse = True)]
+    ellsZY = [e for _,e in sorted(zip(zpoca_vals,ellsZY), reverse = True)]
+    alphas = [alpha for _,alpha in sorted(zip(zpoca_vals,alphas), reverse = True)]
+    
+    if trackCount > 30:
+        alphas = np.multiply(alphas,0.5)
+        
+    #plot ellipses
+    for j in range(len(alphas)):
+        axes[0].add_artist(ellsXY[j])
+        ellsXY[j].set_clip_box(axes[0].bbox)
+        ellsXY[j].set_alpha(alphas[j])
+                
+        axes[1].add_artist(ellsZX[j])
+        ellsZX[j].set_clip_box(axes[1].bbox)
+        ellsZX[j].set_alpha(alphas[j])
+                
+        axes[2].add_artist(ellsZY[j])
+        ellsZY[j].set_clip_box(axes[2].bbox)
+        ellsZY[j].set_alpha(alphas[j])
+        
+    fig.colorbar(ScalarMappable(norm=Normalize(vmin=min_z, vmax=max_z), cmap=cm),
+                 ax=axes[0], label='Position in z')
+    fig.colorbar(ScalarMappable(norm=Normalize(vmin=min_z, vmax=max_z), cmap=cm),
+                 ax=axes[1], label='Position in z')
+    fig.colorbar(ScalarMappable(norm=Normalize(vmin=min_z, vmax=max_z), cmap=cm),
+                 ax=axes[2], label='Position in z')
+    
+def collect_poca(*files):
+    
+    #initialize lists
+    pocax_list = []
+    pocay_list = []
+    pocaz_list = []
+
+    majoraxisx_list = []
+    majoraxisy_list = []
+    majoraxisz_list = []
+
+    minoraxis1x_list = []
+    minoraxis1y_list = []
+    minoraxis1z_list = []
+    minoraxis2x_list = []
+    minoraxis2y_list = []
+    minoraxis2z_list = []
+
+    
+    #iterate through all files
+    for XY_file in files:
+        msg = f"Loaded {XY_file} in {{time:.4}} s"
+        with h5py.File(XY_file, mode="r") as XY:
+
+            #print keys in current hdf5 file
+            print(XY.keys())
+
+            afile = awkward.hdf5(XY)
+
+            #append to appropriate lists
+            pocax_list.append(afile["poca_x"])
+            pocay_list.append(afile["poca_y"])
+            pocaz_list.append(afile["poca_z"])
+
+            majoraxisx_list.append(afile["major_axis_x"])
+            majoraxisy_list.append(afile["major_axis_y"])
+            majoraxisz_list.append(afile["major_axis_z"])
+
+            minoraxis1x_list.append(afile["minor_axis1_x"])
+            minoraxis1y_list.append(afile["minor_axis1_y"])
+            minoraxis1z_list.append(afile["minor_axis1_z"])
+
+            minoraxis2x_list.append(afile["minor_axis2_x"])
+            minoraxis2y_list.append(afile["minor_axis2_y"])
+            minoraxis2z_list.append(afile["minor_axis2_z"])
+    
+    #construct pocas dictionary
+    pocas = {}
+    pocas["x"] = {"poca": concatenate(pocax_list),
+                  "major_axis": concatenate(majoraxisx_list),
+                  "minor_axis1": concatenate(minoraxis1x_list),
+                  "minor_axis2": concatenate(minoraxis2x_list)}
+
+    pocas["y"] = {"poca": concatenate(pocay_list),
+                  "major_axis": concatenate(majoraxisy_list),
+                  "minor_axis1": concatenate(minoraxis1y_list),
+                  "minor_axis2": concatenate(minoraxis2y_list)}
+
+    pocas["z"] = {"poca": concatenate(pocaz_list),
+                  "major_axis": concatenate(majoraxisz_list),
+                  "minor_axis1": concatenate(minoraxis1z_list),
+                  "minor_axis2": concatenate(minoraxis2z_list)}
+
+    return pocas
