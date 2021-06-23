@@ -1,8 +1,75 @@
-from contextlib import contextmanager, redirect_stdout, redirect_stderr
 import sys
 import time
+import mlflow 
 
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 
+def Params(batch_size, epochs, lr, experiment_name, device, asymmetry_parameter=2.5):
+        return {'batch_size':batch_size, 'epochs':epochs, 'lr':lr, 'experiment_name':experiment_name, 'device':device, 'asymmetry_parameter':asymmetry_parameter}
+
+def count_parameters(model):
+    """
+    Counts the total number of parameters in a model
+    Args:
+        model (Module): Pytorch model, the total number of parameters for this model will be counted. 
+
+    Returns: Int, number of parameters in the model
+    """
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+def save_to_mlflow(stats_dict:dict, args, step):
+    '''
+    Requires that the dictionary be structured as:
+    Parameters have the previx "Param: ", metrics have "Metric: ", and artifacts have "Artifact: "
+    It will ignore these tags. 
+    
+    Example: {'Param: Parameters':106125, 'Metric: Training Loss':10.523}
+    '''
+    for key, value in stats_dict.items():
+        if 'Param: ' in key:
+            mlflow.log_param(key[7:], value)
+        if 'Metric: ' in key:
+            mlflow.log_metric(key[8:], value, step)
+        if 'Artifact' in key:
+            mlflow.log_artifact(value)
+#     for key, value in vars(args).items(): # maybe there will be a day when this is wanted for exact experimental reproducability
+#         mlflow.log_param(key, value)
+
+def load_full_state(model_to_update, Path, freeze_weights=False):
+    """
+    Updates the model weights with those given in the model file specified by the Path argument
+    The use case for this is if we care about the optimizer state_dict, which we do if we have multiple training 
+    sessions with momentum and/or learning rate decay. this will track the decay/momentum.
+
+    Args: 
+            model_to_update (Module): Pytorch model with randomly initialized weights. These weights will be updated.
+            Path (string): If we are not training from scratch, this path should be the path to the "run_stats" file in the artifacts 
+            directory of whatever run you are using as a baseline. 
+            You can find the path in the MLFlow UI. It should end in /artifacts/run_stats  
+            
+
+    Returns:
+            Nothing
+
+    Note:
+            The model will not be returned, rather the module you pass to this function will be modified.
+    """
+    checkpoint = torch.load(Path)
+    update_dict = {k: v for k, v in checkpoint['state_dict'].items() if k in model_to_update.state_dict()}
+    model_to_update.load_state_dict(update_dict, strict=False)
+    print('Of the '+str(len(model_to_update.state_dict())/2)+' parameter layers to update in the current model, '+str(len(update_dict)/2)+' were loaded')
+        
+def save_summary(model, sample_input):
+    # this part saves the printed output of summary() to a text file
+    orig_stdout = sys.stdout
+    f = open('model_summary.txt', 'w')
+    sys.stdout = f
+    summary(model, sample_input.shape)
+    print(model)
+    sys.stdout = orig_stdout
+    f.close()
+    mlflow.log_artifact('model_summary.txt')
+    
 class DummyTqdmFile(object):
     """Dummy file-like that will write to tqdm"""
 
