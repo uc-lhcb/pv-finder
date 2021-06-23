@@ -184,6 +184,15 @@ class UNet(nn.Module):
 
         ret = F.softplus(logits_x0).squeeze()
         return  ret
+    
+    
+    # Fuse Conv+BN and Conv+BN+Relu modules prior to quantization
+    # This operation does not change the numerics
+    # If you are reading this, this function is probably not relevant to you. Carry on.
+    def fuse_model(self):
+        for m in self.modules():
+            if type(m) == ConvBNrelu:
+                torch.quantization.fuse_modules(m, ['0', '1', '2'], inplace=True)
 
 
     

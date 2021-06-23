@@ -53,24 +53,33 @@ mlflow.tracking.set_tracking_uri('file:/share/lazy/pv-finder_model_repo')
 mlflow.set_experiment(args['experiment_name'])
 
 model = UNet().to(args['device'])
+# Fuse Conv, bn and relu
+model.fuse_model()
+
 optimizer = torch.optim.Adam(model.parameters(), lr=args['lr'])
 loss = Loss(epsilon=1e-5,coefficient=2.5)
 
-# load_full_state(model, optimizer, '/share/lazy/pv-finder_model_repo/17/27d5279c4a0641ecb3807f400b25a9a8/artifacts/run_stats.pyt', freeze_weights=False)
+model.qconfig = torch.quantization.get_default_qat_qconfig('fbgemm')
+torch.quantization.prepare_qat(model, inplace=True)
 
-run_name = 'stock u-net'
+# load_full_state(model, '/share/lazy/pv-finder_model_repo/17/27d5279c4a0641ecb3807f400b25a9a8/artifacts/run_stats.pyt')
+
+run_name = 'QAT u-net'
 
 train_iter = enumerate(trainNet(model, optimizer, loss, train_loader, val_loader, args['epochs'], notebook=False))
 with mlflow.start_run(run_name = run_name) as run:
-    for i, result in train_iter:
+    for epoch, result in train_iter:
         
-        torch.save(model, 'run_stats.pyt')
-        mlflow.log_artifact('run_stats.pyt')
+        if epoch > 3:
+            # Freeze quantizer parameters
+            model.apply(torch.quantization.disable_observer)
+        if epoch > 2:
+            # Freeze batch norm mean and variance estimates
+            model.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
         
         save_to_mlflow({
             'Metric: Training loss':result.cost,
             'Metric: Validation loss':result.val,
             'Metric: Efficiency':result.eff_val.eff_rate,
             'Metric: False positive rate':result.eff_val.fp_rate,
-        }, step=i)
-        
+        }, step=epoch)

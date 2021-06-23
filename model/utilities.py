@@ -1,5 +1,6 @@
 import sys
 import time
+import torch
 import mlflow 
 
 from contextlib import contextmanager, redirect_stdout, redirect_stderr
@@ -17,7 +18,7 @@ def count_parameters(model):
     """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-def save_to_mlflow(stats_dict:dict, args, step):
+def save_to_mlflow(stats_dict:dict, step, args=False):
     '''
     Requires that the dictionary be structured as:
     Parameters have the previx "Param: ", metrics have "Metric: ", and artifacts have "Artifact: "
@@ -55,7 +56,7 @@ def load_full_state(model_to_update, Path, freeze_weights=False):
             The model will not be returned, rather the module you pass to this function will be modified.
     """
     checkpoint = torch.load(Path)
-    update_dict = {k: v for k, v in checkpoint['state_dict'].items() if k in model_to_update.state_dict()}
+    update_dict = {k: v for k, v in checkpoint.state_dict().items() if k in model_to_update.state_dict()}
     model_to_update.load_state_dict(update_dict, strict=False)
     print('Of the '+str(len(model_to_update.state_dict())/2)+' parameter layers to update in the current model, '+str(len(update_dict)/2)+' were loaded')
         
