@@ -16,12 +16,15 @@ file(GLOB_RECURSE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Header Files" FILES ${HEADERS})
 
+set(NBINS "4000" CACHE STRING "Set the number of bins (LHCb: 4000)")
+
 add_library(core_lib
     ${HEADERS}
     makehist.C
     makehistfromtracks.C
     maketracks.C
     )
+target_compile_definitions(core_lib PUBLIC NBINS=${NBINS})
 
 add_executable(make_histogram_from_tracks
     apps/make_hist_from_tracks_main.C
