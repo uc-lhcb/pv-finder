@@ -457,3 +457,21 @@ def collect_poca(*files):
                   "minor_axis2": concatenate(minoraxis2z_list)}
 
     return pocas
+
+
+    def combine_ellipsoids(centers, major_axes, minor_axes1, minor_axes2):
+        
+        num = len(centers)
+        Cinv = 0
+        mu = 0
+        
+        for i in range(num):
+            
+            center = centers[i]
+            major_axis = major_axes[i]
+            minor_axis1 = minor_axes1[i]
+            minor_axis2 = minor_axes2[i]
+            
+            #calculate correlation matrix
+            
+            
