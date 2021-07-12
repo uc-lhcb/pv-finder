@@ -13,7 +13,7 @@ from model.autoencoder_models import UNet
 args = Params(
     batch_size=64,
     device = 'cuda:0',
-    epochs=20,
+    epochs=100,
     lr=1e-3,
     experiment_name='UNet', 
     asymmetry_parameter=2.5

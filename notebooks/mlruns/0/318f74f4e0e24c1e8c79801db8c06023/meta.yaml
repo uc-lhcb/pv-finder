@@ -1,0 +1,15 @@
+artifact_uri: file:///data/home/will/pv-finder/notebooks/mlruns/0/318f74f4e0e24c1e8c79801db8c06023/artifacts
+end_time: 1626037215073
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 318f74f4e0e24c1e8c79801db8c06023
+run_uuid: 318f74f4e0e24c1e8c79801db8c06023
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1626037215011
+status: 4
+tags: []
+user_id: will

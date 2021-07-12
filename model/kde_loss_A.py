@@ -38,7 +38,9 @@ class Loss(torch.nn.Module):
         r = torch.abs((x[valid] + self.epsilon) / (y_kde[valid] + self.epsilon))
 
         # Compute -log(2r/(r² + 1))
+        print(r)
         alpha = -torch.log(2*r / (r**2 + 1))
+        print(alpha)
         alpha = alpha * (1.0 + self.coefficient * torch.exp(-r))
 
         # Sum up the alpha values, and divide by the length of x and y. Note this is not quite

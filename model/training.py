@@ -1,6 +1,7 @@
 import time
 import torch
 from collections import namedtuple
+from tqdm import tqdm
 import sys
 import os
 
@@ -184,3 +185,30 @@ def validate(model, loss, loader, device):
             for label, output in zip(labels.cpu().numpy(), val_outputs.cpu().numpy()):
                 eff += efficiency(label, output, **PARAM_EFF)
     return total_loss, eff
+
+def train_tracks_kde(model, loss, loader, optimizer, device):
+    total_loss = 0.0
+
+    # switch to train mode
+    model.train()
+    iterator = tqdm(loader)
+    for i, (tracks, kdes) in tqdm(enumerate(loader), total=len(loader)):
+        if tracks.device != device:
+            tracks, kdes = tracks.to(device), kdes.to(device)
+
+        # Set the parameter gradients to zero
+        optimizer.zero_grad()
+
+        # Forward pass, backward pass, optimize
+        outputs = model(tracks)
+        loss_output = loss(outputs, kdes[:, :4000].unsqueeze(1))
+        loss_output.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+        optimizer.step()
+#         iterator.set_description('Loss', loss_output.data.item())
+        total_loss += loss_output.data.item()
+        
+        if (1+i) % 100 == 0:
+            print(total_loss/(i+1))
+
+    return total_loss
