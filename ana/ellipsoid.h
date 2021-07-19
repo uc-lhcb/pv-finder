@@ -28,7 +28,7 @@ class Ellipsoid {
       auto const yhat    = 1/doca*v3; // EMK (I switched around variable names)
       auto const v2_mag  = std::sqrt(v2.Dot(v2));
       auto const zhat    = 1/v2_mag*v2; // EMK
-      auto const xhat    = yhat.Cross(xhat); // EMK
+      auto const xhat    = yhat.Cross(zhat); // EMK
       _minor_axis1       = xy_error*yhat; // EMK (before road_error*zhat)
       _minor_axis2       = xy_error*xhat; // EMK (before road_error*yhat)
       _major_axis        = z_error*zhat; // EMK (before (road_error/std::tan(v1.Angle(v2)))*xhat)

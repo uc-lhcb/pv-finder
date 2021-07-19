@@ -63,6 +63,9 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
         std::cout << "Entry " << i << "/" << ntrack;
 
         AnyTracks tracks(data_recon);
+//         for(int i = 0; i < 10; i++){
+//             std::cout << "sigmapocaxy" << tracks.at(i).get_sigmapocaxy();
+//         }
         std::cout << " " << tracks;
         // make poca error ellipsoids for each track w.r.t. the beamline (quick and dirty solution...)
         int trkcount = 0;
@@ -71,7 +74,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
           const auto tsigmapocaxy = tracks.at(trkcount).get_sigmapocaxy(); // EMK
           const auto terrz0 = tracks.at(trkcount).get_errz0(); // EMK
             
-          std::cout << terrz0 << std::endl;
+          //std::cout << terrz0 << std::endl;
             
             
           Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0);

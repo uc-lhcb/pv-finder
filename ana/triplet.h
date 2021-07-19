@@ -19,7 +19,7 @@ class TripletBase {
 
     // EMK (added variables)
     TripletBase(double x, double y, double z, double tx, double ty, double chi2, double sigmapocaxy, double errz0)
-        : chi2(chi2), _trajectory(x, y, z, tx, ty) {
+        : chi2(chi2), sigmapocaxy(sigmapocaxy), errz0(errz0), _trajectory(x, y, z, tx, ty) {
         _beam_poca = _trajectory.beamPOCA();
     }
 
