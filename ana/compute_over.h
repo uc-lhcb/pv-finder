@@ -14,10 +14,10 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 // Take a function of n, kernel_value, x, y, and call on each n value from 0 to 4000
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
-    constexpr int nbz = 4000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 4000, nbxy = 30; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
-    constexpr double zmin = -100., zmax = 300., xymin = -0.4, xymax = 0.4; // overall range in z, x and y in mm
+    constexpr double zmin = -10., zmax = 10., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
     constexpr double interxy = 0.01;                                       // interpolation stepsize in mm
 
     // C style workaround for global FCN tracks inside the fitter
@@ -27,8 +27,14 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     // make poca error ellipsoids for each track w.r.t. the beamline
     std::vector<Ellipsoid> poca_ellipsoids;
     Trajectory beamline(0., 0., 0., 0., 0.);
-    for(auto const &trajectory : any_tracks.trajectories())
-        poca_ellipsoids.emplace_back(beamline, trajectory);
+    int trkcount = 0;
+    for(auto const &trajectory : any_tracks.trajectories()){
+        const auto tsigmapocaxy = any_tracks.at(trkcount).get_sigmapocaxy(); // EMK
+        const auto terrz0 = any_tracks.at(trkcount).get_errz0(); // EMK
+        poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0); //EMK
+        trkcount ++;
+    }
+    
     // sort ellipsoids by zmin so that we can make the iteration a bit faster later
     std::sort(poca_ellipsoids.begin(), poca_ellipsoids.end(), [](Ellipsoid const &a, Ellipsoid const &b) { return a.zmin() < b.zmin(); });
 

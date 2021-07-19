@@ -108,7 +108,9 @@ class AnyTracks {
                                  trks.recon_z->at(i),
                                  trks.recon_tx->at(i),
                                  trks.recon_ty->at(i),
-                                 trks.recon_chi2->at(i));
+                                 trks.recon_chi2->at(i),
+                                 trks.recon_sigmapocaxy->at(i),
+                                 trks.recon_errz0->at(i));
         }
     }
 
@@ -159,6 +161,12 @@ inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
         const auto trajp = ttraj.point();
         const auto bpoca = ttraj.beamPOCA();
         const auto tchi2 = tracks.at(i).get_chi2();
+        const auto tsigmapocaxy = tracks.at(i).get_sigmapocaxy(); // EMK
+        const auto terrz0 = tracks.at(i).get_errz0(); // EMK
+        
+        //std::cout << "tsigmapocaxy: " << tsigmapocaxy << "\n";
+        //std::cout << "terrz0: " << terrz0 << "\n";
+        //std::cout << "tchi2: " << tchi2 << "\n";
 
         self.recon_x->push_back(trajp.x());
         self.recon_y->push_back(trajp.y());
@@ -166,6 +174,8 @@ inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
         self.recon_tx->push_back(ttraj.xslope());
         self.recon_ty->push_back(ttraj.yslope());
         self.recon_chi2->push_back(tchi2);
+        self.recon_sigmapocaxy->push_back(tsigmapocaxy);
+        self.recon_errz0->push_back(terrz0);
         //self.recon_pocax->push_back(bpoca.x());
         //self.recon_pocay->push_back(bpoca.y());
         //self.recon_pocaz->push_back(bpoca.z());

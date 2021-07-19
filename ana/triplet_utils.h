@@ -6,7 +6,7 @@
 
 // more general than needed ATM
 inline void
-getTrackPars(int nhits, Hit hits[], double &x0, double &y0, double &z0, double &tx, double &ty, double &chi2) {
+getTrackPars(int nhits, Hit hits[], double &x0, double &y0, double &z0, double &tx, double &ty, double &chi2) { 
 
     // analytically solve for track parameters
     double sumZ = 0, sumX = 0, sumY = 0, sumZX = 0, sumZY = 0, sumZ2 = 0;

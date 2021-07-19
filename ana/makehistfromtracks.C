@@ -65,8 +65,16 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
         AnyTracks tracks(data_recon);
         std::cout << " " << tracks;
         // make poca error ellipsoids for each track w.r.t. the beamline (quick and dirty solution...)
+        int trkcount = 0;
         for(auto const &trajectory : tracks.trajectories()){
-          Ellipsoid ellipsoid(beamline, trajectory);
+            
+          const auto tsigmapocaxy = tracks.at(trkcount).get_sigmapocaxy(); // EMK
+          const auto terrz0 = tracks.at(trkcount).get_errz0(); // EMK
+            
+          std::cout << terrz0 << std::endl;
+            
+            
+          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0);
           dump_data["POCA_minor_axis1_x"].emplace_back(ellipsoid.minor_axis1().x());
           dump_data["POCA_minor_axis1_y"].emplace_back(ellipsoid.minor_axis1().y());
           dump_data["POCA_minor_axis1_z"].emplace_back(ellipsoid.minor_axis1().z());
@@ -79,6 +87,8 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
           dump_data["POCA_center_x"].emplace_back(ellipsoid.center().x());
           dump_data["POCA_center_y"].emplace_back(ellipsoid.center().y());
           dump_data["POCA_center_z"].emplace_back(ellipsoid.center().z());
+            
+          trkcount++;
         }
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);

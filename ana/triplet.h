@@ -8,14 +8,17 @@
 
 class TripletBase {
   protected:
-    double chi2;
+    double chi2; // EMK
+    double sigmapocaxy; // EMK
+    double errz0;
     Point _beam_poca;
     Trajectory _trajectory;
 
   public:
-    TripletBase() { chi2 = 0; };
+    TripletBase() { chi2 = 0; }; // EMK
 
-    TripletBase(double x, double y, double z, double tx, double ty, double chi2)
+    // EMK (added variables)
+    TripletBase(double x, double y, double z, double tx, double ty, double chi2, double sigmapocaxy, double errz0)
         : chi2(chi2), _trajectory(x, y, z, tx, ty) {
         _beam_poca = _trajectory.beamPOCA();
     }
@@ -30,7 +33,7 @@ class TripletBase {
         //if(abs(dx) > 0.5 || abs(dy) > 0.5)
         //   return 0;
 
-        double sigma = 0.05;
+        double sigma = 3e-3;//0.05;
 
         // TODO: improve sigma estimation, e.g. add distance to 1st hit
         if(chi2 / 3 > 2)
@@ -49,7 +52,12 @@ class TripletBase {
     double chi2NDof() const { return chi2 / 3; }
 
     double get_chi2() const { return chi2; }
+    double get_sigmapocaxy() const { return sigmapocaxy; } //EMK
+    double get_errz0() const { return errz0; } //EMK
+    
     void set_chi2(double value) { chi2 = value; }
+    void set_sigmapocaxy(double value) { sigmapocaxy = value; } //EMK
+    void set_errz0(double value) { errz0 = value; } //EMK
 };
 
 class TripletToy : public TripletBase {
