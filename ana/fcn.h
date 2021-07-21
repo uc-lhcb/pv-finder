@@ -100,10 +100,10 @@ inline double kernelMax(Point &pv) {
 inline int
 ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
     int ntrk_in_acc = 0;
-    int nprt = data_pvs.prt_pvr->size();
+    int nprt = data_trks.prt_pvr->size();
 
     for(int j = 0; j < nprt; j++) {
-        if(data_pvs.prt_pvr->at(j) != i)
+        if(data_trks.prt_pvr->at(j) != i)
             continue;
         if(data_hits.prt_hits->at(j) < 3)
             continue;
@@ -137,7 +137,7 @@ pvCategory(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const 
 }
 
 inline int nSVPrt(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
-    int nsv_prt = 0, nprt = data_pvs.prt_pvr->size();
+    int nsv_prt = 0, nprt = data_trks.prt_pvr->size();
     for(int j = 0; j < nprt; j++) {
         if(data_hits.prt_hits->at(j) < 3)
             continue;
