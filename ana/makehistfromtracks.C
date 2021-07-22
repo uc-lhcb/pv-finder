@@ -77,7 +77,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
           //std::cout << terrz0 << std::endl;
             
             
-          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0);
+          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0, 0.01932);
           dump_data["POCA_minor_axis1_x"].emplace_back(ellipsoid.minor_axis1().x());
           dump_data["POCA_minor_axis1_y"].emplace_back(ellipsoid.minor_axis1().y());
           dump_data["POCA_minor_axis1_z"].emplace_back(ellipsoid.minor_axis1().z());
