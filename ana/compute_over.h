@@ -14,7 +14,7 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 // Take a function of n, kernel_value, x, y, and call on each n value from 0 to 4000
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
-    constexpr int nbz = 4000, nbxy = 30; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 10000, nbxy = 30; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
     constexpr double zmin = -10., zmax = 10., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
