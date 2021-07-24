@@ -105,6 +105,8 @@ ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const C
     for(int j = 0; j < nprt; j++) {
         if(data_trks.prt_pvr->at(j) != i)
             continue;
+        if(data_hits.prt_hits->size() == 0)
+            continue;
         if(data_hits.prt_hits->at(j) < 3)
             continue;
         if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
