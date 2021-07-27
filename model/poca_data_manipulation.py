@@ -227,33 +227,41 @@ def collect_poca(*files):
     minoraxis2y_list = []
     minoraxis2z_list = []
 
+    match_list = []
     
     #iterate through all files
     for XY_file in files:
-        msg = f"Loaded {XY_file} in {{time:.4}} s"
+        
+        
+#         msg = f"Loaded {XY_file} in {{time:.4}} s"
         with h5py.File(XY_file, mode="r") as XY:
 
-            #print keys in current hdf5 file
-            print(XY.keys())
+             #print keys in current hdf5 file
+             print(XY.keys())
+                
+             #print(XY["poca_x"])
+             afile = awkward.hdf5(XY)
+                
+             print(np.asarray(XY["poca_x"]))
 
-            afile = awkward.hdf5(XY)
+             #append to appropriate lists
+             pocax_list.append(afile["poca_x"])
+             pocay_list.append(afile["poca_y"])
+             pocaz_list.append(afile["poca_z"])
 
-            #append to appropriate lists
-            pocax_list.append(afile["poca_x"])
-            pocay_list.append(afile["poca_y"])
-            pocaz_list.append(afile["poca_z"])
+             majoraxisx_list.append(afile["major_axis_x"])
+             majoraxisy_list.append(afile["major_axis_y"])
+             majoraxisz_list.append(afile["major_axis_z"])
 
-            majoraxisx_list.append(afile["major_axis_x"])
-            majoraxisy_list.append(afile["major_axis_y"])
-            majoraxisz_list.append(afile["major_axis_z"])
+             minoraxis1x_list.append(afile["minor_axis1_x"])
+             minoraxis1y_list.append(afile["minor_axis1_y"])
+             minoraxis1z_list.append(afile["minor_axis1_z"])
 
-            minoraxis1x_list.append(afile["minor_axis1_x"])
-            minoraxis1y_list.append(afile["minor_axis1_y"])
-            minoraxis1z_list.append(afile["minor_axis1_z"])
-
-            minoraxis2x_list.append(afile["minor_axis2_x"])
-            minoraxis2y_list.append(afile["minor_axis2_y"])
-            minoraxis2z_list.append(afile["minor_axis2_z"])
+             minoraxis2x_list.append(afile["minor_axis2_x"])
+             minoraxis2y_list.append(afile["minor_axis2_y"])
+             minoraxis2z_list.append(afile["minor_axis2_z"])
+            
+             match_list.append(afile["recon_pv_key"])
     
     #construct pocas dictionary
     pocas = {}
@@ -272,16 +280,11 @@ def collect_poca(*files):
                   "minor_axis1": concatenate(minoraxis1z_list),
                   "minor_axis2": concatenate(minoraxis2z_list)}
 
-    return pocas
+    return pocas, concatenate(match_list)
 
-
-def combine_ellipsoids(centers, major_axes, minor_axes1, minor_axes2):
-        
-    # combine error ellipsoids to approximate PV
-        
+def combine_ellipsoids_approx(centers, major_axes, minor_axes1, minor_axes2):
+    
     num = len(centers[1,:])
-#     Cinv = np.zeros([3,3])
-#     mu = np.zeros([3,1])
     
     volumes = np.zeros(num)
     maj_mag = np.zeros(num)
@@ -301,54 +304,85 @@ def combine_ellipsoids(centers, major_axes, minor_axes1, minor_axes2):
         maj_mag[i] = 1/np.linalg.norm(major_axis)
         min1_mag[i] = 1/np.linalg.norm(minor_axis1)
         min2_mag[i] = 1/np.linalg.norm(minor_axis2)
-            
-#         #calculate matrix elements
-#         A,B,C,D,E,F = six_ellipsoid_parameters(major_axis.reshape((3,)), 
-#                                                minor_axis1.reshape((3,)), 
-#                                                minor_axis2.reshape((3,)))
-
-            
-        #construct covariance matrix
-#         cov = np.matrix([[A,D,E],
-#                         [D,B,F],
-#                         [E,F,C]], dtype=np.float64)
-            
-#         cov_inv = np.linalg.inv(cov)
-            
-#         Cinv += cov_inv
-#         mu += np.matmul(cov_inv, center)
         
-    #compute center and cov matrix of combined ellipse
-#     C = np.linalg.inv(Cinv)
-#     center = np.matmul(C, mu)
-        
-#     #convert to ellipse form
-#     evals, evecs = np.linalg.eig(C) # get eigenvalues and eigenvectors
-#     major_axis = evals[0] * evecs[0]
-#     minor_axis1 = evals[1] * evecs[1]
-#     minor_axis2 = evals[2] * evecs[2]
-    
     centerx = np.average(centers[0,:], weights = volumes)
     centery = np.average(centers[1,:], weights = volumes)
     centerz = np.average(centers[2,:], weights = volumes)
     center = np.array([centerx, centery, centerz])
     
-    major_axisx = np.average(major_axes[0,:], weights = maj_mag)
-    major_axisy = np.average(major_axes[1,:], weights = maj_mag)
-    major_axisz = np.average(major_axes[2,:], weights = maj_mag)
+    major_axisx = np.average(major_axes[0,:], weights = volumes)
+    major_axisy = np.average(major_axes[1,:], weights = volumes)
+    major_axisz = np.average(major_axes[2,:], weights = volumes)
     major_axis = np.array([major_axisx, major_axisy, major_axisz])
     
-    minor_axis1x = np.average(minor_axes1[0,:], weights = min1_mag)
-    minor_axis1y = np.average(minor_axes1[1,:], weights = min1_mag)
-    minor_axis1z = np.average(minor_axes1[2,:], weights = min1_mag)
+    minor_axis1x = np.average(minor_axes1[0,:], weights = volumes)
+    minor_axis1y = np.average(minor_axes1[1,:], weights = volumes)
+    minor_axis1z = np.average(minor_axes1[2,:], weights = volumes)
     minor_axis1 = np.array([minor_axis1x, minor_axis1y, minor_axis1z])
     
-    minor_axis2x = np.average(minor_axes2[0,:], weights = min2_mag)
-    minor_axis2y = np.average(minor_axes2[1,:], weights = min2_mag)
-    minor_axis2z = np.average(minor_axes2[2,:], weights = min2_mag)
+    minor_axis2x = np.average(minor_axes2[0,:], weights = volumes)
+    minor_axis2y = np.average(minor_axes2[1,:], weights = volumes)
+    minor_axis2z = np.average(minor_axes2[2,:], weights = volumes)
     minor_axis2 = np.array([minor_axis2x, minor_axis2y, minor_axis2z])
     
+    return center, major_axis, minor_axis1, minor_axis2
+
+
+def combine_ellipsoids(centers, major_axes, minor_axes1, minor_axes2):
         
+    # combine error ellipsoids to approximate PV
+        
+    num = len(centers[1,:])
+    Cinv = np.zeros([3,3])
+    mu = np.zeros([3,1])
+        
+    for i in range(num):
+        
+        center = centers[:,i].reshape((3,1))
+        major_axis = major_axes[:,i].reshape((3,1))
+        minor_axis1 = minor_axes1[:,i].reshape((3,1))
+        minor_axis2 = minor_axes2[:,i].reshape((3,1))
+  
+            
+        #calculate matrix elements
+        A,B,C,D,E,F = six_ellipsoid_parameters(major_axis.reshape((3,)), 
+                                               minor_axis1.reshape((3,)), 
+                                               minor_axis2.reshape((3,)))
+
+        #construct covariance matrix
+        cov = np.matrix([[A,D,E],
+                        [D,B,F],
+                        [E,F,C]], dtype=np.float64)
+
+#         cov = np.matrix([[A,0,0],
+#                          [0,B,0],
+#                          [0,0,C]], dtype=np.float64)
+            
+        cov_inv = np.linalg.inv(cov)
+            
+        Cinv += cov_inv
+        mu += np.matmul(cov_inv, center)
+        
+        print('Current mu: ', mu)
+        
+    #compute center and cov matrix of combined ellipse
+    C = np.linalg.inv(Cinv)
+    print('Final mu: ', mu)
+    center = np.matmul(C, mu)
+    print('Center: ', center)
+    print()
+        
+    
+        
+    #convert to ellipse form
+    evals, evecs = np.linalg.eig(C) # get eigenvalues and eigenvectors
+    evals_sorted = sorted(evals)
+    evecs_sorted = [e for _,e in sorted(zip(evals.tolist(),evecs))]
+    
+    minor_axis2 = np.sqrt(evals_sorted[0]) * evecs_sorted[0]
+    minor_axis1 = np.sqrt(evals_sorted[1]) * evecs_sorted[1]
+    major_axis = np.sqrt(evals_sorted[2]) * evecs_sorted[2]
+    
     return center, major_axis, minor_axis1, minor_axis2
             
     
@@ -368,23 +402,23 @@ def plot_combined_ellipse(center, major_axis, minor_axis1, minor_axis2, fig, axs
     a_zy, b_zy, theta_zy = ellipse_parameters_for_plotting(alpha_zy,beta_zy,gamma_zy,delta_zy,C,A)
     
     thisEllipseXY = Ellipse([center[0], center[1]],
-                            a_xy, b_xy, theta_xy, color='g')
+                            a_xy, b_xy, theta_xy, facecolor='g', edgecolor = 'k')
     thisEllipseZX = Ellipse([center[2], center[0]],
-                            a_zx, b_zx, theta_zx, color='g')
+                            a_zx, b_zx, theta_zx, facecolor='g', edgecolor = 'k')
     thisEllipseZY = Ellipse([center[2], center[1]],
-                            a_zy, b_zy, theta_zy, color='g')
+                            a_zy, b_zy, theta_zy, facecolor='g', edgecolor = 'k')
     
     axs[0].add_artist(thisEllipseXY)
     thisEllipseXY.set_clip_box(axs[0].bbox)
-    thisEllipseXY.set_alpha(0.5)
+    thisEllipseXY.set_alpha(0.7)
                 
     axs[1].add_artist(thisEllipseZX)
     thisEllipseZX.set_clip_box(axs[1].bbox)
-    thisEllipseZX.set_alpha(0.5)
+    thisEllipseZX.set_alpha(0.7)
                 
     axs[2].add_artist(thisEllipseZY)
     thisEllipseZY.set_clip_box(axs[2].bbox)
-    thisEllipseZY.set_alpha(0.5)
+    thisEllipseZY.set_alpha(0.7)
 
 
 def plotEllipses(centers, major_axes, minor_axes1, minor_axes2, fig, axes):

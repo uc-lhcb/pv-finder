@@ -41,6 +41,15 @@ RUI_STYLES = {
     "masked": dict(alpha=0.3, color="k"),
 }
 
+def get_color(style):
+    color = style.get("color")
+    if color is None:
+        color = style.get("edgecolor")
+    if color is None:
+        color = "k"
+    return color
+
+
 def plot_ruiplot(
     zvals, i, inputs, labels, outputs, width=25, ax=None, styles=RUI_STYLES
 ):
