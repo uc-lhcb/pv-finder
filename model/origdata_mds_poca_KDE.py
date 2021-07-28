@@ -209,16 +209,12 @@ def process_root_file(filepath, sd_1=0.1):
 ##        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
 ## in origdata_mdsA (for original KDEs) we divided by 2500
 ## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
-        X = (tree["oldzdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
-        Xmax = (tree["oldxmax"].array() / 2500.0).astype(
-            dtype_X
-        )  # Location of max z in x   <OPTIONAL>
+        X = (tree["oldzdata"].array() / 2500.0)#.astype(dtype_X)  # Density in z, 4000xN
+        Xmax = (tree["oldxmax"].array() / 2500.0)#.astype(dtype_X)  # Location of max z in x   <OPTIONAL>
 ## mds 10 Sept 2020        Ymax = (tree["ymax"].array() / 2500.0).astype(
-        Ymax = (tree["oldymax"].array() / 2500.0).astype(
-            dtype_X
-        )  # Location of max z in y   <OPTIONAL>
-        Xmax[X == 0] = 0
-        Ymax[X == 0] = 0  # The following is Truth info for training:
+        Ymax = (tree["oldymax"].array() / 2500.0)#.astype(dtype_X)  # Location of max z in y   <OPTIONAL>
+        #Xmax[X == 0] = 0
+        #Ymax[X == 0] = 0  # The following is Truth info for training:
         pv_loc = tree["pv_loc"].array()  # z locations of each PV [#pvs]*N
         pv_loc_x = tree[
             "pv_loc_x"
@@ -261,23 +257,23 @@ def process_root_file(filepath, sd_1=0.1):
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
-        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0).astype(dtype_X)
-        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X)
-        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X)
-        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0).astype(dtype_X)
-        poca_KDE_B_xMax = (tree["POCAxmax"].array() / 2500.0).astype(dtype_X) #POCA_sqxmax = POCAxmax
-        poca_KDE_B_yMax = (tree["POCAymax"].array() / 2500.0).astype(dtype_X)  #POCA_sqxmax = POCAxmax
-        poca_KDE_A_xMax[0 == poca_KDE_A] = 0
-        poca_KDE_A_yMax[0 == poca_KDE_A] = 0
-        poca_KDE_B_xMax[0 == poca_KDE_B] = 0
-        poca_KDE_B_yMax[0 == poca_KDE_B] = 0
+        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0)#.astype(dtype_X)
+        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0)#.astype(dtype_X)
+        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0)#.astype(dtype_X)
+        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0)#.astype(dtype_X)
+        poca_KDE_B_xMax = (tree["POCAxmax"].array() / 2500.0)#.astype(dtype_X) #POCA_sqxmax = POCAxmax
+        poca_KDE_B_yMax = (tree["POCAymax"].array() / 2500.0)#.astype(dtype_X)  #POCA_sqxmax = POCAxmax
+#         poca_KDE_A_xMax[0 == poca_KDE_A] = 0
+#         poca_KDE_A_yMax[0 == poca_KDE_A] = 0
+#         poca_KDE_B_xMax[0 == poca_KDE_B] = 0
+#         poca_KDE_B_yMax[0 == poca_KDE_B] = 0
 ##  end of 200922 additions
 
-        pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
-        sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
+#         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
+#         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
 
-        pv_cat.content = pv_cat.content.astype(np.int8)
-        sv_cat.content = sv_cat.content.astype(np.int8)
+#         pv_cat.content = pv_cat.content.astype(np.int8)
+#         sv_cat.content = sv_cat.content.astype(np.int8)
 
     N_vals = len(X)
     zvals_range = (-99.95, 299.95)
