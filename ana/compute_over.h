@@ -14,10 +14,10 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 // Take a function of n, kernel_value, x, y, and call on each n value from 0 to 4000
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
-    constexpr int nbz = 10000, nbxy = 30; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 10000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
-    constexpr double zmin = -10., zmax = 10., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
+    constexpr double zmin = -25., zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
     constexpr double interxy = 0.01;                                       // interpolation stepsize in mm
 
     // C style workaround for global FCN tracks inside the fitter
@@ -96,21 +96,47 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
+        
+        // initialize grid
+        double valgrid[9][9];
+        double xgrid[9][9];
+        double ygrid[9][9];
+        int xcount = 0;
+        int ycount = 0;
+        int xmaxind = 0;
+        int ymaxind = 0;
+        
+        // find max
         for(double x = -0.4; x <= 0.41; x += 0.1) {
             for(double y = -0.4; y <= 0.41; y += 0.1) {
                 pv.set(x, y, z);
                 double val = kernel(pv);
+                valgrid[xcount][ycount] = val; // fill grid
+                xgrid[xcount][ycount] = x;
+                ygrid[xcount][ycount] = y;
                 if(val > kmax) {
                     kmax = val;
                     xmax = x;
                     ymax = y;
+                    xmaxind = xcount; // update index of max
+                    ymaxind = ycount; // update index of max
                 }
+                
+                ycount++;
+                
             }
+            ycount = 0;
+            xcount ++;
         }
+        
+        // compute weighted average in window around max
+        //double valgrid_sub[3][3];
+        //if xmaxind != 0 && ymaxind != 0 && xmaxind != 8 && ymaxind != 8
+        
 
         // now do gradient descent from max found
         pv.set(xmax, ymax, z);
-        kernel_value[2] = kernelMax(pv);
+        kernel_value[2] = kmax;//kernelMax(pv);
         //set x and y of first kernel_value definition
         bestx[2]=pv.x();
         besty[2]=pv.y();

@@ -104,6 +104,8 @@ ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const C
     for(int j = 0; j < nprt; j++) {
         if(data_pvs.prt_pvr->at(j) != i)
             continue;
+        if(data_hits.prt_hits->size() == 0)
+            continue;
         if(data_hits.prt_hits->at(j) < 3)
             continue;
         if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
@@ -138,6 +140,8 @@ pvCategory(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const 
 inline int nSVPrt(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
     int nsv_prt = 0, nprt = data_pvs.prt_pvr->size();
     for(int j = 0; j < nprt; j++) {
+        if(data_hits.prt_hits->size() == 0)
+            continue;
         if(data_hits.prt_hits->at(j) < 3)
             continue;
         if(abs(data_trks.prt_z->at(j) - data_pvs.svr_z->at(i)) > 0.001)
