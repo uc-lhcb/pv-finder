@@ -95,6 +95,8 @@ def pv_locations(targets, threshold, integral_threshold, min_width):
     # Special case for final item (very rare or never occuring)
     # handled by above if len
 
+    print('nitems: ', nitems)
+    
     return items[:nitems]
 
 
