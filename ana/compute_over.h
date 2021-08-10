@@ -91,42 +91,38 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         besty[1]=best.y();
 
         //second kernel_value definition (the original)
-        double kmax = -1., xmax = 0., ymax = 0.;
+        double kmax = -1;
+        double xmax = 0;
+        double ymax = 0;
+
         // 1st do coarse grid search
         any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
         
         // initialize grid
-        double valgrid[9][9];
-        double xgrid[9][9];
-        double ygrid[9][9];
-        int xcount = 0;
-        int ycount = 0;
         int xmaxind = 0;
         int ymaxind = 0;
-        
+
         // find max
-        for(double x = -0.4; x <= 0.41; x += 0.1) {
-            for(double y = -0.4; y <= 0.41; y += 0.1) {
+#       pragma omp parallel for collapse(2)
+        for(int xcount = 0; xcount < 9; ++xcount) {
+            for(int ycount = 0; ycount < 9; ++ycount) {
+                double x = xcount*.1 - 0.4;
+                double y = ycount*.1 - 0.4;
                 pv.set(x, y, z);
                 double val = kernel(pv);
-                valgrid[xcount][ycount] = val; // fill grid
-                xgrid[xcount][ycount] = x;
-                ygrid[xcount][ycount] = y;
-                if(val > kmax) {
-                    kmax = val;
-                    xmax = x;
-                    ymax = y;
-                    xmaxind = xcount; // update index of max
-                    ymaxind = ycount; // update index of max
+#               pragma omp critical
+                {
+                    if(val > kmax) {
+                        kmax = val;
+                        xmax = x;
+                        ymax = y;
+                        xmaxind = xcount; // update index of max
+                        ymaxind = ycount; // update index of max
+                    }
                 }
-                
-                ycount++;
-                
             }
-            ycount = 0;
-            xcount ++;
         }
         
         // compute weighted average in window around max

@@ -7,6 +7,9 @@ find_package(ROOT CONFIG REQUIRED)
 # Looks like full address are not used in targets even in 6.18
 include("${ROOT_USE_FILE}")
 
+# SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/Cellar/gperftools/2.9.1/lib/ -lprofiler")
+# SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L/usr/local/Cellar/gperftools/2.9.1/lib/ -lprofiler")
+
 file(GLOB_RECURSE
      HEADERS
      CONFIGURE_DEPENDS
@@ -22,6 +25,12 @@ add_library(core_lib
     makehistfromtracks.C
     maketracks.C
     )
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    message(STATUS "Building with OpenMP")
+    target_link_libraries(core_lib PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 add_executable(make_histogram_from_tracks
     apps/make_hist_from_tracks_main.C
