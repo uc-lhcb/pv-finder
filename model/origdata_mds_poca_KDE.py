@@ -196,9 +196,10 @@ def process_root_file(filepath, sd_1=0.1):
 
     name = filepath.stem
     ##  take the following  constants used in calculating pvRes from LHCb-PUB-2017-005
-    A_res = 926.0
-    B_res = 0.84
-    C_res = 10.7
+    ## edited by emk using extrapolated data from https://arxiv.org/pdf/1405.6569.pdf
+    A_res = 568.7
+    B_res = 0.956
+    C_res = 10.33
     mds_counter = 0
 
     with Timer(start=f"Loading file: {name}"):

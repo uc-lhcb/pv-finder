@@ -25,7 +25,7 @@ void makez(AnyTracks& tracks, std::vector<DataKernelOut*>& dks){
 //void makez(AnyTracks& tracks,std::vector<DataKernelOut>& dks);
 
 AnyTracks* fcn_global_tracks = nullptr;
-void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
+void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents, int nstart) {
 
     //nevents = 1;
     
@@ -37,7 +37,11 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
     TFile out(folder + "/kernel_"+input+".root", "RECREATE");
 
     int ntrack = nevents<1 ? t->GetEntries() : nevents;
-    std::cout << "Number of entries to read in: " << ntrack << std::endl;
+    nstart = nstart < t->GetEntries() ? nstart : 0;
+    int nend = nstart+ntrack < t->GetEntries() ? nstart+ntrack : t->GetEntries();
+        
+    std::cout << "Number of entries to read in: " << nend-nstart << std::endl;
+    std::cout << "Start point: " << nstart << std::endl;
 
     TTree tout("kernel", "Output");
     std::vector<DataKernelOut*> dks{new DataKernelOut(&tout,"POCA"),new DataKernelOut(&tout,"POCA_sq"),new DataKernelOut(&tout,"old")};
@@ -54,7 +58,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
       tout.Branch(dd.first.c_str(),&dd.second);
     Trajectory beamline(0., 0., 0., 0., 0.);
 
-    for(int i=0; i<ntrack; i++) {
+    for(int i=nstart; i<nend; i++) {
         for(auto& dk : dks) dk->clear();
 
         CoreReconTracksIn data_recon(t);
@@ -63,7 +67,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
         CoreTruthTracksIn data_trks(t);
 
         t->GetEntry(i);
-        std::cout << "Entry " << i << "/" << ntrack;
+        std::cout << "Entry " << i-nstart << "/" << ntrack;
 
         AnyTracks tracks(data_recon);
 //         for(int i = 0; i < 10; i++){

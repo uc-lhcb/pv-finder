@@ -1,7 +1,7 @@
 #include <TString.h>
 #include "CLI11.hpp"
 
-void makehistfromtracks(TString input, TString tree, TString folder, int nevents);
+void makehistfromtracks(TString input, TString tree, TString folder, int nevents, int nstart);
 
 
 int main(int argc, char** argv) {
@@ -20,8 +20,11 @@ int main(int argc, char** argv) {
 
     int nevents = 0;
     app.add_option("nevents,--nevents", nevents);
+    
+    int nstart = 0;
+    app.add_option("nstart,--nstart", nstart);
 
     CLI11_PARSE(app, argc, argv);
 
-    makehistfromtracks(base, tree, folder, nevents);
+    makehistfromtracks(base, tree, folder, nevents, nstart);
 }
