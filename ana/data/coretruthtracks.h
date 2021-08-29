@@ -16,6 +16,10 @@ template <class T> struct CoreTruthTracksIO : public CoreIO<T, double> {
     Vec prt_y{this, "prt_y"};
     Vec prt_z{this, "prt_z"};
 
+    /// The ID of the owning PV for this track (integer)
+    /// You can look up a pvr variable using this integer
+    Vec prt_pvr{this, "prt_pvr"};
+
     /// Number of prompt tracks in event
     Vec ntrks_prompt{this, "ntrks_prompt"};
 };
