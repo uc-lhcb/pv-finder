@@ -54,41 +54,42 @@ def select_gpu(selection=None):
 
     return torch.device("cuda:0")
 
+from model.training_kde import train
 
-def train(model, loss, loader, optimizer, device, progress):
-    total_loss = 0.0
+# def train(model, loss, loader, optimizer, device, progress):
+#     total_loss = 0.0
 
-    # switch to train mode
-    model.train()
+#     # switch to train mode
+#     model.train()
 
-    loader = progress(
-        loader,
-        postfix="train=start",
-        desc="Training",
-        mininterval=0.5,
-        dynamic_ncols=True,
-        position=1,
-        leave=False,
-        file=sys.stderr,
-    )
+#     loader = progress(
+#         loader,
+#         postfix="train=start",
+#         desc="Training",
+#         mininterval=0.5,
+#         dynamic_ncols=True,
+#         position=1,
+#         leave=False,
+#         file=sys.stderr,
+#     )
 
-    for inputs, labels in loader:
-        if inputs.device != device:
-            inputs, labels = inputs.to(device), labels.to(device)
+#     for inputs, labels in loader:
+#         if inputs.device != device:
+#             inputs, labels = inputs.to(device), labels.to(device)
 
-        # Set the parameter gradients to zero
-        optimizer.zero_grad()
+#         # Set the parameter gradients to zero
+#         optimizer.zero_grad()
 
-        # Forward pass, backward pass, optimize
-        outputs = model(inputs)
-        loss_output = loss(outputs, labels)
-        loss_output.backward()
-        optimizer.step()
+#         # Forward pass, backward pass, optimize
+#         outputs = model(inputs)
+#         loss_output = loss(outputs, labels)
+#         loss_output.backward()
+#         optimizer.step()
 
-        total_loss += loss_output.data.item()
-        if hasattr(loader, "postfix"):
-            loader.postfix = f"train={loss_output.data.item():.4g}"
-    return total_loss
+#         total_loss += loss_output.data.item()
+#         if hasattr(loader, "postfix"):
+#             loader.postfix = f"train={loss_output.data.item():.4g}"
+#     return total_loss
 
 # modified to use the modified Adam, so you can get the grad, momenta, 
 # and step size
@@ -188,7 +189,7 @@ def trainNet(
     """
     If notebook = None, no progress bar will be drawn. If False, this will be a terminal progress bar.
     """
-
+    
     # Print all of the hyperparameters of the training iteration
     if not notebook:
         print("{0:=^80}".format(" HYPERPARAMETERS "))
@@ -224,6 +225,7 @@ model: {model}"""
     print(f"Number of batches: train = {len(train_loader)}, val = {len(val_loader)}")
    
     #for careful Adam, if used
+    
     if careful != False:
         (loss_increase_limit, lr_decrease_factor, more_careful) = careful
         prev_train_loss = None
@@ -253,19 +255,24 @@ model: {model}"""
         # main modified section
         
         if ep_optimizer != None:
+            print("EPOCH OPTIMIZER:")
+            t1 = time.time()
             s = ep_optimizer.step()
+            print("     took %.2f s"%(time.time()-t1))
             if s != None:
-                print('step scalar:', s)
+                print('     with step scalar:', s)
             
         if lr_scheduler != None:
             lr_scheduler.step()
-          
+        
         if careful != False:
             if prev_train_loss != None:
+                print("CAREFUL:")
+                print("     loss increase percentage: %.3f" %( 100*(cost_epoch-prev_train_loss)/prev_train_loss) )
                 if cost_epoch > prev_train_loss*(1+loss_increase_limit):
-                    print('CAREFUL:\n     loss increase too large')
+                    print('     loss increase too large')
                     for group in optimizer.param_groups:
-                        new_lr = lr_increase_factor*group['lr']
+                        new_lr = lr_decrease_factor*group['lr']
                         group['lr'] = new_lr
                     print("     lr changed to", new_lr)
                     
@@ -276,6 +283,7 @@ model: {model}"""
                         optimizer.load_state_dict(prev_opt_state)
                         print('    optimizer state reset')
                         
+            # saving loss and state for this epoch
             prev_train_loss = cost_epoch
             prev_model_state = model.state_dict()
             prev_opt_state = optimizer.state_dict()
@@ -292,9 +300,14 @@ model: {model}"""
                     group['lr'] = new_lr
                 print("     lr changed to", new_lr)
                 
+            #update the previous epoch step
             prev_step = []
             for t in optimizer.prev_step:
                 prev_step.append(t.clone())
+            
+            # clear saved step in optimizer, which gets built up during 
+            # the epoch
+            optimizer.prev_step = []
                 
             
         ###########################################    

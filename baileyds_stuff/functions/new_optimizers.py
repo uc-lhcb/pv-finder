@@ -340,14 +340,17 @@ def test(dataloader, model, loss_fn, device):
             test_loss += loss_fn(pred, y).item()
     return test_loss
 
-#implementing the EVE concept at the end of each epoch, in the direction of the overall epoch step
+# implementing the EVE concept at the end of each epoch, in the direction of the overall epoch step
+# the data input should be a relatively small subset of the training set (like 10-20%) so that the 
+# EVE alg. does not take a huge amount of time
 class EpochEVE(Optimizer):
 
     def __init__(self, params, model, loss_fn, data, device, steps=[0, 0.5, 1, 2, 4, 8]):
-        defaults = dict(steps=steps, num_mb=num_mb)#[torch.zeros_like(param).detach() for param in params])
+        defaults = dict(steps=steps)
         self.model = model
         self.loss_fn = loss_fn
         self.device = device
+        self.data = data
         super(EpochEVE, self).__init__(params, defaults)
         for group in self.param_groups:
             self.model_state = [param.clone().detach() for param in group['params'] if param.requires_grad is True]
