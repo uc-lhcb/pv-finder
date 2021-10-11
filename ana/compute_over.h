@@ -14,7 +14,7 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 // Take a function of n, kernel_value, x, y, and call on each n value from 0 to 4000
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
-    constexpr int nbz = 10000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 20000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
     constexpr double zmin = -25., zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
@@ -37,6 +37,9 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     
     // sort ellipsoids by zmin so that we can make the iteration a bit faster later
     std::sort(poca_ellipsoids.begin(), poca_ellipsoids.end(), [](Ellipsoid const &a, Ellipsoid const &b) { return a.zmin() < b.zmin(); });
+    
+    //open file for writing
+    ofstream fw("cmsgrid.txt", std::ofstream::out);
 
     for(int bz = 0; bz < nbz; bz++) {
         std::vector<double> kernel_value = {-1.,-1.,0.}, bestx = {0.,0.,0.}, besty = {0.,0.,0.};
@@ -112,6 +115,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
                 double y = ycount*.1 - 0.4;
                 pv.set(x, y, z);
                 double val = kernel(pv);
+                fw << val << " ";
 #               pragma omp critical
                 {
                     if(val > kmax) {
@@ -123,14 +127,11 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
                     }
                 }
             }
+            fw << std::endl;
         }
         
-        // compute weighted average in window around max
-        //double valgrid_sub[3][3];
-        //if xmaxind != 0 && ymaxind != 0 && xmaxind != 8 && ymaxind != 8
         
-
-        // now do gradient descent from max found
+        
         pv.set(xmax, ymax, z);
         kernel_value[2] = kmax;//kernelMax(pv);
         //set x and y of first kernel_value definition
@@ -139,4 +140,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
 
         dothis(bz, kernel_value, bestx, besty);
     }
+    
+    fw << std::endl;
+    fw.close();
 }
