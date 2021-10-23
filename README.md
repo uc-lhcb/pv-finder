@@ -121,3 +121,13 @@ Moore/run gaudirun.py '$MOOREROOT/options/force_functor_cache.py' '$MOOREROOT/op
 ```
 
 Be aware to set the correct conditions tags and other Moore options in the Moore config files. For larger n-tuple productions, it makes sense to make properties like `DumpOutputName` of PVFinder available in the respective Moore configuration [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/hlt1_tracking.py#L229), [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/standalone.py#L65) and [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/options/hlt1_PV_reco.py) to be able to follow [this](https://gitlab.cern.ch/mstahl/Moore/-/snippets/979#note_3936427) idea.
+
+### Studying Adam and optimization 
+
+A DIANA summer fellowship in 2021 focused on studying and understanding how optimizers function, mainly focusing on Adam. The results and methods for that study can be found in a fork [here](https://github.com/sullybd/pv-finder/tree/master/baileyds_stuff).
+
+The study was in general an emprical study of how model's parameters changed over the course of training, and there are notebooks and functions you can use for other models. There are also some proposed ways to improve training, which were not fully studied that are also included, and there is a full documentation of the study [here.](https://github.com/sullybd/pv-finder/blob/master/baileyds_stuff/documentation.docx)
+
+For an example of a notebook using some of these methods, see [here.](https://github.com/sullybd/pv-finder/blob/master/baileyds_stuff/AllCNN_example.ipynb)
+
+If you have any questions regarding this fork, please contact baileyds@oregonstate.edu.
