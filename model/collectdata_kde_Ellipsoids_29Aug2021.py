@@ -123,12 +123,30 @@ def collect_t2kde_data(
 
 ##  201018  use poca ellipsoid parameter rather than "track parameters"
         
+
             afile = awkward.hdf5(f)
-            
-            pocaz = np.asarray(afile["poca_z"].astype(dtype_Y))
-            zBin = np.int_(np.floor((pocaz-z_low)/z_binWidth))
-            zOffset = pocaz-((z_bin*z_binWidth)+z_low)
+          
+## 210901   mds  we want to manipulate the pocaz information from the awkward
+##          array to create zBin and zOffset before "wrapping" it as an numpy
+##          array so that the structures of the (eventual) zBin and zOffset
+##          arrays will be the same as the numpy arrays built directly from
+##          the awkward arrays.  Henry says there will be a cleaner way to
+##          do this using awkard 1, but works for the moment
+            pocaz = (afile["poca_z"].astype(dtype_Y)).astype(dtype_Y)
+            zz = pocaz-z_low
+            zzz = (zz/z_binWidth)
+            zzzz = np.floor(zzz)
+            zBin = np.asarray(zzzz.astype(int))
+     
+            zOffset = (pocaz-((zzzz*z_binWidth)+z_low))
+            zOffset = np.asarray(zOffset)
+ 
+            pocaz = np.asarray(pocaz)
+##  the original pocaz values range from -100. to 300. and we want them to
+##  populate a range with magnitudes < 1 to make the machine learning easier
             pocaz = 0.001*pocaz
+            print("pocaz.shape = ",pocaz.shape)
+
             pocax = np.asarray(afile["poca_x"].astype(dtype_Y))
             pocay = np.asarray(afile["poca_y"].astype(dtype_Y))
             pocaMx = np.asarray(afile["major_axis_x"].astype(dtype_Y))
@@ -177,7 +195,7 @@ def collect_t2kde_data(
             A, B, C, D, E, F = six_ellipsoid_parameters(majorAxis,minorAxis_1,minorAxis_2)
 
             print("A.shape = ",A.shape)
-            for iTrk in range(10):
+            for iTrk in range(1):
               print("majorAxis[iTrk][0][0] = ",majorAxis[iTrk][0][0])
               print("majorAxis[iTrk][1][0] = ",majorAxis[iTrk][1][0])
               print("majorAxis[iTrk][2][0] = ",majorAxis[iTrk][2][0])
@@ -188,15 +206,6 @@ def collect_t2kde_data(
               print("minorAxis_2[iTrk][1][0] = ",minorAxis_2[iTrk][1][0])
               print("minorAxis_2[iTrk][2][0] = ",minorAxis_2[iTrk][2][0])
               print("  ")
-## mdsAA              print("A[iTrk][0] = ",A[iTrk][0])
-## mdsAA              print("B[iTrk][0] = ",B[iTrk][0])
-## mdsAA              print("C[iTrk][0] = ",C[iTrk][0])
-## mdsAA              print("D[iTrk][0] = ",D[iTrk][0])
-## mdsAA              print("E[iTrk][0] = ",E[iTrk][0])
-## mdsAA              print("F[iTrk][0] = ",F[iTrk][0])
-## mds              print("majorAxis[iTrk][0] = ", majorAxis[iTrk][0])
-## mds              print("majorAxis[iTrk][1] = ", majorAxis[iTrk][1])
-## mds              print("majorAxis[iTrk][2] = ", majorAxis[iTrk][2])
 
 
             
@@ -229,8 +238,8 @@ def collect_t2kde_data(
                 padded_pocaE[i,:fillingLength] = E[i][:fillingLength].astype(dtype_Y)
                 padded_pocaF[i,:fillingLength] = F[i][:fillingLength].astype(dtype_Y)
 ## add the following 210829  mds
-                padded_zBin[i,:fillingLength] = zBin[:fillingLength].astype(dtype_Y)
-                padded_zOffset[i,:fillingLength] = zOffset[:fillingLength].astype(dtype_Y)
+                padded_zBin[i,:fillingLength] = zBin[i][:fillingLength].astype(dtype_Y)
+                padded_zOffset[i,:fillingLength] = zOffset[i][:fillingLength].astype(dtype_Y)
 
             padded_pocaz   = padded_pocaz[:,np.newaxis,:]
             padded_pocax   = padded_pocax[:,np.newaxis,:]
@@ -244,23 +253,20 @@ def collect_t2kde_data(
             padded_zBin    = padded_zBin[:,np.newaxis,:]
             padded_zOffset = padded_zOffset[:,np.newaxis,:]
 
-            print('padded_pocaz.shape = ',padded_pocaz.shape)
-
-## in the next line,  multiply by 1000 to go back to mm 
 ## (multiplied by 0.001 at line 129 to create a nicer range 
 ## for deep learning)
-            print('1000.*padded_pocaz[0:4,0,0:9] = ',1000.*padded_pocaz[0:4,0,0:9])
-            print('padded_zBin[0:4,0,0:9] = ',1000.*padded_zBin[0:4,0,0:9])
-            print('padded_zOffset[0:4,0,0:9] = ',1000.*padded_zOffset[0:4,0,0:9])
+            print('1000.*padded_pocaz[0:2,0,0:3] = ',1000.*padded_pocaz[0:2,0,0:3])
+            print('padded_zBin[0:2,0,0:3] = ',1000.*padded_zBin[0:2,0,0:3])
+            print('padded_zOffset[0:2,0,0:3] = ',1000.*padded_zOffset[0:2,0,0:3])
 
 ##             X = ja.concatenate((padded_pocaz,padded_pocax,padded_pocay,padded_pocaA,padded_pocaB,padded_pocaC,padded_pocaD,padded_pocaE,padded_pocaF),axis=1).astype(dtype_X)
 
 ## 210829 mds  --   zBin and zOffset; remove .astype *hoping* that the
 ##                 integer type of zOffset will be preserved
-            X = ja.concatenate((padded_zBin,padded_zOffset,padded_pocaz,padded_pocax,padded_pocay,padded_pocaA,padded_pocaB,padded_pocaC,padded_pocaD,padded_pocaE,padded_pocaF),axis=1)
+            X = ja.concatenate((padded_zBin,padded_zOffset,padded_pocaz,padded_pocax,padded_pocay,padded_pocaA,padded_pocaB,padded_pocaC,padded_pocaD,padded_pocaE,padded_pocaF),axis=1).astype(dtype_X)
 
-            print("X.shape = ",X.shape)
-            print('X[0:4,0,0:99] = ',X[0:4,0,0:99])
+## mds             print("X.shape = ",X.shape)
+## mds             print('X[0:4,0,0:99] = ',X[0:4,0,0:99])
 
 ## mds            print("X = ",X)
             print("len(X) = ",len(X))
