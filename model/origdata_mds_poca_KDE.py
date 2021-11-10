@@ -296,9 +296,9 @@ def process_root_file(filepath, sd_1=0.1):
 
     msgs = []
     with Timer(start=f"Processing events: {name}"):
-        for i in range(N_vals):
+        for i in range(N_vals): #suppose N_vals is no. of events
             columns = (
-                (pv_loc[i][pv_cat[i] == 1], pv_ntrks[i][pv_cat[i] == 1]),
+                (pv_loc[i][pv_cat[i] == 1], pv_ntrks[i][pv_cat[i] == 1]), #listing all truth_pv z location within a given event
                 (pv_loc[i][pv_cat[i] != 1], pv_ntrks[i][pv_cat[i] != 1]),
                 (sv_loc[i][sv_cat[i] == 1], sv_ntrks[i][sv_cat[i] == 1]),
                 (sv_loc[i][sv_cat[i] != 1], sv_ntrks[i][sv_cat[i] != 1]),
@@ -321,20 +321,20 @@ def process_root_file(filepath, sd_1=0.1):
             mds_counter += 1
             ##            assert(mds_counter)<10
 
-            for n, elements in enumerate(columns):
+            for n, elements in enumerate(columns): #columns contain list of z location of pv
 
                 ##  addition 190810 mds
                 ##            nTrks = np.where(np.isnan(nTrks), 0, nTrks)
                 ## mds            pvRes = A_res*np.power(nTrks, -1*B_res) + C_res   # values taken from LHCb-PUB-2017-005
                 ## mds            sd = 0.001*pvRes  ## convert from microns (in TDR) to  mm (units used here)
 
-                entries = len(elements[0])
+                entries = len(elements[0]) #number of pvs
                 if mds_counter < 0:
                     print(" \n \n \n elements =  ", elements)
                     print(" entries = ", entries)
-                for v_index in range(entries):
-                    centers = elements[0][v_index]
-                    nTrks = elements[1][v_index]
+                for v_index in range(entries): #loop over all pvs
+                    centers = elements[0][v_index] #pv z location
+                    nTrks = elements[1][v_index] #no. of tracks associated to it
                     sd = np.where(
                         nTrks < 4,
                         sd_1,
@@ -353,7 +353,7 @@ def process_root_file(filepath, sd_1=0.1):
                         print(" nTrks  =       ", nTrks)
                         print(" sd     =       ", sd)
 
-                    for mean, ntrk, pv_res in zip(centers, nTrks, sd):
+                    for mean, ntrk, pv_res in zip(centers, nTrks, sd): #pv z loc, ntrk and sd
                         if mds_counter < 0:
                             print(" \n iterating  using zip(centers, nTrks, sd)  ")
                             print(" \n  mean = ", mean)
