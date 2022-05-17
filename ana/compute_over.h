@@ -18,7 +18,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
     constexpr double zmin = -25., zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
-    constexpr double interxy = 0.01;                                       // interpolation stepsize in mm
+    constexpr double interxy = 0.01; // interpolation stepsize in mm  
 
     // C style workaround for global FCN tracks inside the fitter
     fcn_global_tracks = &any_tracks;
@@ -37,9 +37,6 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     
     // sort ellipsoids by zmin so that we can make the iteration a bit faster later
     std::sort(poca_ellipsoids.begin(), poca_ellipsoids.end(), [](Ellipsoid const &a, Ellipsoid const &b) { return a.zmin() < b.zmin(); });
-    
-    //open file for writing
-    ofstream fw("cmsgrid.txt", std::ofstream::out);
 
     for(int bz = 0; bz < nbz; bz++) {
         std::vector<double> kernel_value = {-1.,-1.,0.}, bestx = {0.,0.,0.}, besty = {0.,0.,0.};
@@ -102,11 +99,6 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
-        
-        // initialize grid
-        int xmaxind = 0;
-        int ymaxind = 0;
-
         // find max
 #       pragma omp parallel for collapse(2)
         for(int xcount = 0; xcount < 9; ++xcount) {
@@ -115,32 +107,25 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
                 double y = ycount*.1 - 0.4;
                 pv.set(x, y, z);
                 double val = kernel(pv);
-                fw << val << " ";
 #               pragma omp critical
                 {
                     if(val > kmax) {
                         kmax = val;
                         xmax = x;
                         ymax = y;
-                        xmaxind = xcount; // update index of max
-                        ymaxind = ycount; // update index of max
                     }
                 }
             }
-            fw << std::endl;
         }
         
         
         
         pv.set(xmax, ymax, z);
-        kernel_value[2] = kmax;//kernelMax(pv);
+        kernel_value[2] = kmax;
         //set x and y of first kernel_value definition
         bestx[2]=pv.x();
         besty[2]=pv.y();
 
         dothis(bz, kernel_value, bestx, besty);
     }
-    
-    fw << std::endl;
-    fw.close();
 }
