@@ -7,7 +7,6 @@
 #include <TH1.h>
 
 #include <iostream>
-#include <unordered_map>
 
 void makez(AnyTracks& tracks, std::vector<DataKernelOut*>& dks){
    compute_over(tracks, [&dks](int b, std::vector<double> kernel, std::vector<double> x, std::vector<double> y){
@@ -25,9 +24,9 @@ void makez(AnyTracks& tracks, std::vector<DataKernelOut*>& dks){
 //void makez(AnyTracks& tracks,std::vector<DataKernelOut>& dks);
 
 AnyTracks* fcn_global_tracks = nullptr;
-void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents, int nstart) {
+void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
 
-    //nevents = 1;
+    nevents = 5;
     
     TFile f(folder + "/trks_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -37,11 +36,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
     TFile out(folder + "/kernel_"+input+".root", "RECREATE");
 
     int ntrack = nevents<1 ? t->GetEntries() : nevents;
-    nstart = nstart < t->GetEntries() ? nstart : 0;
-    int nend = nstart+ntrack < t->GetEntries() ? nstart+ntrack : t->GetEntries();
-        
-    std::cout << "Number of entries to read in: " << nend-nstart << std::endl;
-    std::cout << "Start point: " << nstart << std::endl;
+    std::cout << "Number of entries to read in: " << ntrack << std::endl;
 
     TTree tout("kernel", "Output");
     std::vector<DataKernelOut*> dks{new DataKernelOut(&tout,"POCA"),new DataKernelOut(&tout,"POCA_sq"),new DataKernelOut(&tout,"old")};
@@ -58,7 +53,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
       tout.Branch(dd.first.c_str(),&dd.second);
     Trajectory beamline(0., 0., 0., 0., 0.);
 
-    for(int i=nstart; i<nend; i++) {
+    for(int i=0; i<ntrack; i++) {
         for(auto& dk : dks) dk->clear();
 
         CoreReconTracksIn data_recon(t);
@@ -67,24 +62,19 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
         CoreTruthTracksIn data_trks(t);
 
         t->GetEntry(i);
-        std::cout << "Entry " << i-nstart << "/" << ntrack;
+        std::cout << "Entry " << i << "/" << ntrack;
 
         AnyTracks tracks(data_recon);
-//         for(int i = 0; i < 10; i++){
-//             std::cout << "sigmapocaxy" << tracks.at(i).get_sigmapocaxy();
-//         }
         std::cout << " " << tracks;
-        // make poca error ellipsoids for each track w.r.t. the beamline (quick and dirty solution...)
+        
         int trkcount = 0;
+        
+        // make poca error ellipsoids for each track w.r.t. the beamline (quick and dirty solution...)
         for(auto const &trajectory : tracks.trajectories()){
-            
           const auto tsigmapocaxy = tracks.at(trkcount).get_sigmapocaxy(); // EMK
           const auto terrz0 = tracks.at(trkcount).get_errz0(); // EMK
             
-          //std::cout << terrz0 << std::endl;
-            
-            
-          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0, 0.01932);
+          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0);
           dump_data["POCA_minor_axis1_x"].emplace_back(ellipsoid.minor_axis1().x());
           dump_data["POCA_minor_axis1_y"].emplace_back(ellipsoid.minor_axis1().y());
           dump_data["POCA_minor_axis1_z"].emplace_back(ellipsoid.minor_axis1().z());

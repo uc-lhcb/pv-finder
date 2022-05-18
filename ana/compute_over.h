@@ -14,11 +14,12 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 // Take a function of n, kernel_value, x, y, and call on each n value from 0 to 4000
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
-    constexpr int nbz = 20000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
+    // EMK change below to reflect CMS x-y precision
+    constexpr int nbz = 10000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
-    constexpr double zmin = -25., zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
-    constexpr double interxy = 0.01; // interpolation stepsize in mm  
+    constexpr double zmin = -25, zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
+    constexpr double interxy = 0.01;                                       // interpolation stepsize in mm
 
     // C style workaround for global FCN tracks inside the fitter
     fcn_global_tracks = &any_tracks;
@@ -32,7 +33,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         const auto tsigmapocaxy = any_tracks.at(trkcount).get_sigmapocaxy(); // EMK
         const auto terrz0 = any_tracks.at(trkcount).get_errz0(); // EMK
         poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0); //EMK
-        trkcount ++;
+        trkcount++;
     }
     
     // sort ellipsoids by zmin so that we can make the iteration a bit faster later
@@ -91,37 +92,27 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         besty[1]=best.y();
 
         //second kernel_value definition (the original)
-        double kmax = -1;
-        double xmax = 0;
-        double ymax = 0;
-
+        double kmax = -1., xmax = 0., ymax = 0.;
         // 1st do coarse grid search
         any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
-        // find max
-#       pragma omp parallel for collapse(2)
-        for(int xcount = 0; xcount < 9; ++xcount) {
-            for(int ycount = 0; ycount < 9; ++ycount) {
-                double x = xcount*.1 - 0.4;
-                double y = ycount*.1 - 0.4;
+        // EMK change below to reflect CMS x-y precision
+        for(double x = -0.2; x <= 0.205; x += 0.05) {
+            for(double y = -0.2; y <= 0.205; y += 0.05) {
                 pv.set(x, y, z);
                 double val = kernel(pv);
-#               pragma omp critical
-                {
-                    if(val > kmax) {
-                        kmax = val;
-                        xmax = x;
-                        ymax = y;
-                    }
+                if(val > kmax) {
+                    kmax = val;
+                    xmax = x;
+                    ymax = y;
                 }
             }
         }
-        
-        
-        
+
+        // now do gradient descent from max found
         pv.set(xmax, ymax, z);
-        kernel_value[2] = kmax;
+        kernel_value[2] = kernelMax(pv);
         //set x and y of first kernel_value definition
         bestx[2]=pv.x();
         besty[2]=pv.y();

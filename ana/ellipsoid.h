@@ -11,14 +11,12 @@ class Ellipsoid {
   public:
     Ellipsoid() : _center(), _minor_axis1(), _minor_axis2(), _major_axis(), _zmin(0.), _zmax(0.), _determinant(0.) {}
 
-    Ellipsoid(const Trajectory& t1, const Trajectory& t2, const double& xy_error, const double& z_error, const double& road_error = 0) { // EMK (change back to 0!!!)
-      // road error 0.0566
+    Ellipsoid(const Trajectory& t1, const Trajectory& t2, const double& xy_error, const double& z_error, const double& road_error = 0) {
       //##  the error ellipsoid of the point of closest approach of L2
+      //##  (defined by p2 + s0*v2) along the direction (xhat,yhat,zhat)
       //##  [the doca vector]
       //##  assuming the uncertainty tranverse to the direction of L2 is
       //##  road_error in each direction
-        
-      auto const scale_factor = 1;
       auto const v1      = TVector3(t1.xslope(),t1.yslope(),1.);
       auto const v2      = TVector3(t2.xslope(),t2.yslope(),1.);
       auto const L1_poca = Trajectory::poca(t1,t2).to_vec();
@@ -26,23 +24,26 @@ class Ellipsoid {
       _center            = L2_poca;
       auto const v3      = L2_poca - L1_poca;
       auto const doca    = std::sqrt(v3.Dot(v3));
-      auto const yhat    = 1/doca*v3; // EMK (I switched around variable names)
+      auto const yhat    = 1/doca*v3;
       auto const v2_mag  = std::sqrt(v2.Dot(v2));
-      auto const zhat    = 1/v2_mag*v2; // EMK
-      auto const xhat    = yhat.Cross(zhat); // EMK
+      auto const zhat    = 1/v2_mag*v2;
+      auto const xhat    = yhat.Cross(zhat);
       if(road_error==0){
-          _minor_axis1       = scale_factor*xy_error*yhat; // EMK (before road_error*zhat)
-          _minor_axis2       = scale_factor*xy_error*xhat; // EMK (before road_error*yhat)
-          _major_axis        = scale_factor*z_error*zhat;
+          _minor_axis1       = xy_error*yhat;
+          _minor_axis2       = xy_error*xhat;
+          _major_axis        = z_error*zhat;
+          _zmin              = _center.z()-3*_major_axis.z();//the assumption that the major axis has the largest ellipsoid z component should be good enough
+          _zmax              = _center.z()+3*_major_axis.z();
+          _determinant       = xy_error*xy_error*z_error/std::tan(v1.Angle(v2));
       }
       else{
           _minor_axis1       = road_error*yhat;
           _minor_axis2       = road_error*xhat;
           _major_axis        = (road_error/std::tan(v1.Angle(v2)))*zhat;
+          _zmin              = _center.z()-3*_major_axis.z();//the assumption that the major axis has the largest ellipsoid z component should be good enough
+          _zmax              = _center.z()+3*_major_axis.z();
+          _determinant       = road_error*road_error*road_error/std::tan(v1.Angle(v2));
       }
-      _zmin              = _center.z()-3*_major_axis.z();
-      _zmax              = _center.z()+3*_major_axis.z();
-      _determinant       = xy_error*xy_error*z_error/std::tan(v1.Angle(v2));
     }
 
     double pdf(Point const& scan_point) const {
