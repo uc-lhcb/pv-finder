@@ -26,7 +26,7 @@ void makez(AnyTracks& tracks, std::vector<DataKernelOut*>& dks){
 AnyTracks* fcn_global_tracks = nullptr;
 void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
 
-    nevents = 5;
+    nevents = 1;
     
     TFile f(folder + "/trks_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);
@@ -74,7 +74,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
           const auto tsigmapocaxy = tracks.at(trkcount).get_sigmapocaxy(); // EMK
           const auto terrz0 = tracks.at(trkcount).get_errz0(); // EMK
             
-          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0);
+          Ellipsoid ellipsoid(beamline, trajectory, tsigmapocaxy, terrz0, 0.005);
           dump_data["POCA_minor_axis1_x"].emplace_back(ellipsoid.minor_axis1().x());
           dump_data["POCA_minor_axis1_y"].emplace_back(ellipsoid.minor_axis1().y());
           dump_data["POCA_minor_axis1_z"].emplace_back(ellipsoid.minor_axis1().z());

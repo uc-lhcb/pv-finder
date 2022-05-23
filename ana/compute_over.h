@@ -15,7 +15,7 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
     // EMK change below to reflect CMS x-y precision
-    constexpr int nbz = 10000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 15000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
     constexpr double zmin = -25, zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
@@ -32,7 +32,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     for(auto const &trajectory : any_tracks.trajectories()){
         const auto tsigmapocaxy = any_tracks.at(trkcount).get_sigmapocaxy(); // EMK
         const auto terrz0 = any_tracks.at(trkcount).get_errz0(); // EMK
-        poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0); //EMK
+        poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0, 0.005); //EMK
         trkcount++;
     }
     
@@ -97,9 +97,9 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
-        // EMK change below to reflect CMS x-y precision
-        for(double x = -0.2; x <= 0.205; x += 0.05) {
-            for(double y = -0.2; y <= 0.205; y += 0.05) {
+        // EMK change below to reflect CMS x-y precision?
+        for(double x = -0.2; x <= 0.201; x += 0.01) {
+            for(double y = -0.2; y <= 0.201; y += 0.01) {
                 pv.set(x, y, z);
                 double val = kernel(pv);
                 if(val > kmax) {

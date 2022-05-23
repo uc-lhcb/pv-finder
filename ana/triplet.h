@@ -32,11 +32,11 @@ class TripletBase {
         //if(abs(dx) > 0.5 || abs(dy) > 0.5)
         //   return 0;
 
-        double sigma =3e-3;//0.05;
+        double sigma = 5e-5; //.05
 
         // TODO: improve sigma estimation, e.g. add distance to 1st hit
         if(chi2 / 3 > 2)
-            sigma += (chi2 - 2) * 0.05 / 4.;
+            sigma += (chi2 - 2) * 5e-5 / 4.;
 
         // if(abs(dx)/sigma > 5 || abs(dy)/sigma > 5) return 0;
 
