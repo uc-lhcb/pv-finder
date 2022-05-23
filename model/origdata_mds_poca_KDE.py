@@ -23,6 +23,7 @@ import numba
 from .utilities import Timer
 from .jagged import concatenate
 import awkward
+import awkward as ak
 
 dtype_X = np.float16
 dtype_Y = np.float16
@@ -194,6 +195,8 @@ def norm_cdf(mu, sigma, x):
 
 def process_root_file(filepath, sd_1=0.1):
 
+    scalefactor = 2500.0
+    
     name = filepath.stem
     ##  take the following  constants used in calculating pvRes from LHCb-PUB-2017-005
     ## edited by emk using extrapolated data from https://arxiv.org/pdf/1405.6569.pdf
@@ -205,32 +208,21 @@ def process_root_file(filepath, sd_1=0.1):
     with Timer(start=f"Loading file: {name}"):
         tree = uproot.open(str(filepath))["kernel"]
 
-## mds 10 Sept 2020        X = (tree["zdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
-## mds 10 Sept 2020        Xmax = (tree["xmax"].array() / 2500.0).astype(
-##        X = (tree["oldzdata"].array() / 50.0).astype(dtype_X)  # Density in z, 4000xN
-## in origdata_mdsA (for original KDEs) we divided by 2500
-## Oops! That was wrong scaling factor.  Try dividing by 6500 rather than 2500
-        X = (tree["oldzdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN # EMK change scaling factor
-        print(X.shape)
-        Xmax = (tree["oldxmax"].array()).astype(
-            dtype_X
-        )  # Location of max z in x   <OPTIONAL>
-## mds 10 Sept 2020        Ymax = (tree["ymax"].array() / 2500.0).astype(
-        Ymax = (tree["oldymax"].array()).astype(
-            dtype_X
-        )  # Location of max z in y   <OPTIONAL>
-        Xmax[X == 0] = 0
-        Ymax[X == 0] = 0  # The following is Truth info for training:
+        X = (tree["oldzdata"].array() / scalefactor)  # Density in z, 10000xN # EMK change scaling factor
+        Xmax = (tree["oldxmax"].array()).to_numpy()  # Location of max z in x
+        Ymax = (tree["oldymax"].array()).to_numpy()
+        
+        # set X and Y max to 0 where the kernel is 0
+        X_zeros = (X == 0).to_numpy()
+        Xmax[X_zeros] = 0
+        Xmax = ak.Array(Xmax)
+        Ymax[X_zeros] = 0
+        Ymax = ak.Array(Ymax)
+        
         pv_loc = tree["pv_loc"].array()  # z locations of each PV [#pvs]*N
-        pv_loc_x = tree[
-            "pv_loc_x"
-        ].array()  # x                                 <OPTIONAL>
-        pv_loc_y = tree[
-            "pv_loc_y"
-        ].array()  # y                                 <OPTIONAL>
-        pv_ntrks = tree[
-            "pv_ntrks"
-        ].array()  # number of tracks in PV [#pvs]*N   <OPTIONAL>
+        pv_loc_x = tree["pv_loc_x"].array()  # x  
+        pv_loc_y = tree["pv_loc_y"].array()  # y
+        pv_ntrks = tree["pv_ntrks"].array()  # number of tracks in PV [#pvs]*N   <OPTIONAL>
         pv_cat = tree["pv_cat"].array()  # PV category (LHCb or not) [#pvs]*N
         sv_loc = tree["sv_loc"].array()  # SVs like above                    <OPTIONAL>
         sv_loc_x = tree["sv_loc_x"].array()
@@ -263,18 +255,28 @@ def process_root_file(filepath, sd_1=0.1):
         minor_axis2_x = tree["POCA_minor_axis2_x"].array()
         minor_axis2_y = tree["POCA_minor_axis2_y"].array()
         minor_axis2_z = tree["POCA_minor_axis2_z"].array()
-        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0)#.astype(dtype_X)
-        poca_KDE_A_xMax = (tree["POCAxmax"].array() / 2500.0)#.astype(dtype_X)
-        poca_KDE_A_yMax = (tree["POCAymax"].array() / 2500.0)#.astype(dtype_X)
-        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0)#.astype(dtype_X)
-        poca_KDE_B_xMax = (tree["POCAxmax"].array() / 2500.0)#.astype(dtype_X) #POCA_sqxmax = POCAxmax
-        poca_KDE_B_yMax = (tree["POCAymax"].array() / 2500.0)#.astype(dtype_X)  #POCA_sqxmax = POCAxmax
-#         poca_KDE_A_xMax[0 == poca_KDE_A] = 0
-#         poca_KDE_A_yMax[0 == poca_KDE_A] = 0
-#         poca_KDE_B_xMax[0 == poca_KDE_B] = 0
-#         poca_KDE_B_yMax[0 == poca_KDE_B] = 0
-##  end of 200922 additions
-
+        
+        
+        poca_KDE_A = (tree["POCAzdata"].array() / 1000.0)
+        poca_KDE_A_xMax = (tree["POCAxmax"].array() / scalefactor).to_numpy()
+        poca_KDE_A_yMax = (tree["POCAymax"].array() / scalefactor).to_numpy()
+        poca_KDE_B = (tree["POCA_sqzdata"].array() / 10000.0)
+        poca_KDE_B_xMax = (tree["POCAxmax"].array() / scalefactor).to_numpy()
+        poca_KDE_B_yMax = (tree["POCAymax"].array() / scalefactor).to_numpy()
+        
+        # set X and Y max to 0 where the kernel is 0
+        KDE_A_zeros = (poca_KDE_A == 0).to_numpy()
+        poca_KDE_A_xMax[KDE_A_zeros] = 0
+        poca_KDE_A_xMax = ak.Array(poca_KDE_A_xMax)
+        poca_KDE_A_yMax[KDE_A_zeros] = 0
+        poca_KDE_A_yMax = ak.Array(poca_KDE_A_yMax)
+        
+        KDE_B_zeros = (poca_KDE_B == 0).to_numpy()
+        poca_KDE_B_xMax[KDE_B_zeros] = 0
+        poca_KDE_B_xMax = ak.Array(poca_KDE_B_xMax)
+        poca_KDE_B_yMax[KDE_B_zeros] = 0
+        poca_KDE_B_yMax = ak.Array(poca_KDE_B_yMax)
+        
 #         pv_ntrks.content = pv_ntrks.content.astype(np.uint16)
 #         sv_ntrks.content = sv_ntrks.content.astype(np.uint16)
 
@@ -332,6 +334,7 @@ def process_root_file(filepath, sd_1=0.1):
 #                     print(" \n \n \n elements =  ", elements)
 #                     print(" entries = ", entries)
                 for v_index in range(entries):
+        
                     centers = elements[0][v_index]
                     nTrks = elements[1][v_index]
                     sd = np.where(
@@ -341,7 +344,7 @@ def process_root_file(filepath, sd_1=0.1):
                     )
 
                     test = (zvals_range[0] < centers) & (centers < zvals_range[1])
-
+    
                     centers = centers[test]
                     nTrks = nTrks[test]
                     sd = sd[test]
