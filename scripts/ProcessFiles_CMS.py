@@ -31,7 +31,7 @@ bins = np.arange(-10,11) #compute probability in +-10 neighboring bins
 edges = np.array([-binWidth/2, binWidth/2]) #[-0.02, 0.02]
 ProbRange = binWidth * bins[np.newaxis, :] + edges[:, np.newaxis] + zMin
 
-pv_nCat = 1
+pv_nCat = 2 # number of categories (first is good PVs, second is bad PVs)
 
 OutputData = namedtuple(
     "OutputData",
@@ -39,7 +39,7 @@ OutputData = namedtuple(
         "POCA_sqzdata",       # Squared Density in Z (calculated from POCA), totalNumBinsxN
         "POCAxmax",           # Position of max density in x for each z-bin (calculated from POCA, same for zdata and sqzdata)
         "POCAymax",           # Position of max density in y for each z-bin (calculated from POCA, same for zdata and sqzdata)
-        "pv",                 # target pv histogram, totalNumBinsxN
+        "pv",                 # target pv histogram, totalNumBinsxN (has channel for good PVs and channel for bad PVs)
         "pv_loc_x",           # position of PV in x
         "pv_loc_y",           # position of PV in y
         "pv_loc",             # position of PV in z
@@ -180,7 +180,7 @@ def main():
         NumEvts = len(kernel_z)    
 
         #Output multidim array
-        Output_Y = np.zeros([pv_nCat, NumEvts, totalNumBins], dtype=np.float16)
+        Output_Y = np.zeros([NumEvts, pv_nCat, totalNumBins], dtype=np.float16)
 
         for ievt in range(NumEvts):
         
@@ -201,6 +201,7 @@ def main():
                 pv_center = pv_loc_z_curr[ipv]
                 ntrks = pv_ntrks_curr[ipv]
                 pv_res = ComputeSigma(ntrks)
+                cat_current = pv_cat[ievt][ipv]
                 
                 if pv_center >= zMin and pv_center <= zMax:
                     nbin = binNumber(pv_center)
@@ -211,16 +212,17 @@ def main():
 
                     #TODO: Check the impact of this step
                     #populate = np.where((0.15 / pv_res) > 1, (0.15 / pv_res) * populate, populate)
-                    Output_Y[0, ievt, bins+nbin] += populate #0 corresponding to pv_cat, since we only have one pv category so just using 0.
-    
-    Output_Y_2d = Output_Y[0] #Since we only have pv_cat = 0 right now, we don't need the 3D Output_Y, making it 2D
-                
+                    if cat_current == 0:
+                        Output_Y[ievt, 0, bins+nbin] += populate
+                    else:
+                        Output_Y[ievt, 1, bins+nbin] += populate
+                    
     Output = OutputData(
         kernel_z,
         kernel_zsq,
         kernel_xmax,
         kernel_ymax,
-        Output_Y_2d,
+        Output_Y,
         pv_loc_x,
         pv_loc_y,
         pv_loc_z,
