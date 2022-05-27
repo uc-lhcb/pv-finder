@@ -26,7 +26,7 @@ void makez(AnyTracks& tracks, std::vector<DataKernelOut*>& dks){
 AnyTracks* fcn_global_tracks = nullptr;
 void makehistfromtracks(TString input, TString tree_name, TString folder, int nevents) {
 
-    nevents = 1;
+    //nevents = 1;
     
     TFile f(folder + "/trks_"+input+".root");
     TTree *t = (TTree*)f.Get(tree_name);

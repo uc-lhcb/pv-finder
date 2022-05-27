@@ -15,7 +15,7 @@ import h5py
 #Input parameters
 zMin = -25 #cm (rocky had this at -240mm for ATLAS)
 zMax = 25 #cm (rocky had this at 240mm for ATLAS)
-totalNumBins = 10000 # (rocky had this at 12000)
+totalNumBins = 12000 # (rocky had this at 12000)
 bins_1cm = int(totalNumBins/(zMax - zMin)) #number of bins in 1cm
 binWidth = 1/bins_1cm #binsize in cm # 50micrometer = 0.005mm in current case
 
@@ -288,7 +288,6 @@ def main():
         grp_POCA_minor_axis2_z = hf.create_group("POCA_minor_axis2_z")
         
         for evt in range(NumEvts):
-
             datasetName = "Event"+str(evt)
             #print(datasetName)
             grp_POCAzdata.create_dataset(datasetName, data=Output.POCAzdata[evt], compression="lzf")
