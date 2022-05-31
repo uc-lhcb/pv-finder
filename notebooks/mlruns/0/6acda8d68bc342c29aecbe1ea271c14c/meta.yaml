@@ -1,0 +1,15 @@
+artifact_uri: file:///data/home/ekauffma/git/pv-finder/notebooks/mlruns/0/6acda8d68bc342c29aecbe1ea271c14c/artifacts
+end_time: 1653679225049
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 6acda8d68bc342c29aecbe1ea271c14c
+run_uuid: 6acda8d68bc342c29aecbe1ea271c14c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1653679224866
+status: 4
+tags: []
+user_id: ekauffma

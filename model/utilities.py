@@ -1,6 +1,7 @@
 from contextlib import contextmanager, redirect_stdout, redirect_stderr
 import sys
 import time
+import mlflow
 
 
 class DummyTqdmFile(object):

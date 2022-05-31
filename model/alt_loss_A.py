@@ -32,6 +32,6 @@ class Loss(torch.nn.Module):
 
         # Sum up the alpha values, and divide by the length of x and y. Note this is not quite
         # a .mean(), since alpha can be a bit shorter than x and y due to masking.
-        beta = alpha.sum() / 4000
+        beta = alpha.sum() / 12000
 
         return beta

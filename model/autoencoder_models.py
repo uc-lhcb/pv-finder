@@ -323,12 +323,13 @@ class UNetPlusPlus(nn.Module):
 
     def forward(self, x):
 #         x = torch.cat([x, x[:, ::-1, :]], dim=0) experimental - flip samples in a batch to try and  learn symmetrical kernels 
-#        print('x.shape=',x.shape)
-        d1 = self.rcbn1(x) # 4000
-        d2 = self.d(self.rcbn2(d1)) # 2000
-        d3 = self.d(self.rcbn3(d2)) # 1000
-        d4 = self.d(self.rcbn4(d3)) # 500
-        d5 = self.d(self.rcbn5(d4)) # 250
+#         print('x.shape=',x.shape)
+#         print(self.rcbn1)
+        d1 = self.rcbn1(x) # 4000 12000
+        d2 = self.d(self.rcbn2(d1)) # 2000 6000
+        d3 = self.d(self.rcbn3(d2)) # 1000 3000
+        d4 = self.d(self.rcbn4(d3)) # 500 1500
+        d5 = self.d(self.rcbn5(d4)) # 250 750
         
         ui1 = self.ui(d2)
         ui2 = self.ui(d3)
@@ -348,10 +349,10 @@ class UNetPlusPlus(nn.Module):
         
         i6 = self.i6(torch.cat([ui6, d1, i1, i4], dim=1))
         
-        u1 = self.up_c1(torch.cat([d4, self.up1(d5)], dim=1))             # 500
-        u2 = self.up_c2(torch.cat([d3, i3, self.up2(u1)], dim=1))         # 1000
-        u3 = self.up_c3(torch.cat([d2, i2, i5, self.up1(u2)], dim=1))     # 2000
-        u4 = self.up_c4(torch.cat([d1, i1, i4, i6, self.up1(u3)], dim=1)) # 4000
+        u1 = self.up_c1(torch.cat([d4, self.up1(d5)], dim=1))             # 500 1500
+        u2 = self.up_c2(torch.cat([d3, i3, self.up2(u1)], dim=1))         # 1000 3000
+        u3 = self.up_c3(torch.cat([d2, i2, i5, self.up1(u2)], dim=1))     # 2000 6000
+        u4 = self.up_c4(torch.cat([d1, i1, i4, i6, self.up1(u3)], dim=1)) # 4000 12000
         
         x = self.out_intermediate(torch.cat([u4, d1], dim=1))
         logits_x0 = self.outc(x)
@@ -728,7 +729,7 @@ class Conv5fc1(nn.Module):
             out_channels=1,
             k_size=7)
 
-        self.fc = nn.Linear(4000, 4000)
+        self.fc = nn.Linear(12000, 12000)
         self.softplus = torch.nn.Softplus()
 
     def forward(self, x):
@@ -786,7 +787,7 @@ class Conv5fc1_SC(nn.Module):
             out_channels=1,
             k_size=7)
 
-        self.fc = nn.Linear(4000, 4000)
+        self.fc = nn.Linear(12000, 12000)
         self.softplus = torch.nn.Softplus()
 
     def forward(self, x):

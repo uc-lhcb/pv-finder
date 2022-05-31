@@ -96,6 +96,7 @@ model: {model}"""
 
     # Loop for n_epochs
     for epoch in epoch_iterator:
+        #print("Epoch: ", epoch)
         training_start_time = time.time()
 
         # Run the training step
@@ -130,7 +131,6 @@ def train(model, loss, loader, optimizer, device, progress):
 
     # switch to train mode
     model.train()
-
     loader = progress(
         loader,
         postfix="train=start",
@@ -141,14 +141,11 @@ def train(model, loss, loader, optimizer, device, progress):
         leave=False,
         file=sys.stderr,
     )
-
     for inputs, labels in loader:
         if inputs.device != device:
             inputs, labels = inputs.to(device), labels.to(device)
-
         # Set the parameter gradients to zero
         optimizer.zero_grad()
-
         # Forward pass, backward pass, optimize
         outputs = model(inputs)
         loss_output = loss(outputs, labels)
@@ -156,7 +153,6 @@ def train(model, loss, loader, optimizer, device, progress):
         optimizer.step()
 
         total_loss += loss_output.data.item()
-
         if hasattr(loader, "postfix"):
             loader.postfix = f"train={loss_output.data.item():.4g}"
 

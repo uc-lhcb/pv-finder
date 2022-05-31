@@ -252,16 +252,16 @@ def collect_data_poca(
             ## way around;  check iwth .shape
 
 ## X_A is the KDE from summing probabilities
-            X_A = np.asarray(XY["poca_KDE_A"])[:, np.newaxis, :].astype(dtype)
+            X_A = np.asarray([list(XY["POCAzdata"][f'Event{i}']) 
+                              for i in range(len(XY["POCAzdata"]))])[:,np.newaxis,:].astype(dtype)
             X = X_A   ##  default is to use only the KDE from summing probabilities
             Xsq = X ** 2  ## this simply squares each element of X
 
 ## X_B is the KDE from summing probability square values; can be used to augment X_A
-            X_B = np.asarray(XY["poca_KDE_B"])[:, np.newaxis, :].astype(dtype)
+            X_B = np.asarray([list(XY["POCA_sqzdata"][f'Event{i}']) 
+                              for i in range(len(XY["POCA_sqzdata"]))])[:,np.newaxis,:].astype(dtype)
  
-##  restore "old name" for consistency when using with old KDE data           
-##            Y = np.asarray(XY["pv_target"]).astype(dtype)
-            Y = np.asarray(XY["pv"]).astype(dtype)
+            Y = np.asarray([list(XY["pv"][f'Event{i}'])[0] for i in range(len(XY["pv"]))]).astype(dtype)
 
 
 ##  if we want to treat new KDE as input for old KDE infrerence engine, use
@@ -275,9 +275,11 @@ def collect_data_poca(
                 ##  the code which wrote the files divided the Xmax and Ymax values by 2500,
                 ##  just as the KDE value was divided by 2500. But the range is (nominally)
                 ##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
-                x = np.asarray(XY["Xmax"])[:, np.newaxis, :].astype(dtype)
+                x = np.asarray([list(XY["POCAxmax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAxmax"]))])[:, np.newaxis, :].astype(dtype)
                 x = 5000.0 * x
-                y = np.asarray(XY["Ymax"])[:, np.newaxis, :].astype(dtype)
+                y = np.asarray([list(XY["POCAymax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAymax"]))])[:, np.newaxis, :].astype(dtype)
                 y = 5000.0 * y
                 x[X == 0] = 0
                 y[X == 0] = 0
@@ -293,9 +295,11 @@ def collect_data_poca(
                 ##  the code which wrote the files divided the Xmax and Ymax values by 2500,
                 ##  just as the KDE value was divided by 2500. But the range is (nominally)
                 ##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
-                x = np.asarray(XY["poca_KDE_A_xMax"])[:, np.newaxis, :].astype(dtype)
+                x = np.asarray([list(XY["POCAxmax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAxmax"]))])[:, np.newaxis, :].astype(dtype)
                 x = 5000.0 * x
-                y = np.asarray(XY["poca_KDE_A_yMax"])[:, np.newaxis, :].astype(dtype)
+                y = np.asarray([list(XY["POCAymax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAymax"]))])[:, np.newaxis, :].astype(dtype)
                 y = 5000.0 * y
                 x[X == 0] = 0
                 y[X == 0] = 0
@@ -304,8 +308,10 @@ def collect_data_poca(
                 )  ## filling in axis with (X,X_B,x,y)
 
             elif load_xy and (not load_A_and_B) and (not load_XandXsq):
-                x = np.asarray(XY["poca_KDE_A_xMax"])[:, np.newaxis, :].astype(dtype)
-                y = np.asarray(XY["poca_KDE_A_yMax"])[:, np.newaxis, :].astype(dtype)
+                x = np.asarray([list(XY["POCAxmax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAxmax"]))])[:, np.newaxis, :].astype(dtype)
+                np.asarray([list(XY["POCAymax"][f'Event{i}']) for i in 
+                                range(len(XY["POCAymax"]))])[:, np.newaxis, :].astype(dtype)
                 x[X == 0] = 0
                 y[X == 0] = 0
                 X = np.concatenate((X, x, y), axis=1)  ## filling in axis with (X,x,y)
