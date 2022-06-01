@@ -101,6 +101,8 @@ def collect_data(
 ##  restore "old name" for consistency when using with old KDE data           
 ##            Y = np.asarray(XY["pv_target"]).astype(dtype)
             Y = np.asarray(XY["pv"]).astype(dtype)
+            Y_target = Y[:,0,:]
+            Y_other = Y[:,1,:]
 
             if load_A_and_B and (not load_xy):
                 X = np.concatenate((X, X_B), axis=1)
@@ -127,12 +129,13 @@ def collect_data(
                 X = np.concatenate((X, x, y), axis=1)  ## filling in axis with (X,x,y)
 
             if masking:
-                # Set the result to nan if the "other" array is above
+                print(Y.shape)
+                # Set the result to nan if the array is above
                 # threshold and the current array is below threshold
-                Y[(np.asarray(XY["pv_other"]) > 0.01) & (Y < 0.01)] = dtype(np.nan)
+                Y_target[(Y_other > 0.01) & (Y_target < 0.01)] = dtype(np.nan)
 
             Xlist.append(X)
-            Ylist.append(Y)
+            Ylist.append(Y_target)
 
     X = np.concatenate(Xlist, axis=0)
     Y = np.concatenate(Ylist, axis=0)
@@ -262,6 +265,7 @@ def collect_data_poca(
                               for i in range(len(XY["POCA_sqzdata"]))])[:,np.newaxis,:].astype(dtype)
  
             Y = np.asarray([list(XY["pv"][f'Event{i}'])[0] for i in range(len(XY["pv"]))]).astype(dtype)
+            Y_other = np.asarray([list(XY["pv"][f'Event{i}'])[1] for i in range(len(XY["pv"]))]).astype(dtype)
 
 
 ##  if we want to treat new KDE as input for old KDE infrerence engine, use
@@ -319,7 +323,7 @@ def collect_data_poca(
             if masking:
                 # Set the result to nan if the "other" array is above
                 # threshold and the current array is below threshold
-                Y[(np.asarray(XY["pv_other"]) > 0.01) & (Y < 0.01)] = dtype(np.nan)
+                Y[(Y_other > 0.01) & (Y < 0.01)] = dtype(np.nan)
 
             Xlist.append(X)
             Ylist.append(Y)
