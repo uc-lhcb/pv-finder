@@ -98,24 +98,30 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         if(!any_tracks.run()) continue;
 
         // EMK change below to reflect CMS x-y precision?
-//         for(double x = -0.2; x <= 0.201; x += 0.01) {
-//             for(double y = -0.2; y <= 0.201; y += 0.01) {
-//                 pv.set(x, y, z);
-//                 double val = kernel(pv);
-//                 if(val > kmax) {
-//                     kmax = val;
-//                     xmax = x;
-//                     ymax = y;
-//                 }
-//             }
-//         }
-
-        // now do gradient descent from max found
-        pv.set(0, 0, z);
-        kernel_value[2] = 0;//kernelMax(pv);
-        //set x and y of first kernel_value definition
-        bestx[2]=pv.x();
-        besty[2]=pv.y();
+        for(double x = -0.15; x <= 0.18; x += 0.03) {
+            for(double y = -0.15; y <= 0.18; y += 0.03) {
+                pv.set(x, y, z);
+                double val = kernel(pv);
+                if(val > kmax) {
+                    kmax = val;
+                    xmax = x;
+                    ymax = y;
+                }
+            }
+        }
+        if (kmax==0){
+            kernel_value[2] = 0;
+            bestx[2]=0;
+            besty[2]=0;
+        }
+        else {
+            // now do gradient descent from max found
+            pv.set(xmax, ymax, z);
+            kernel_value[2] = kernelMax(pv);
+            //set x and y of first kernel_value definition
+            bestx[2]=pv.x();
+            besty[2]=pv.y();
+        }
 
         dothis(bz, kernel_value, bestx, besty);
     }

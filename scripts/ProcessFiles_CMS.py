@@ -39,6 +39,9 @@ OutputData = namedtuple(
         "POCA_sqzdata",       # Squared Density in Z (calculated from POCA), totalNumBinsxN
         "POCAxmax",           # Position of max density in x for each z-bin (calculated from POCA, same for zdata and sqzdata)
         "POCAymax",           # Position of max density in y for each z-bin (calculated from POCA, same for zdata and sqzdata)
+        "oldzdata",           # density in z (old version), totalNumBinsxN
+        "oldxmax",            # Position of max density in x for each z-bin (old version)
+        "oldymax",            # Position of max density in y for each z-bin (old version)
         "pv",                 # target pv histogram, totalNumBinsxN (has channel for good PVs and channel for bad PVs)
         "pv_loc_x",           # position of PV in x
         "pv_loc_y",           # position of PV in y
@@ -107,7 +110,7 @@ def ComputeSigma(ntrks):
     A_res = 926.0
     B_res = 0.84
     C_res = 10.7
-
+    
     if ntrks < 4:
         return 0.01 # sd_1 = 0.1 (10 times smaller than lhcb)
     else:
@@ -143,6 +146,10 @@ def main():
         kernel_zsq = branches["POCA_sqzdata"]
         kernel_xmax = branches["POCAxmax"] #xmax and ymax are the same for zdata and sqzdata
         kernel_ymax = branches["POCAymax"]
+        
+        kernel_z_old = branches["oldzdata"]
+        kernel_xmax_old = branches["oldxmax"]
+        kernel_ymax_old = branches["oldymax"]
         
         #2D arrays with each row representing an event
         pv_loc_x = branches["pv_loc_x"]
@@ -222,6 +229,9 @@ def main():
         kernel_zsq,
         kernel_xmax,
         kernel_ymax,
+        kernel_z_old,
+        kernel_xmax_old,
+        kernel_ymax_old,
         Output_Y,
         pv_loc_x,
         pv_loc_y,
@@ -258,6 +268,9 @@ def main():
         grp_POCAsqzdata = hf.create_group("POCA_sqzdata")
         grp_POCAxmax = hf.create_group("POCAxmax")
         grp_POCAymax = hf.create_group("POCAymax")
+        grp_oldzdata = hf.create_group("oldzdata")
+        grp_oldxmax = hf.create_group("oldxmax")
+        grp_oldymax = hf.create_group("oldymax")
         grp_pv = hf.create_group("pv")
         grp_pv_loc_x = hf.create_group("pv_loc_x")
         grp_pv_loc_y = hf.create_group("pv_loc_y")
@@ -294,6 +307,9 @@ def main():
             grp_POCAsqzdata.create_dataset(datasetName, data=Output.POCA_sqzdata[evt], compression="lzf")
             grp_POCAxmax.create_dataset(datasetName, data=Output.POCAxmax[evt], compression="lzf")
             grp_POCAymax.create_dataset(datasetName, data=Output.POCAymax[evt], compression="lzf")
+            grp_oldzdata.create_dataset(datasetName, data=Output.oldzdata[evt], compression="lzf")
+            grp_oldxmax.create_dataset(datasetName, data=Output.oldxmax[evt], compression="lzf")
+            grp_oldymax.create_dataset(datasetName, data=Output.oldymax[evt], compression="lzf")
             grp_pv.create_dataset(datasetName, data=Output.pv[evt], compression="lzf")
             grp_pv_loc_x.create_dataset(datasetName, data=Output.pv_loc_x[evt], compression="lzf")
             grp_pv_loc_y.create_dataset(datasetName, data=Output.pv_loc_y[evt], compression="lzf")

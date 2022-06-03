@@ -26,11 +26,16 @@ inline void FCN(Int_t &num_par, Double_t *grad, Double_t &f, Double_t *pars, Int
     AnyTracks *tracks = fcn_global_tracks;
 
     for(int i = tracks->tmin(); i <= tracks->tmax(); i++) {
-        double pdf = tracks->at(i).pdf(pv);
+        const Point &poca = tracks->at(i).beamPOCA();
+        double poca_z = poca.z();
+        //double chi2 = tracks->at(i).getchi2();
+        if(abs(poca_z-pars[2])<=2.){
+            double pdf = tracks->at(i).pdf(pv);
 
-        // Sum PDF
-        sum1 += pdf;
-        sum2 += pdf * pdf;
+            // Sum PDF
+            sum1 += pdf;
+            sum2 += pdf * pdf;
+        }
     }
 
     // Avoid really small values
@@ -79,8 +84,8 @@ inline double kernelMax(Point &pv) {
     // reset
     min->mnrset(1);
 
-    min->mnparm(0, "PVX", pv.x(), 0.01, -2, 2, iflag);
-    min->mnparm(1, "PVY", pv.y(), 0.01, -2, 2, iflag);
+    min->mnparm(0, "PVX", pv.x(), 0.01, 0, 0, iflag);
+    min->mnparm(1, "PVY", pv.y(), 0.01, 0, 0, iflag);
     min->mnparm(2, "PVZ", pv.z(), 0, 0, 0, iflag);
 
     arglist[0] = 1000;
