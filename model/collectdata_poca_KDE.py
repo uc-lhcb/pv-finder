@@ -347,3 +347,131 @@ def collect_data_poca(
 
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, **kargs)
     return loader
+
+
+def collect_data_poca_ATLAS(
+    *files,
+    batch_size=1,
+    dtype=np.float32,
+    device=None,
+    slice=None,
+    load_xy=False,
+    load_A_and_B=False,
+    load_XandXsq=False,
+    **kargs,
+):
+    """
+    This function collects data. It does not split it up. You can pass in multiple files.
+    Example: collect_data_poca('a.h5', 'b.h5')
+    batch_size: The number of events per batch
+    dtype: Select a different dtype (like float16)
+    slice: Allow just a slice of data to be loaded
+    device: The device to load onto (CPU by default)
+    masking: Turn on or off (default) the masking of hits.
+    **kargs: Any other keyword arguments will be passed on to torch's DataLoader
+    """
+
+    Xlist = []
+    Ylist = []
+
+    print("Loading data...")
+
+    for XY_file in files:
+        msg = f"Loaded {XY_file} in {{time:.4}} s"
+        with Timer(msg), h5py.File(XY_file, mode="r") as XY:
+            ## [:,np.newaxis,:] makes X (a x b) --> (a x 1 x b) (axis 0, axis 1, axis 2)
+            ## a is *probably* 4000 and b is *probably* N, but it could be the other
+            ## way around;  check iwth .shape
+
+## X_A is the KDE from summing probabilities
+            X_A = np.asarray([list(XY["poca_KDE_A_zdata"][f'Event{i}']) 
+                              for i in range(len(XY["poca_KDE_A_zdata"]))])[:,np.newaxis,:].astype(dtype)
+            X = X_A   ##  default is to use only the KDE from summing probabilities
+            Xsq = X ** 2  ## this simply squares each element of X
+
+## X_B is the KDE from summing probability square values; can be used to augment X_A
+            X_B = np.asarray([list(XY["poca_KDE_B_zdata"][f'Event{i}']) 
+                              for i in range(len(XY["poca_KDE_B_zdata"]))])[:,np.newaxis,:].astype(dtype)
+ 
+            Y = np.asarray([list(XY["Target_Y"][f'Event{i}']) for i in range(len(XY["Target_Y"]))]).astype(dtype)
+
+
+##  if we want to treat new KDE as input for old KDE infrerence engine, use
+##  load_XandXsq
+##  we will not want to use this moving forward, but it is necessary for
+##  testing with some old inference engines
+            if load_XandXsq and (not load_xy):
+                X = np.concatenate((X, Xsq), axis=1)
+
+            elif load_XandXsq and load_xy:
+                ##  the code which wrote the files divided the Xmax and Ymax values by 2500,
+                ##  just as the KDE value was divided by 2500. But the range is (nominally)
+                ##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
+                x = np.asarray([list(XY["poca_KDE_A_xmax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_xmax"]))])[:, np.newaxis, :].astype(dtype)
+                #x = 5000.0 * x
+                y = np.asarray([list(XY["poca_KDE_A_ymax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_ymax"]))])[:, np.newaxis, :].astype(dtype)
+                #y = 5000.0 * y
+                x[X == 0] = 0
+                y[X == 0] = 0
+                X = np.concatenate(
+                    (X, Xsq, x, y), axis=1
+                )  ## filling in axis with (X,Xsq,x,y)
+
+##  end of treating new KDE and input for old algs
+            if load_A_and_B and (not load_xy):
+                X = np.concatenate((X, X_B), axis=1)
+
+            elif load_A_and_B and load_xy:
+                ##  the code which wrote the files divided the Xmax and Ymax values by 2500,
+                ##  just as the KDE value was divided by 2500. But the range is (nominally)
+                ##  -0.4 - 0.4.  So multiply by 5000 so the feature range is ~ -1 to +1
+                x = np.asarray([list(XY["poca_KDE_A_xmax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_xmax"]))])[:, np.newaxis, :].astype(dtype)
+                #x = 5000.0 * x
+                y = np.asarray([list(XY["poca_KDE_A_ymax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_ymax"]))])[:, np.newaxis, :].astype(dtype)
+                #y = 5000.0 * y
+                x[X == 0] = 0
+                y[X == 0] = 0
+                X = np.concatenate(
+                    (X, X_B, x, y), axis=1
+                )  ## filling in axis with (X,X_B,x,y)
+
+            elif load_xy and (not load_A_and_B) and (not load_XandXsq):
+                x = np.asarray([list(XY["poca_KDE_A_xmax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_xmax"]))])[:, np.newaxis, :].astype(dtype)
+                np.asarray([list(XY["poca_KDE_A_ymax"][f'Event{i}']) for i in 
+                                range(len(XY["poca_KDE_A_ymax"]))])[:, np.newaxis, :].astype(dtype)
+                x[X == 0] = 0
+                y[X == 0] = 0
+                X = np.concatenate((X, x, y), axis=1)  ## filling in axis with (X,x,y)
+
+            #if masking:
+                # Set the result to nan if the "other" array is above
+                # threshold and the current array is below threshold
+                #Y[(Y_other > 0.01) & (Y < 0.01)] = dtype(np.nan)
+
+            Xlist.append(X)
+            Ylist.append(Y)
+
+    X = np.concatenate(Xlist, axis=0)
+    Y = np.concatenate(Ylist, axis=0)
+
+    if slice:
+        X = X[slice, :, :]
+        Y = Y[slice, :]
+
+    with Timer(start=f"Constructing {X.shape[0]} event dataset"):
+        x_t = torch.tensor(X)
+        y_t = torch.tensor(Y)
+
+        if device is not None:
+            x_t = x_t.to(device)
+            y_t = y_t.to(device)
+
+        dataset = TensorDataset(x_t, y_t)
+
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, **kargs)
+    return loader
