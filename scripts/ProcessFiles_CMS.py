@@ -13,9 +13,9 @@ import awkward
 import h5py
 
 #Input parameters
-zMin = -25 #cm (rocky had this at -240mm for ATLAS)
-zMax = 25 #cm (rocky had this at 240mm for ATLAS)
-totalNumBins = 12000 # (rocky had this at 12000)
+zMin = -15 #cm (rocky had this at -240mm for ATLAS)
+zMax = 15 #cm (rocky had this at 240mm for ATLAS)
+totalNumBins = 7500 # (rocky had this at 12000)
 bins_1cm = int(totalNumBins/(zMax - zMin)) #number of bins in 1cm
 binWidth = 1/bins_1cm #binsize in cm # 50micrometer = 0.005mm in current case
 
@@ -107,14 +107,14 @@ def binValue(zmin, zmax, mean, nbins):
 def ComputeSigma(ntrks):
 
     ##  values found by EMK using extrapolated data from https://arxiv.org/pdf/1405.6569.pdf
-    A_res = 926.0
-    B_res = 0.84
-    C_res = 10.7
+    A_res = 62.868879
+    B_res = 0.95620653
+    C_res = 10.3188071
     
     if ntrks < 4:
-        return 0.01 # sd_1 = 0.1 (10 times smaller than lhcb)
+        return binWidth
     else:
-        return 0.0001 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
+        return 1e-4 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
 
 @numba.vectorize(nopython=True)
 def norm_cdf(mu, sigma, x):

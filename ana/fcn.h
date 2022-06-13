@@ -24,18 +24,13 @@ inline void FCN(Int_t &num_par, Double_t *grad, Double_t &f, Double_t *pars, Int
 
     // Grab the global instance. This is ugly - can be solved by using Minuit2
     AnyTracks *tracks = fcn_global_tracks;
-
+    //std::vector<int> trackinds = tracks->tcurrent();
+    
     for(int i = tracks->tmin(); i <= tracks->tmax(); i++) {
-        const Point &poca = tracks->at(i).beamPOCA();
-        double poca_z = poca.z();
-        //double chi2 = tracks->at(i).getchi2();
-        if(abs(poca_z-pars[2])<=2.){
-            double pdf = tracks->at(i).pdf(pv);
-
-            // Sum PDF
-            sum1 += pdf;
-            sum2 += pdf * pdf;
-        }
+        double pdf = tracks->at(i).pdf(pv);
+        
+        sum1 += pdf;
+        sum2 += pdf * pdf;
     }
 
     // Avoid really small values

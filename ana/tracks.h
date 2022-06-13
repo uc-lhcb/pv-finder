@@ -5,6 +5,76 @@
 #include "triplet.h"
 #include <limits>
 
+#include <iostream>
+#include <vector>
+#include <numeric> 
+#include <algorithm> 
+
+using namespace std;
+
+template <typename T>
+vector<size_t> sort_indexes(const vector<T> &v) {
+
+    vector<size_t> idx(v.size());
+    
+    
+    iota(idx.begin(), idx.end(), 0);
+    stable_sort(idx.begin(), idx.end(),[&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+    
+  return idx;
+}
+
+// for sorting by poca_z
+// vector<pair<double, int> > sortArr(vector<double> v) {
+//     vector<pair<double, int> > vp; // Vector to store element with respective present index
+
+//     // Inserting element in pair vector to keep track of previous indexes
+//     for (int i = 0; i < v.size(); ++i) {
+//         vp.push_back(make_pair(v.at(i), i));
+//     }
+  
+//     // Sorting pair vector
+//     sort(vp.begin(), vp.end());
+  
+//     return vp
+// }
+
+// below two methods for determining starting index for tracks
+inline int getClosest(vector<double> v, int ind1, int ind2, double target) {
+    if (target - v.at(ind1) >= v.at(ind2) - target) return ind2;
+    return ind1;
+}
+
+inline int findClosest(vector<double> v, int n, double target, int start = 0) {
+    if (target <= v.at(0)) return 0;
+    if (target >= v.at(n - 1)) return n-1;
+    
+    int i = start, j = n, mid = 0;
+    while (i < j) {
+        mid = (i + j) / 2;
+        if (v.at(mid) == target) return mid;
+
+        // If target is less than array element, then search in left 
+        if (target < v.at(mid)) {
+            // If target is greater than previous to mid, return closest of two
+            if (mid > 0 && target > v.at(mid-1)) {
+                return getClosest(v, mid-1, mid, target);
+            }
+            
+            // repeat for left half
+            j = mid;
+        }
+
+        // If target is greater than mid
+        else {
+            if (mid < n - 1 && target < v.at(mid+1)) return getClosest(v, mid, mid+1, target);
+            i = mid + 1; // update i
+        }
+    }
+    return mid; // Only single element left after search
+}
+
 // for sorting tracks
 inline bool trackBeamPOCAz(const TripletBase &t0, const TripletBase &t1) {
     return t0.beamPOCA().z() < t1.beamPOCA().z();
@@ -94,50 +164,72 @@ class AnyTracks {
     std::vector<TripletBase> _tracks;
     int _tmin = std::numeric_limits<int>::max();
     int _tmax = 0;
+    vector<double> _pocaz;
 
   public:
+    // already sorted
     AnyTracks(const Tracks &tracks) {
         for(int i = 0; i < tracks.n(); i++)
             _tracks.push_back(tracks.at(i));
     }
 
+    // sorts when initialized
     AnyTracks(const CoreReconTracksIn &trks) {
         for(int i = 0; i < trks.recon_x->size(); i++) {
-            _tracks.emplace_back(trks.recon_x->at(i),
-                                 trks.recon_y->at(i),
-                                 trks.recon_z->at(i),
-                                 trks.recon_tx->at(i),
-                                 trks.recon_ty->at(i),
-                                 trks.recon_chi2->at(i),
-                                 trks.recon_sigmapocaxy->at(i),
-                                 trks.recon_errz0->at(i));
+            Trajectory current_traj = Trajectory(trks.recon_x->at(i), trks.recon_y->at(i), trks.recon_z->at(i), 
+                       trks.recon_tx->at(i), trks.recon_ty->at(i));
+            _pocaz.push_back(current_traj.beamPOCA().z());
+        }
+        
+        vector<size_t> ind_sorted = sort_indexes(_pocaz); // get sorted indices of _pocaz
+        sort(_pocaz.begin(),_pocaz.end()); // actually sort _pocaz
+        
+        // append tracks in sorted order
+        for(int i = 0; i < ind_sorted.size(); i++) {
+            _tracks.emplace_back(trks.recon_x->at(ind_sorted.at(i)),
+                                 trks.recon_y->at(ind_sorted.at(i)),
+                                 trks.recon_z->at(ind_sorted.at(i)),
+                                 trks.recon_tx->at(ind_sorted.at(i)),
+                                 trks.recon_ty->at(ind_sorted.at(i)),
+                                 trks.recon_chi2->at(ind_sorted.at(i)),
+                                 trks.recon_sigmapocaxy->at(ind_sorted.at(i)),
+                                 trks.recon_errz0->at(ind_sorted.at(i)));
         }
     }
+    
 
     // defines range of tracks used at this z
-    void setRange(double z) {
-        int nuse = 0;
+    int setRange(double z, int prev = 0) {
+        double binwidth = 50./12000.;
+        
+        //find track starting index (use binary search)
+        int start = findClosest(_pocaz,_pocaz.size(),z-50.*binwidth,prev); // does not look at indices under prev
+        
+        //int nuse = 0;
         _tmin = 1e9;
         _tmax = 0;
+        
         double x, y;
-        for(int i = 0; i < n(); i++) {
+        for(int i = start; i < _pocaz.size(); i++) {
             _tracks[i].trajectory().getXY(z, x, y);
-            if(abs(x) < 2 && abs(y) < 2) {
-                if(i < _tmin)
-                    _tmin = i;
-                if(i > _tmax)
-                    _tmax = i;
-                nuse++;
-            } else {
+            if(abs(x) < 2 && abs(y) < 2 && abs(z-_pocaz.at(i))<1000.*binwidth) {
+                if(i < _tmin)  _tmin = i;
+                if(i > _tmax) _tmax = i;
+                //nuse++;
+            }
+            if(_pocaz.at(i)-z>=1000.*binwidth){ 
+                break;
             }
         }
-        if(nuse < 2)
-            _tmin = -1;
+//         if(nuse < 2)
+//             _tmin = -1;        
+        return start;
     }
 
     int tmin() const { return _tmin; }
     int tmax() const { return _tmax; }
     bool run() const { return _tmin >= 0; }
+    vector<double> pocaz() const { return _pocaz; }
 
     const TripletBase &at(int i) const { return _tracks[i]; }
     int n() const { return _tracks.size(); }
