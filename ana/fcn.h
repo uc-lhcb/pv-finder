@@ -98,27 +98,27 @@ inline double kernelMax(Point &pv) {
 
 inline int
 ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
-    int ntrk_in_acc = 0;
-    int nprt = data_pvs.prt_pvr->size();
+//     int ntrk_in_acc = 0;
+//     int nprt = data_pvs.prt_pvr->size();
 
-    for(int j = 0; j < nprt; j++) {
-        if(data_pvs.prt_pvr->at(j) != i)
-            continue;
-        if(data_hits.prt_hits->size() == 0)
-            continue;
-        if(data_hits.prt_hits->at(j) < 3)
-            continue;
-        if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
-            continue;
-        TVector3 p3(data_trks.prt_px->at(j), data_trks.prt_py->at(j), data_trks.prt_pz->at(j));
-        if(p3.Eta() < 2 || p3.Eta() > 5)
-            continue;
-        if(p3.Mag() < 3)
-            continue;
+//     for(int j = 0; j < nprt; j++) {
+//         if(data_pvs.prt_pvr->at(j) != i)
+//             continue;
+//         if(data_hits.prt_hits->size() == 0)
+//             continue;
+//         if(data_hits.prt_hits->at(j) < 3)
+//             continue;
+//         if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
+//             continue;
+//         TVector3 p3(data_trks.prt_px->at(j), data_trks.prt_py->at(j), data_trks.prt_pz->at(j));
+//         if(p3.Eta() < 2 || p3.Eta() > 5)
+//             continue;
+//         if(p3.Mag() < 3)
+//             continue;
 
-        ntrk_in_acc++;
-    }
-    return ntrk_in_acc;
+//         ntrk_in_acc++;
+//     }
+    return data_pvs.ntrks->at(i);
 }
 
 // -1: < 2 particles made hits
@@ -126,12 +126,12 @@ ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const C
 // 1: LHCb pv
 inline int
 pvCategory(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
-    if(data_trks.ntrks_prompt->at(i) < 2)
-        return -1;
+//     if(data_trks.ntrks_prompt->at(i) < 2)
+//         return -1;
 
     int ntrk_in_acc = ntrkInAcc(data_trks, data_pvs, data_hits, i);
 
-    if(ntrk_in_acc < 5)
+    if(ntrk_in_acc < 7)
         return 0;
     else
         return 1;

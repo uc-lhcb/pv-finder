@@ -10,6 +10,7 @@ template <class T> struct CorePVsIO : public CoreIO<T, double> {
     Vec pvr_y{this, "pvr_y"};
     Vec pvr_z{this, "pvr_z"};
     Vec prt_pvr{this, "prt_pvr"};
+    Vec ntrks{this,"ntrks"};
 
     Vec svr_x{this, "svr_x"};
     Vec svr_y{this, "svr_y"};

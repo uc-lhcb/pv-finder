@@ -15,7 +15,7 @@ import h5py
 #Input parameters
 zMin = -15 #cm (rocky had this at -240mm for ATLAS)
 zMax = 15 #cm (rocky had this at 240mm for ATLAS)
-totalNumBins = 7500 # (rocky had this at 12000)
+totalNumBins = 8000 # (rocky had this at 12000)
 bins_1cm = int(totalNumBins/(zMax - zMin)) #number of bins in 1cm
 binWidth = 1/bins_1cm #binsize in cm # 50micrometer = 0.005mm in current case
 
@@ -93,7 +93,7 @@ def getArgumentParser():
 
 #get bin number, given z value 
 def binNumber(mean):
-    return int(np.floor((mean - zMin)*bins_1cm))
+    return int(np.floor((mean - zMin)*bins_1cm))+5
 
 #get z value, given bin number
 def binCenter(zmin, zmax, nbins, ibin):
@@ -114,7 +114,7 @@ def ComputeSigma(ntrks):
     if ntrks < 4:
         return binWidth
     else:
-        return 1e-4 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
+        return 1e-3 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
 
 @numba.vectorize(nopython=True)
 def norm_cdf(mu, sigma, x):
@@ -219,7 +219,7 @@ def main():
 
                     #TODO: Check the impact of this step
                     #populate = np.where((0.15 / pv_res) > 1, (0.15 / pv_res) * populate, populate)
-                    if cat_current == 0:
+                    if cat_current == 1:
                         Output_Y[ievt, 0, bins+nbin] += populate
                     else:
                         Output_Y[ievt, 1, bins+nbin] += populate

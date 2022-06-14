@@ -101,9 +101,9 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         //second kernel_value definition (the original)
         double kmax = 0., xmax = 0., ymax = 0.; //double kmax = -1;
         // 1st do coarse grid search
-//         if(!any_tracks.run()) continue;
+        if(!any_tracks.run()) continue;
 
-//         // EMK change below to reflect CMS x-y precision?
+        // EMK change below to reflect CMS x-y precision?
 //         for(double x = -0.15; x <= 0.18; x += 0.03) {
 //             for(double y = -0.15; y <= 0.18; y += 0.03) {
 //                 pv.set(x, y, z);
@@ -115,6 +115,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
 //                 }
 //             }
 //         }
+//         std::cout << "kmax = " << kmax << std::endl;
         if (kmax==0){
             kernel_value[2] = 0;
             bestx[2]=0;
