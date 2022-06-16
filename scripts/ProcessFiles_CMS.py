@@ -17,12 +17,14 @@ zMin = -15 #cm (rocky had this at -240mm for ATLAS)
 zMax = 15 #cm (rocky had this at 240mm for ATLAS)
 totalNumBins = 8000 # (rocky had this at 12000)
 bins_1cm = int(totalNumBins/(zMax - zMin)) #number of bins in 1cm
+bins_1cm = totalNumBins/(zMax - zMin)
 binWidth = 1/bins_1cm #binsize in cm # 50micrometer = 0.005mm in current case
 
 print()
 print("zMin = %s cm" %(zMin))
 print("zMax = %s cm" %(zMax))
 print("totalNumBins = %s" %(totalNumBins))
+# print("bins in 1cm (noninteger) = %s bins" %(totalNumBins/(zMax - zMin)))
 print("bins in 1cm = %s bins" %(bins_1cm))
 print("binWidth in cm = %s cm" %(binWidth))
 
@@ -93,7 +95,7 @@ def getArgumentParser():
 
 #get bin number, given z value 
 def binNumber(mean):
-    return int(np.floor((mean - zMin)*bins_1cm))+5
+    return int(np.floor((mean - zMin)*bins_1cm))
 
 #get z value, given bin number
 def binCenter(zmin, zmax, nbins, ibin):
@@ -139,7 +141,7 @@ def main():
         #opening input file and getting tree
         tree = uproot.open(str(f))["kernel"]
         branches = tree.arrays() # tree.arrays(namedecode='utf-8')
-        print(branches)
+        #print(branches)
         
         #get all the branches 
         kernel_z = branches["POCAzdata"]
@@ -211,8 +213,13 @@ def main():
                 cat_current = pv_cat[ievt][ipv]
                 
                 if pv_center >= zMin and pv_center <= zMax:
+#                     print()
+#                     print("pv_center = ", pv_center)
                     nbin = binNumber(pv_center)
+#                     print("nbin = ", nbin)
+#                     print("z-position of nbin = ", binCenter(zMin,zMax,totalNumBins,nbin))
                     z_probRange = nbin/bins_1cm + ProbRange
+#                     print("z_probRange = ", z_probRange)
                     probValues = norm_cdf(pv_center, pv_res, z_probRange)
 
                     populate = probValues[1] - probValues[0]
