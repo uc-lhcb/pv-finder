@@ -354,6 +354,7 @@ def collect_data_poca_ATLAS(
     batch_size=1,
     dtype=np.float32,
     device=None,
+    masking=False,
     slice=None,
     load_xy=False,
     load_A_and_B=False,
@@ -393,7 +394,10 @@ def collect_data_poca_ATLAS(
             X_B = np.asarray([list(XY["poca_KDE_B_zdata"][f'Event{i}']) 
                               for i in range(len(XY["poca_KDE_B_zdata"]))])[:,np.newaxis,:].astype(dtype)
  
-            Y = np.asarray([list(XY["Target_Y"][f'Event{i}']) for i in range(len(XY["Target_Y"]))]).astype(dtype)
+            Y = np.asarray([list(XY["Target_Y"][f'Event{i}'])[0] for i in range(len(XY["Target_Y"]))]).astype(dtype)
+            Y_other = np.asarray([list(XY["Target_Y"][f'Event{i}'])[1] for i in range(len(XY["Target_Y"]))]).astype(dtype)
+
+            #Y = np.asarray([list(XY["Target_Y"][f'Event{i}']) for i in range(len(XY["Target_Y"]))]).astype(dtype)
 
 
 ##  if we want to treat new KDE as input for old KDE infrerence engine, use
@@ -448,10 +452,10 @@ def collect_data_poca_ATLAS(
                 y[X == 0] = 0
                 X = np.concatenate((X, x, y), axis=1)  ## filling in axis with (X,x,y)
 
-            #if masking:
-                # Set the result to nan if the "other" array is above
-                # threshold and the current array is below threshold
-                #Y[(Y_other > 0.01) & (Y < 0.01)] = dtype(np.nan)
+            if masking:
+#                 Set the result to nan if the "other" array is above
+#                 threshold and the current array is below threshold
+                Y[(Y_other > 0.01) & (Y < 0.01)] = dtype(np.nan)
 
             Xlist.append(X)
             Ylist.append(Y)

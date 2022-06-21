@@ -2,6 +2,7 @@ from contextlib import contextmanager, redirect_stdout, redirect_stderr
 import sys
 import time
 import mlflow
+import torch
 
 
 class DummyTqdmFile(object):
@@ -114,6 +115,8 @@ def load_full_state(model_to_update, Path, freeze_weights=False):
     Note:
             The model will not be returned, rather the module you pass to this function will be modified.
     """
+    print(Path)
+    print(model_to_update)
     checkpoint = torch.load(Path)
     update_dict = {k: v for k, v in checkpoint.state_dict().items() if k in model_to_update.state_dict()}
     model_to_update.load_state_dict(update_dict, strict=False)
