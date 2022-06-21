@@ -126,14 +126,17 @@ ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const C
 // 1: LHCb pv
 inline int
 pvCategory(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
+
+// 220621 emk decide to determine pv_cat at target hist generation step to save time
+
 //     if(data_trks.ntrks_prompt->at(i) < 2)
 //         return -1;
 
-    int ntrk_in_acc = ntrkInAcc(data_trks, data_pvs, data_hits, i);
+//     int ntrk_in_acc = ntrkInAcc(data_trks, data_pvs, data_hits, i);
 
-    if(ntrk_in_acc < 7)
-        return 0;
-    else
+//     if(ntrk_in_acc < 7)
+//         return 0;
+//     else
         return 1;
 }
 

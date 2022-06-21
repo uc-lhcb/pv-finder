@@ -24,6 +24,7 @@ add_library(core_lib
     makehist.C
     makehistfromtracks.C
     maketracks.C
+    combinetruthvertices.C # emk addition
     )
 
 find_package(OpenMP)
@@ -47,6 +48,12 @@ add_executable(make_tracks
     apps/CLI11.hpp
 )
 
+# emk addition
+add_executable(combine_truth_vertices
+    apps/combine_truth_vertices_main.C
+    apps/CLI11.hpp
+)
+
 target_link_libraries(core_lib PUBLIC
 	ROOT::Physics
 	ROOT::Core
@@ -59,3 +66,4 @@ target_link_libraries(core_lib PUBLIC
 target_link_libraries(make_histogram PUBLIC core_lib)
 target_link_libraries(make_tracks PUBLIC core_lib)
 target_link_libraries(make_histogram_from_tracks PUBLIC core_lib)
+target_link_libraries(combine_truth_vertices PUBLIC core_lib) # emk addition
