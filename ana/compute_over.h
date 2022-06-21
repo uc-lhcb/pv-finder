@@ -15,10 +15,10 @@ inline double bin_center(int const &nbins, double const &min, double const &max,
 void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<double>, std::vector<double>, std::vector<double>)> dothis) {
 
     // EMK change below to reflect CMS x-y precision
-    constexpr int nbz = 12000, nbxy = 20; // number of bins in z and x,y for the coarse grid search
+    constexpr int nbz = 8000, nbxy = 15; // number of bins in z and x,y for the coarse grid search
     constexpr int ninterxy = 3; // number of interpolating bins in x and y for the fine grid search. (i.e. ninterxy bins
                                 // between this and the next bin in x or y)
-    constexpr double zmin = -25, zmax = 25., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
+    constexpr double zmin = -15, zmax = 15., xymin = -0.2, xymax = 0.2; // overall range in z, x and y in mm
     constexpr double interxy = 0.01;                                       // interpolation stepsize in mm
 
     // C style workaround for global FCN tracks inside the fitter
@@ -32,17 +32,23 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
     for(auto const &trajectory : any_tracks.trajectories()){
         const auto tsigmapocaxy = any_tracks.at(trkcount).get_sigmapocaxy(); // EMK
         const auto terrz0 = any_tracks.at(trkcount).get_errz0(); // EMK
-        poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0, 0.005); //EMK
+        poca_ellipsoids.emplace_back(beamline, trajectory, tsigmapocaxy, terrz0);//, 0.005); //EMK
         trkcount++;
     }
     
     // sort ellipsoids by zmin so that we can make the iteration a bit faster later
     std::sort(poca_ellipsoids.begin(), poca_ellipsoids.end(), [](Ellipsoid const &a, Ellipsoid const &b) { return a.zmin() < b.zmin(); });
-
+    
+    int start = 0; // starting point for binary track search
     for(int bz = 0; bz < nbz; bz++) {
+        
         std::vector<double> kernel_value = {-1.,-1.,0.}, bestx = {0.,0.,0.}, besty = {0.,0.,0.};
         Point best(-999.,-999.,-999.);
         double const z = bin_center(nbz, zmin, zmax, bz);
+        
+        // set range of tracks
+        //start = any_tracks.setRange(z, start);
+        
         // remove ellipsoid from containter if it won't contribute to this bin and bins further downstream
         poca_ellipsoids.erase(std::remove_if(poca_ellipsoids.begin(), poca_ellipsoids.end(), [&z](Ellipsoid const &el) { return el.zmax() < z; }), poca_ellipsoids.end());
         // check if there are any ellipsoids in this bin (we have sorted, so it's faster to search for the first
@@ -50,6 +56,7 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
         auto const first_ell_out_of_range = std::find_if_not( poca_ellipsoids.begin(), poca_ellipsoids.end(), [&z](Ellipsoid const &el) { return el.zmin() < z; });
         // go on if there are no ellipsoids in this bin
         if(first_ell_out_of_range == poca_ellipsoids.begin()) continue;
+        
         // function to evaluate the pdf, set kernel_value maximum and it's position
         auto eval_pdf_set_kernel_maximum_and_position = [&kernel_value, &best, &poca_ellipsoids, &first_ell_out_of_range](Point const &p) -> void {
             double this_kernel = 0.,this_kernel_sq = 0.;
@@ -85,30 +92,30 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
             eval_pdf_set_kernel_maximum_and_position(p);
           }
         }
-        //set x and y of first kernel_value definition
+        // set x and y of first kernel_value definition
         bestx[0]=best.x();
         besty[0]=best.y();
         bestx[1]=best.x();
         besty[1]=best.y();
 
         //second kernel_value definition (the original)
-        double kmax = -1., xmax = 0., ymax = 0.;
+        double kmax = 0., xmax = 0., ymax = 0.; //double kmax = -1;
         // 1st do coarse grid search
-        any_tracks.setRange(z);
         if(!any_tracks.run()) continue;
 
         // EMK change below to reflect CMS x-y precision?
-        for(double x = -0.15; x <= 0.18; x += 0.03) {
-            for(double y = -0.15; y <= 0.18; y += 0.03) {
-                pv.set(x, y, z);
-                double val = kernel(pv);
-                if(val > kmax) {
-                    kmax = val;
-                    xmax = x;
-                    ymax = y;
-                }
-            }
-        }
+//         for(double x = -0.15; x <= 0.18; x += 0.03) {
+//             for(double y = -0.15; y <= 0.18; y += 0.03) {
+//                 pv.set(x, y, z);
+//                 double val = kernel(pv);
+//                 if(val > kmax) {
+//                     kmax = val;
+//                     xmax = x;
+//                     ymax = y;
+//                 }
+//             }
+//         }
+//         std::cout << "kmax = " << kmax << std::endl;
         if (kmax==0){
             kernel_value[2] = 0;
             bestx[2]=0;
@@ -125,4 +132,5 @@ void compute_over(AnyTracks &any_tracks, std::function<void(int, std::vector<dou
 
         dothis(bz, kernel_value, bestx, besty);
     }
+
 }

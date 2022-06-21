@@ -13,16 +13,18 @@ import awkward
 import h5py
 
 #Input parameters
-zMin = -25 #cm (rocky had this at -240mm for ATLAS)
-zMax = 25 #cm (rocky had this at 240mm for ATLAS)
-totalNumBins = 12000 # (rocky had this at 12000)
+zMin = -15 #cm (rocky had this at -240mm for ATLAS)
+zMax = 15 #cm (rocky had this at 240mm for ATLAS)
+totalNumBins = 8000 # (rocky had this at 12000)
 bins_1cm = int(totalNumBins/(zMax - zMin)) #number of bins in 1cm
+bins_1cm = totalNumBins/(zMax - zMin)
 binWidth = 1/bins_1cm #binsize in cm # 50micrometer = 0.005mm in current case
 
 print()
 print("zMin = %s cm" %(zMin))
 print("zMax = %s cm" %(zMax))
 print("totalNumBins = %s" %(totalNumBins))
+# print("bins in 1cm (noninteger) = %s bins" %(totalNumBins/(zMax - zMin)))
 print("bins in 1cm = %s bins" %(bins_1cm))
 print("binWidth in cm = %s cm" %(binWidth))
 
@@ -107,14 +109,14 @@ def binValue(zmin, zmax, mean, nbins):
 def ComputeSigma(ntrks):
 
     ##  values found by EMK using extrapolated data from https://arxiv.org/pdf/1405.6569.pdf
-    A_res = 926.0
-    B_res = 0.84
-    C_res = 10.7
+    A_res = 62.868879
+    B_res = 0.95620653
+    C_res = 10.3188071
     
     if ntrks < 4:
-        return 0.01 # sd_1 = 0.1 (10 times smaller than lhcb)
+        return binWidth
     else:
-        return 0.0001 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
+        return 1e-3 * (A_res * np.power(ntrks, -1 * B_res) + C_res)
 
 @numba.vectorize(nopython=True)
 def norm_cdf(mu, sigma, x):
@@ -139,7 +141,7 @@ def main():
         #opening input file and getting tree
         tree = uproot.open(str(f))["kernel"]
         branches = tree.arrays() # tree.arrays(namedecode='utf-8')
-        print(branches)
+        #print(branches)
         
         #get all the branches 
         kernel_z = branches["POCAzdata"]
@@ -211,15 +213,20 @@ def main():
                 cat_current = pv_cat[ievt][ipv]
                 
                 if pv_center >= zMin and pv_center <= zMax:
+#                     print()
+#                     print("pv_center = ", pv_center)
                     nbin = binNumber(pv_center)
+#                     print("nbin = ", nbin)
+#                     print("z-position of nbin = ", binCenter(zMin,zMax,totalNumBins,nbin))
                     z_probRange = nbin/bins_1cm + ProbRange
+#                     print("z_probRange = ", z_probRange)
                     probValues = norm_cdf(pv_center, pv_res, z_probRange)
 
                     populate = probValues[1] - probValues[0]
 
                     #TODO: Check the impact of this step
                     #populate = np.where((0.15 / pv_res) > 1, (0.15 / pv_res) * populate, populate)
-                    if cat_current == 0:
+                    if cat_current == 1:
                         Output_Y[ievt, 0, bins+nbin] += populate
                     else:
                         Output_Y[ievt, 1, bins+nbin] += populate

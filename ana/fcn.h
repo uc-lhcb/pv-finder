@@ -24,18 +24,13 @@ inline void FCN(Int_t &num_par, Double_t *grad, Double_t &f, Double_t *pars, Int
 
     // Grab the global instance. This is ugly - can be solved by using Minuit2
     AnyTracks *tracks = fcn_global_tracks;
-
+    //std::vector<int> trackinds = tracks->tcurrent();
+    
     for(int i = tracks->tmin(); i <= tracks->tmax(); i++) {
-        const Point &poca = tracks->at(i).beamPOCA();
-        double poca_z = poca.z();
-        //double chi2 = tracks->at(i).getchi2();
-        if(abs(poca_z-pars[2])<=2.){
-            double pdf = tracks->at(i).pdf(pv);
-
-            // Sum PDF
-            sum1 += pdf;
-            sum2 += pdf * pdf;
-        }
+        double pdf = tracks->at(i).pdf(pv);
+        
+        sum1 += pdf;
+        sum2 += pdf * pdf;
     }
 
     // Avoid really small values
@@ -103,27 +98,27 @@ inline double kernelMax(Point &pv) {
 
 inline int
 ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
-    int ntrk_in_acc = 0;
-    int nprt = data_pvs.prt_pvr->size();
+//     int ntrk_in_acc = 0;
+//     int nprt = data_pvs.prt_pvr->size();
 
-    for(int j = 0; j < nprt; j++) {
-        if(data_pvs.prt_pvr->at(j) != i)
-            continue;
-        if(data_hits.prt_hits->size() == 0)
-            continue;
-        if(data_hits.prt_hits->at(j) < 3)
-            continue;
-        if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
-            continue;
-        TVector3 p3(data_trks.prt_px->at(j), data_trks.prt_py->at(j), data_trks.prt_pz->at(j));
-        if(p3.Eta() < 2 || p3.Eta() > 5)
-            continue;
-        if(p3.Mag() < 3)
-            continue;
+//     for(int j = 0; j < nprt; j++) {
+//         if(data_pvs.prt_pvr->at(j) != i)
+//             continue;
+//         if(data_hits.prt_hits->size() == 0)
+//             continue;
+//         if(data_hits.prt_hits->at(j) < 3)
+//             continue;
+//         if(abs(data_trks.prt_z->at(j) - data_pvs.pvr_z->at(i)) > 0.001)
+//             continue;
+//         TVector3 p3(data_trks.prt_px->at(j), data_trks.prt_py->at(j), data_trks.prt_pz->at(j));
+//         if(p3.Eta() < 2 || p3.Eta() > 5)
+//             continue;
+//         if(p3.Mag() < 3)
+//             continue;
 
-        ntrk_in_acc++;
-    }
-    return ntrk_in_acc;
+//         ntrk_in_acc++;
+//     }
+    return data_pvs.ntrks->at(i);
 }
 
 // -1: < 2 particles made hits
@@ -131,12 +126,12 @@ ntrkInAcc(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const C
 // 1: LHCb pv
 inline int
 pvCategory(const CoreTruthTracksIn &data_trks, const CorePVsIn &data_pvs, const CoreNHitsIn &data_hits, int i) {
-    if(data_trks.ntrks_prompt->at(i) < 2)
-        return -1;
+//     if(data_trks.ntrks_prompt->at(i) < 2)
+//         return -1;
 
     int ntrk_in_acc = ntrkInAcc(data_trks, data_pvs, data_hits, i);
 
-    if(ntrk_in_acc < 5)
+    if(ntrk_in_acc < 7)
         return 0;
     else
         return 1;
