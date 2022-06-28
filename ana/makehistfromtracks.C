@@ -42,6 +42,8 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
     std::vector<DataKernelOut*> dks{new DataKernelOut(&tout,"POCA"),new DataKernelOut(&tout,"POCA_sq"),new DataKernelOut(&tout,"old")};
     DataPVsOut dt(&tout);
     CoreReconTracksOut recon_out(&tout);
+    CoreTruthTracksOut2 truth_out(&tout);
+    
     std::unordered_map<std::string,std::vector<double>> dump_data;
     std::vector<std::string> branch_names{"POCA_minor_axis1_x", "POCA_minor_axis1_y", "POCA_minor_axis1_z",
                                           "POCA_minor_axis2_x", "POCA_minor_axis2_y", "POCA_minor_axis2_z",
@@ -60,6 +62,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
         CoreNHitsIn data_nhits(t);
         CorePVsIn data_pvs(t);
         CoreTruthTracksIn data_trks(t);
+        CoreTruthTracksIn2 data_trks2(t);
 
         t->GetEntry(i);
         std::cout << "Entry " << i << "/" << ntrack;
@@ -93,6 +96,7 @@ void makehistfromtracks(TString input, TString tree_name, TString folder, int ne
 
         copy_in_pvs(dt, data_trks, data_pvs, data_nhits);
         copy_in(recon_out,tracks);
+        copy_in_truth(truth_out,data_trks2);
 
         makez(tracks, dks);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data/corerecontracks.h"
+#include "data/coretruthtracks.h"
 #include "hits.h"
 #include "triplet.h"
 #include <limits>
@@ -264,11 +265,21 @@ inline void copy_in(CoreReconTracksOut &self, const AnyTracks &tracks) {
         self.recon_chi2->push_back(tchi2);
         self.recon_sigmapocaxy->push_back(tsigmapocaxy);
         self.recon_errz0->push_back(terrz0);
-        
-        
-        //self.recon_pocax->push_back(bpoca.x());
-        //self.recon_pocay->push_back(bpoca.y());
-        //self.recon_pocaz->push_back(bpoca.z());
-        //self.recon_sigmapocaxy->push_back(tchi2/3.<=2. ? 0.05 : 0.05+(tchi2-2.)*0.05/4.);
+    }
+}
+
+inline void copy_in_truth(CoreTruthTracksOut2 &self, const CoreTruthTracksIn2 &data_trks) {
+
+    self.clear();
+    
+    for(int i = 0; i < data_trks.prt_z->size(); ++i) {
+        self.prt_x->push_back(data_trks.prt_x->at(i));
+        self.prt_y->push_back(data_trks.prt_y->at(i));
+        self.prt_z->push_back(data_trks.prt_z->at(i));
+        self.prt_px->push_back(data_trks.prt_px->at(i));
+        self.prt_py->push_back(data_trks.prt_py->at(i));
+        self.prt_pz->push_back(data_trks.prt_pz->at(i));
+        self.prt_pvr->push_back(data_trks.prt_pvr->at(i));
+        self.prt_e->push_back(data_trks.prt_e->at(i));
     }
 }
