@@ -49,7 +49,7 @@ OutputData = namedtuple(
         "pv_loc_y",           # position of PV in y
         "pv_loc",             # position of PV in z
         "pv_ntrks",           # number of tracks associated with each PV
-        "pv_cat",             # PV category/quality (either 0 or -1)
+        #"pv_cat",             # PV category/quality (either 0 or -1)
         "sv_loc_x",           # position of SV in x
         "sv_loc_y",           # position of SV in y
         "sv_loc",             # position of SV in z
@@ -101,6 +101,10 @@ def binNumber(mean):
 def binCenter(zmin, zmax, nbins, ibin):
     return ((ibin + 0.5) / nbins) * (zmax - zmin) + zmin
 
+def findRMax(zval, Xmax, Ymax, zbins = np.linspace(-15,15,8000)):
+    idx = (np.abs(zbins - zval)).argmin()
+    return np.sqrt(Xmax[idx]**2 + Ymax[idx]**2)
+
 '''
 def binValue(zmin, zmax, mean, nbins):
     return int(np.floor((mean - zmin)*(nbins/(zmax - zmin))))
@@ -146,7 +150,7 @@ def main():
         #get all the branches 
         kernel_z = branches["POCAzdata"]
         kernel_zsq = branches["POCA_sqzdata"]
-        kernel_xmax = branches["POCAxmax"] #xmax and ymax are the same for zdata and sqzdata
+        kernel_xmax = branches["POCAxmax"]
         kernel_ymax = branches["POCAymax"]
         
         kernel_z_old = branches["oldzdata"]
@@ -157,7 +161,7 @@ def main():
         pv_loc_x = branches["pv_loc_x"]
         pv_loc_y = branches["pv_loc_y"]
         pv_loc_z = branches["pv_loc"]
-        pv_cat = branches["pv_cat"]
+#         pv_cat = branches["pv_cat"]
         pv_ntrks = branches["pv_ntrks"]
         sv_loc_x = branches["sv_loc_x"]
         sv_loc_y = branches["sv_loc_y"]
@@ -210,7 +214,10 @@ def main():
                 pv_center = pv_loc_z_curr[ipv]
                 ntrks = pv_ntrks_curr[ipv]
                 pv_res = ComputeSigma(ntrks)
-                cat_current = pv_cat[ievt][ipv]
+#                 cat_current = pv_cat[ievt][ipv]
+                cat_current=0
+                if findRMax(pv_center,kernel_xmax[ievt],kernel_ymax[ievt])==0:
+                    cat_current=1
                 
                 if pv_center >= zMin and pv_center <= zMax:
 #                     print()
@@ -244,7 +251,7 @@ def main():
         pv_loc_y,
         pv_loc_z,
         pv_ntrks,
-        pv_cat,
+        #pv_cat,
         sv_loc_x,
         sv_loc_y,
         sv_loc_z,
@@ -283,7 +290,7 @@ def main():
         grp_pv_loc_y = hf.create_group("pv_loc_y")
         grp_pv_loc_z = hf.create_group("pv_loc")
         grp_pv_ntrks = hf.create_group("pv_ntrks")
-        grp_pv_cat = hf.create_group("pv_cat")
+        #grp_pv_cat = hf.create_group("pv_cat")
         grp_sv_loc_x = hf.create_group("sv_loc_x")
         grp_sv_loc_y = hf.create_group("sv_loc_y")
         grp_sv_loc_z = hf.create_group("sv_loc")
@@ -322,7 +329,7 @@ def main():
             grp_pv_loc_y.create_dataset(datasetName, data=Output.pv_loc_y[evt], compression="lzf")
             grp_pv_loc_z.create_dataset(datasetName, data=Output.pv_loc[evt], compression="lzf")
             grp_pv_ntrks.create_dataset(datasetName, data=Output.pv_ntrks[evt], compression="lzf")
-            grp_pv_cat.create_dataset(datasetName, data=Output.pv_cat[evt])
+            #grp_pv_cat.create_dataset(datasetName, data=Output.pv_cat[evt])
             grp_sv_loc_x.create_dataset(datasetName, data=Output.sv_loc_x[evt], compression="lzf")
             grp_sv_loc_y.create_dataset(datasetName, data=Output.sv_loc_y[evt], compression="lzf")
             grp_sv_loc_z.create_dataset(datasetName, data=Output.sv_loc[evt], compression="lzf")
