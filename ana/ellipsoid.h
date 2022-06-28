@@ -52,7 +52,6 @@ class Ellipsoid {
       // ## returns the chi-square value  of the distance-of-closest-approach and the
       // ## associated probability value exp( -1/2 chisq) [ignoring (2*pi)^{3/2}]
       auto const xvec = _center-scan_point.to_vec();
-      auto const u1 = _minor_axis1.Unit();
       auto const chisq = std::pow(xvec.Dot(_minor_axis1.Unit()),2)/_minor_axis1.Mag2() +
                          std::pow(xvec.Dot(_minor_axis2.Unit()),2)/_minor_axis2.Mag2() +
                          std::pow(xvec.Dot(_major_axis.Unit()),2)/_major_axis.Mag2();
