@@ -32,7 +32,7 @@ template <class T> struct CoreTruthTracks2IO : public CoreIO<T, double> {
     
     Vec prt_pvr{this, "prt_pvr"};
     Vec prt_e{this, "prt_e"};
-    Vec prt_pid{this, "prt_pid"};
+    //Vec prt_pid{this, "prt_pid"};
     
     Vec ntrks_prompt{this, "ntrks_prompt"};
 };
