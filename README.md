@@ -83,6 +83,7 @@ and add the following:
     "lcgVersion": "97a",
     "gitGroup": {
       "Detector": "lhcb",
+      "Gaudi" : "mstahl",
       "default": "mstahl"
     },
     "dataPackages": [
@@ -120,4 +121,4 @@ n-tuples in addition. For example:
 Moore/run gaudirun.py '$MOOREROOT/options/force_functor_cache.py' '$MOOREROOT/options/ft_decoding_v6.py' '$MOOREROOT/tests/options/xdigi_minbias_input_and_conds_ftv6.py' --option 'from Moore import options; options.input_files=["root://x509up_u60317@eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00091829/0000/00091829_00000087_1.xdigi"]' '$RECOCONFROOT/options/hlt1_PV_reco.py'
 ```
 
-Be aware to set the correct conditions tags and other Moore options in the Moore config files. For larger n-tuple productions, it makes sense to make properties like `DumpOutputName` of PVFinder available in the respective Moore configuration [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/hlt1_tracking.py#L229), [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/python/RecoConf/standalone.py#L65) and [here](https://gitlab.cern.ch/mstahl/Moore/-/blob/9a164c00d1a86d0c5a694064bb3651a9f5a4f81b/Hlt/RecoConf/options/hlt1_PV_reco.py) to be able to follow [this](https://gitlab.cern.ch/mstahl/Moore/-/snippets/979#note_3936427) idea.
+Be aware to set the correct conditions tags and other Moore options in the Moore config files, like [so](https://gitlab.cern.ch/mstahl/Moore/-/blob/0b1a193fd2142587cf7a8330abf0c3af64146948/Hlt/Moore/tests/options/LppiMagUp_input_and_conds.py). For larger n-tuple productions, you can use the `ouput_file` field of the Moore configuration that was checked out earlier. It might be easiest to set this in the command line directly when running a multiple jobs as shown [here](https://gitlab.cern.ch/mstahl/Moore/-/snippets/979#note_3936427).
