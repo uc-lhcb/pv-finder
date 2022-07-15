@@ -72,6 +72,9 @@ def collect_t2kde_data(
     Xlist = []
     Ylist = []
 
+    Xlist_ints = []
+    Ylist_ints = []
+
     print("Loading data...")
 
     for XY_file in files:
@@ -118,6 +121,11 @@ def collect_t2kde_data(
               print("binsPerInteral*nIntervals = ",binsPerInteral*nIntervals)
 
             intervalKernels = np.reshape(kernel,(nEvts*nIntervals,binsPerInterval))
+            intervalXmax    = np.reshape(Xmax,(nEvts*nIntervals,binsPerInterval))
+            intervalYmax    = np.reshape(Ymax,(nEvts*nIntervals,binsPerInterval))
+            Y_intervals     = ja.concatenate((intervalKernels,intervalXmax,intervalYmax),axis=1).astype(dtype_Y)
+
+
             print("intervalKernels.shape = ",intervalKernels.shape)
 
 
@@ -134,8 +142,12 @@ def collect_t2kde_data(
 ##  201018  use poca ellipsoid parameter rather than "track parameters"
         
             afile = awkward.hdf5(f)
-            
-            pocaz = np.asarray(0.001*afile["poca_z"].astype(dtype_Y))
+
+##  220715 remove pocaz scaling here to use raw values in mm
+##  we probably want to maintain scales in mm everywhere
+##  or consistently rescale all of x,y,z,A,B, etc.            
+##            pocaz = np.asarray(0.001*afile["poca_z"].astype(dtype_Y))
+            pocaz = np.asarray(afile["poca_z"].astype(dtype_Y))
             pocax = np.asarray(afile["poca_x"].astype(dtype_Y))
             pocay = np.asarray(afile["poca_y"].astype(dtype_Y))
             pocaMx = np.asarray(afile["major_axis_x"].astype(dtype_Y))
@@ -185,7 +197,7 @@ def collect_t2kde_data(
             A, B, C, D, E, F = six_ellipsoid_parameters(majorAxis,minorAxis_1,minorAxis_2)
 
             print("A.shape = ",A.shape)
-            for iTrk in range(10):
+            for iTrk in range(2):
               print("majorAxis[iTrk][0][0] = ",majorAxis[iTrk][0][0])
               print("majorAxis[iTrk][1][0] = ",majorAxis[iTrk][1][0])
               print("majorAxis[iTrk][2][0] = ",majorAxis[iTrk][2][0])
@@ -228,9 +240,22 @@ def collect_t2kde_data(
             minZ = -100.
             maxZ =  300.
             intervalLength = (maxZ-minZ)/nIntervals
+            print(" *** intervalLength = ",intervalLength,"   ***")
+
+##  mark non-track data with -99 as a flag
+            maxIntLen = 300  ## to be re-visited  mds 220712
+            padded_int_pocaz   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocax   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocay   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaA   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaB   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaC   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaD   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaE   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
+            padded_int_pocaF   = np.zeros((nEvts*nIntervals,maxIntLen))-99.
 
             for  eventIndex, e in enumerate(pocaz):
-              if (eventIndex<5):
+              if (eventIndex<1):
                 print("eventIndex = ",eventIndex)
               local_pocaz = pocaz[eventIndex][:]
               local_pocax = pocax[eventIndex][:]
@@ -254,7 +279,7 @@ def collect_t2kde_data(
               ordered_E     = local_E[indices]
               ordered_F     = local_F[indices]
   
-              if (eventIndex<5): 
+              if (eventIndex<1): 
                 print("len(local_pocaz) = ",len(local_pocaz))
                 print("  ")
                 print("local_pocaz = ",local_pocaz)
@@ -265,20 +290,52 @@ def collect_t2kde_data(
                 print("  ---------------------- \n")
 
               for interval in range(nIntervals):
-                interval_minZ = minZ + interval*intervalLength - 2.5
-                interval_maxZ = minZ + (interval+1)*intervalLength + 2.5
+                interval_lowEdge  = minZ + interval*intervalLength
+                interval_highEdge = interval_lowEdge + intervalLength 
+                interval_minZ     = interval_lowEdge - 2.5
+                interval_maxZ     = interval_highEdge + 2.5
+                if (eventIndex<1):
+                    print(" -- interval, interval_minZ, interval_maxZ = ",interval, interval_minZ, interval_maxZ)
                 intervalRange = (local_pocaz>interval_minZ) & (local_pocaz<interval_maxZ)
-                interval_pocaz = local_pocaz[intervalRange]
+## for each interval we want the values of z shifted to be centered at the
+## center of the interval
+                interval_pocaz = local_pocaz[intervalRange] - interval_lowEdge
+## mds:try no normalization                normalization = 1./(interval_maxZ - interval_minZ)
+## mds:try no normalization                interval_pocaz = interval_pocaz*normalization
                 interval_pocax = local_pocax[intervalRange]
                 interval_pocay = local_pocay[intervalRange]
-                
-                print("  ")
-                if (eventIndex<5):
-                  print("eventIndex, interval = ",eventIndex, interval)
-                  print("interval_pocaz = ",interval_pocaz)
-                  print("             ----          ")
+                interval_A     = local_A[intervalRange]
+                interval_B     = local_B[intervalRange]
+                interval_C     = local_C[intervalRange]
+                interval_D     = local_D[intervalRange]
+                interval_E     = local_E[intervalRange]
+                interval_F     = local_F[intervalRange]
+               
+                if (eventIndex<1): 
+                    print("  ")
+                    if (interval<5):
+                      print("eventIndex, interval = ",eventIndex, interval)
+                      print("interval_pocaz = ",interval_pocaz)
+                      print("             ----          ")
+                      print("interval_pocax = ",interval_pocax)
 
-###i#############                
+## and now for all intervals for the eventIndex range
+                    print("  ")
+                    print("eventIndex and interval = ",eventIndex,interval) 
+                    print("interval_pocaz = ",interval_pocaz)
+                fillingLength = min(len(interval_pocaz),maxIntLen)
+                ii = eventIndex*nIntervals + interval
+                padded_int_pocaz[ii,:fillingLength] = interval_pocaz[:fillingLength].astype(dtype_Y)
+                padded_int_pocax[ii,:fillingLength] = interval_pocax[:fillingLength].astype(dtype_Y)
+                padded_int_pocay[ii,:fillingLength] = interval_pocay[:fillingLength].astype(dtype_Y)
+                padded_int_pocaA[ii,:fillingLength] = interval_A[:fillingLength].astype(dtype_Y)
+                padded_int_pocaB[ii,:fillingLength] = interval_B[:fillingLength].astype(dtype_Y)
+                padded_int_pocaC[ii,:fillingLength] = interval_C[:fillingLength].astype(dtype_Y)
+                padded_int_pocaD[ii,:fillingLength] = interval_D[:fillingLength].astype(dtype_Y)
+                padded_int_pocaE[ii,:fillingLength] = interval_E[:fillingLength].astype(dtype_Y)
+                padded_int_pocaF[ii,:fillingLength] = interval_F[:fillingLength].astype(dtype_Y)
+
+################                
 
             for i, e in enumerate(pocaz):
                 fillingLength = min(len(e),maxLen)
@@ -295,45 +352,95 @@ def collect_t2kde_data(
             padded_pocaz  = padded_pocaz[:,np.newaxis,:]
             padded_pocax  = padded_pocax[:,np.newaxis,:]
             padded_pocay  = padded_pocay[:,np.newaxis,:]
-            padded_pocaA = padded_pocaA[:,np.newaxis,:]
-            padded_pocaB = padded_pocaB[:,np.newaxis,:]
-            padded_pocaC = padded_pocaC[:,np.newaxis,:]
-            padded_pocaD = padded_pocaD[:,np.newaxis,:]
-            padded_pocaE = padded_pocaE[:,np.newaxis,:]
-            padded_pocaF = padded_pocaF[:,np.newaxis,:]
+            padded_pocaA  = padded_pocaA[:,np.newaxis,:]
+            padded_pocaB  = padded_pocaB[:,np.newaxis,:]
+            padded_pocaC  = padded_pocaC[:,np.newaxis,:]
+            padded_pocaD  = padded_pocaD[:,np.newaxis,:]
+            padded_pocaE  = padded_pocaE[:,np.newaxis,:]
+            padded_pocaF  = padded_pocaF[:,np.newaxis,:]
+
+            padded_int_pocaz  = padded_int_pocaz[:,np.newaxis,:]
+            padded_int_pocax  = padded_int_pocax[:,np.newaxis,:]
+            padded_int_pocay  = padded_int_pocay[:,np.newaxis,:]
+            padded_int_pocaA  = padded_int_pocaA[:,np.newaxis,:]
+            padded_int_pocaB  = padded_int_pocaB[:,np.newaxis,:]
+            padded_int_pocaC  = padded_int_pocaC[:,np.newaxis,:]
+            padded_int_pocaD  = padded_int_pocaD[:,np.newaxis,:]
+            padded_int_pocaE  = padded_int_pocaE[:,np.newaxis,:]
+            padded_int_pocaF  = padded_int_pocaF[:,np.newaxis,:]
 
             X = ja.concatenate((padded_pocaz,padded_pocax,padded_pocay,padded_pocaA,padded_pocaB,padded_pocaC,padded_pocaD,padded_pocaE,padded_pocaF),axis=1).astype(dtype_X)
 
+            X_ints = ja.concatenate((padded_int_pocaz,padded_int_pocax,padded_int_pocay,padded_int_pocaA,padded_int_pocaB,padded_int_pocaC,padded_int_pocaD,padded_int_pocaE,padded_int_pocaF),axis=1).astype(dtype_X)
+
 ## mds            print("X = ",X)
             print("len(X) = ",len(X))
+            print("len(X_ints) =",len(X_ints))
             Xlist.append(X)
             Ylist.append(Y)
+
+            Xlist_ints.append(X_ints)
+            Ylist_ints.append(Y_intervals)
+
             print("len(Xlist) = ",len(Xlist))
+            print("len(Xlist_ints) = ",len(Xlist_ints))
     X = np.concatenate(Xlist, axis=0)
     Y = np.concatenate(Ylist, axis=0)
+
+    X_intervals = np.concatenate(Xlist_ints, axis = 0)
+    Y_intervals = np.concatenate(Ylist_ints, axis = 0)
     print("outer loop X.shape = ", X.shape)
 
     if slice:
         X = X[slice, :]
         Y = Y[slice, :]
 
+        X_intervals = X_intervals[slice, :]
+        Y_intervals = Y_intervals[slice, :]
+
     with Timer(start=f"Constructing {X.shape[0]} event dataset"):
         x_t = torch.tensor(X)
         y_t = torch.tensor(Y)
+
+        x_t_intervals = torch.tensor(X_intervals)
+        y_t_intervals = torch.tensor(Y_intervals)
+
+##  for debugging
+        for intervalIndex in range(00):
+          print("  ")
+          print(" ** intervalIndex = ",intervalIndex)
+          print("y_t_intervals[intervalIndex][0:100] = ")
+          print(y_t_intervals[intervalIndex][0:100])
+          print("  ")
+          print("x_t_intervals[intervalIndex][0][0:20] = ")
+          print(x_t_intervals[intervalIndex][0][0:20])
+          print(" --------- ")
+
 
         if device is not None:
             x_t = x_t.to(device)
             y_t = y_t.to(device)
 
-        dataset = TensorDataset(x_t, y_t)
+            x_t_intervals = x_t_intervals.to(device)
+            y_t_intervals = y_t_intervals.to(device)
+
+        dataset = TensorDataset(x_t_intervals, y_t_intervals)
 
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, **kargs)
     print("x_t.shape = ",x_t.shape)
     print("x_t.shape[0] = ", x_t.shape[0])
     print("x_t.shape[1] = ", x_t.shape[1])
-    nFeatures = 6
-    x_t.view(x_t.shape[0],nFeatures,-1)
-    print("x_t.shape = ",x_t.shape)
+
+    print("x_t_intervals.shape = ",x_t_intervals.shape)
+    print("x_t_intervals.shape[0] = ", x_t_intervals.shape[0])
+    print("x_t_intervals.shape[1] = ", x_t_intervals.shape[1])
+
+    print("y_t.shape = ",y_t.shape)
+
+    print("y_t_intervals.shape = ",y_t_intervals.shape)
+    print("y_t_intervals.shape[0] = ", y_t_intervals.shape[0])
+    print("y_t_intervals.shape[1] = ", y_t_intervals.shape[1])
+
     
     
     return loader
