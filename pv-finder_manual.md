@@ -59,7 +59,7 @@ There are a few models being used to find PVs. The default model architecture us
 
 To explain AllCNN, it is important to understand what the SimpleCNN architecture is. For the purposes of discussion, it will be assumed that this is a 6 layer neural network. In this case, SimpleCNN is a series of 5 convolutional layers with LeakyReLU activation functions, as well as a fully connected layer at the end, where it passes through a Softplus activation function. Dropout is also employed in each layer. Furthermore, the input dimension is preserved at each layer (1 x 4000), which is accomplished with a stride of one and padding in the convolutional layers. This architecture can also be seen in Figure 1.
 
-| ![alt text](/figs/simplecnn-arch.bmp "Figure 1") |
+| ![alt text](/plots/figs/simplecnn-arch.bmp "Figure 1") |
 |:--:|
 | *Figure 1. This is a sample architecture of SimpleCNN. Different channel and kernel sizes are used throughout the model, which have been decided largely out of trial and error, as well as some (currently) unprincipled estimates.* |
 
@@ -67,13 +67,13 @@ To explain AllCNN, it is important to understand what the SimpleCNN architecture
 
 AllCNN is similar to SimpleCNN. As the name suggests, the difference is that AllCNNdoes not use a fully-connected layer at the end. Instead, there are only convolutional layersused throughout the network. This typically does not work on its own, however, and musthave trained weights loaded into all but the last, newly added, convolutional layer.  It isnot currently understood why this is the case, but the network seems incapable of learningand locating PVs without pre-training weights. This is accomplished by first training usingSimpleCNN, then loading all but its last layer’s weights into an AllCNN model.  Experi-mentally, this works and has consistently produced better results than by just running theSimpleCNN model. Below is a diagram of the AllCNN architecture, seen in Figure 2.
 
-| ![alt text](/figs/allcnn-arch.bmp "Figure 2") |
+| ![alt text](/plots/figs/allcnn-arch.bmp "Figure 2") |
 |:--:|
 | *Figure 2. This is a sample architecture of AllCNN. As in Figure 1, different channel and kernel sizes are used throughout the model, likewise chosen in the same fashion.* |
 
 ## 1.4. Kernel Density Estimators
 
-| ![alt text](/figs/lhcb_diagram.bmp "Figure 3") |
+| ![alt text](/plots/figs/lhcb_diagram.bmp "Figure 3") |
 |:--:|
 | *Figure 3. This is a diagram of the LHCb detector located at CERN. The z direction used in the following discussion is defined as horizontal with respect to this image.* |
 
@@ -85,17 +85,17 @@ The input into the CNN (or some other machine learning algorithm) is a kernel de
 4. The density value at the point found by MINUIT is then used as the KDE value at that z-position (see the top graph in Figure 4)
 5. Before input into the CNN, the KDE is usually scaled so that its area is on the order of one.
 
-| ![alt text](/figs/kde.bmp "Figure 4") |
+| ![alt text](/plots/figs/kde.bmp "Figure 4") |
 |:--:|
 | *Figure 3. This is a set of visual representations of the KDE. The above KDE is called KDE-A. Another KDE known as KDE-B is used alongside KDE-A. This KDE is the same as KDE-A except the values at each z-bin are squared, which can emphasize certain features of the histogram.* |
 
-| ![alt text](/figs/tracks.bmp "Figure 5") |
+| ![alt text](/plots/figs/tracks.bmp "Figure 5") |
 |:--:|
 | *Figure 4. This diagram explains the relationship of the POCA-KDE with tracking.* |
 
 One other method of KDE generation that is being explored is the POCA-KDE. POCA stands for “point of closest approach.” For each track (recall tracks are 3d vectors), there is a POCA along the track which minimizes the 3-dimensional distance from the track to the beamline (z-axis). The covariance matrix associated with each track can be used to calculate an ellipsoid centered around the POCA, where the size is determined by the track’s uncertainty (see Figure 5). A smaller ellipsoid corresponds to a track with higher precision, and a larger ellipsoid corresponds to a track with lower precision. This ellipsoid is fully defined by its center (the POCA), the major axis, and two minor axes. The conversion is achieved as follows:
 
-![alt text](/figs/kde-procedure.bmp)
+![alt text](/plots/figs/kde-procedure.bmp)
 
 ## 1.5. Git & GitHub
 
