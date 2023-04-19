@@ -60,16 +60,16 @@ def load_full_state(model_to_update, Path, freeze_weights=False):
     model_to_update.load_state_dict(update_dict, strict=False)
     print('Of the '+str(len(model_to_update.state_dict())/2)+' parameter layers to update in the current model, '+str(len(update_dict)/2)+' were loaded')
         
-def save_summary(model, sample_input):
-    # this part saves the printed output of summary() to a text file
-    orig_stdout = sys.stdout
-    f = open('model_summary.txt', 'w')
-    sys.stdout = f
-    summary(model, sample_input.shape)
-    print(model)
-    sys.stdout = orig_stdout
-    f.close()
-    mlflow.log_artifact('model_summary.txt')
+# def save_summary(model, sample_input):
+#     # this part saves the printed output of summary() to a text file
+#     orig_stdout = sys.stdout
+#     f = open('model_summary.txt', 'w')
+#     sys.stdout = f
+#     summary(model, sample_input.shape)
+#     print(model)
+#     sys.stdout = orig_stdout
+#     f.close()
+#     mlflow.log_artifact('model_summary.txt')
     
 class DummyTqdmFile(object):
     """Dummy file-like that will write to tqdm"""

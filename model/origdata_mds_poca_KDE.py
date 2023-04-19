@@ -39,6 +39,7 @@ OutputData = namedtuple(
     (
         "X",  # Density in Z, 4000xN
         "Y",  #
+        "Y_will",
         "Xmax",
         "Ymax",
         "pv_loc_x",
@@ -289,9 +290,12 @@ def process_root_file(filepath, sd_1=0.1):
     N_vals = len(X)
     zvals_range = (-99.95, 299.95)
     Y = np.zeros([4, N_vals, 4000], dtype=dtype_Y)
+    Y_will = np.zeros([4, N_vals, 4000], dtype=dtype_Y)
     edges = np.array([-0.05, 0.05])
     ##    bins = np.arange(-3, 4)
     bins = np.arange(-5, 6)
+    relevant_range = np.arange(-2, 2)
+    
     mat = 0.1 * bins[np.newaxis, :] + edges[:, np.newaxis] - 99.95
 
     msgs = []
@@ -384,6 +388,7 @@ def process_root_file(filepath, sd_1=0.1):
                         try:
                             ## mds                    Y[n, i, bins + N_bin] += values[1] - values[0]
                             Y[n, i, bins + N_bin] += populate
+                            Y_will[n, i, relevant_range + N_bin] += 1
                         except IndexError:
                             msgs.append(
                                 f"Ignored hit at bin {N_bin} at {mean:.4g} in event {i}, column {n}"
@@ -424,6 +429,7 @@ def process_root_file(filepath, sd_1=0.1):
     return OutputData(
         X,
         Y,
+        Y_will,
         Xmax,
         Ymax,
         pv_loc_x,

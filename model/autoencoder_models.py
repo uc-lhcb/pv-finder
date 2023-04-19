@@ -131,9 +131,9 @@ def combine(x, y, mode='concat'):
     
 class UNet(nn.Module):
     def __init__(self,
-                 n=32,
+                 n=64,
                  sc_mode='concat',
-                 dropout_p=0,
+                 dropout_p=.25,
                  d_selection='ConvBNrelu',
                  u_selection='Up'
                 ):
@@ -151,7 +151,9 @@ class UNet(nn.Module):
         d_block = downsample_options[d_selection]
         u_block = upsample_options[u_selection]
                 
-        self.rcbn1 = d_block(1, n, kernel_size = 25, p=dropout_p)
+        ## first parameter of self.rcbn1 depends on values of 
+        ## load_A_and_B (false 1, true 2) and load_xy (false 0, true2)
+        self.rcbn1 = d_block(2, n, kernel_size = 25, p=dropout_p)
         self.rcbn2 = d_block(n, n, kernel_size = 7, p=dropout_p)
         self.rcbn3 = d_block(n, n, kernel_size = 5, p=dropout_p)
         self.rcbn4 = d_block(n, n, kernel_size = 5, p=dropout_p)
@@ -195,7 +197,6 @@ class UNet(nn.Module):
                 torch.quantization.fuse_modules(m, ['0', '1', '2'], inplace=True)
 
 
-    
 class ಠ_ಠ_noSC(nn.Module):
     def __init__(self, n=32, dropout_p=0):
         super().__init__()
@@ -269,20 +270,146 @@ class ಠ_ಠ_Residual(nn.Module):
 
         ret = F.softplus(logits_x0).squeeze(1)
         return  ret 
-    
-
-# ======================= Perturbative Models ====================================
-class PerturbativeUNet(nn.Module):
-    def __init__(self, args, n, sc_mode='concat', dropout_p=0):
+        
+class UNetPlusPlus(nn.Module):
+    def __init__(self,
+                 n=64,
+                 sc_mode='concat',
+                 dropout_p=.25,
+                 d_selection='ConvBNrelu',
+                 u_selection='Up'
+                ):
         super().__init__()
-        self.mode = sc_mode
         if sc_mode == 'concat': 
             factor = 2
         else: 
             factor = 1
+        self.mode = sc_mode
+        self.p = dropout_p
         
+        assert d_selection in downsample_options.keys(), f'Selection for downsampling block {d_selection} not present in available options - {downsample_options.keys()}'
+        assert u_selection in upsample_options.keys(), f'Selection for downsampling block {u_selection} not present in available options - {upsample_options.keys()}'
+        
+        d_block = downsample_options[d_selection]
+        u_block = upsample_options[u_selection]
+                
+        self.rcbn1 = d_block(4, n, kernel_size = 25, p=dropout_p)
+        self.rcbn2 = d_block(n, n, kernel_size = 7, p=dropout_p)
+        self.rcbn3 = d_block(n, n, kernel_size = 5, p=dropout_p)
+        self.rcbn4 = d_block(n, n, kernel_size = 5, p=dropout_p)
+        self.rcbn5 = d_block(n, n, kernel_size = 5, p=dropout_p)
+
+        self.ui = nn.ConvTranspose1d(n, n, 2, 2)
+        self.i1 = ConvBNrelu(2*n, n, kernel_size=5, p=dropout_p)
+        self.i2 = ConvBNrelu(2*n, n, kernel_size=5, p=dropout_p)
+        self.i3 = ConvBNrelu(2*n, n, kernel_size=5, p=dropout_p)
+        self.i4 = ConvBNrelu(3*n, n, kernel_size=5, p=dropout_p)
+        self.i5 = ConvBNrelu(3*n, n, kernel_size=5, p=dropout_p)
+        self.i6 = ConvBNrelu(4*n, n, kernel_size=5, p=dropout_p)
+        
+        self.up1 = nn.ConvTranspose1d(n, n , 2, 2)
+        self.up_c1 = ConvBNrelu(2*n, n, kernel_size=5, p=dropout_p)
+        self.up2 = nn.ConvTranspose1d(n, n, 2, 2)
+        self.up_c2 = ConvBNrelu(3*n, n, kernel_size=5, p=dropout_p)
+        self.up3 = nn.ConvTranspose1d(n, n, 2, 2)
+        self.up_c3 = ConvBNrelu(4*n, n, kernel_size=5, p=dropout_p)
+        self.up4 = nn.ConvTranspose1d(n, n, 2, 2)
+        self.up_c4 = ConvBNrelu(5*n, n, kernel_size=5, p=dropout_p)
+        
+        self.out_intermediate = nn.Conv1d(2*n, n, 5, padding=2) # padding=5-1//2
+        self.outc = nn.Conv1d(n, 1, 5, padding=2) # padding=5-1//2
+        
+        self.d = nn.MaxPool1d(2)
+
+    def forward(self, x):
+       #  x = torch.cat([x, x[:, ::-1, :]], dim=0) experimental - flip samples in a batch to try and  learn symmetrical kernels 
+       # print('x.shape=',x.shape)
+        d1 = self.rcbn1(x) # 4000
+        d2 = self.d(self.rcbn2(d1)) # 2000
+        d3 = self.d(self.rcbn3(d2)) # 1000
+        d4 = self.d(self.rcbn4(d3)) # 500
+        d5 = self.d(self.rcbn5(d4)) # 250
+        
+        ui1 = self.ui(d2)
+        ui2 = self.ui(d3)
+        ui3 = self.ui(d4)
+        
+        i1 = self.i1(torch.cat([ui1, d1], dim=1))
+        i2 = self.i2(torch.cat([ui2, d2], dim=1))
+        i3 = self.i3(torch.cat([ui3, d3], dim=1))
+        
+        ui4 = self.ui(i2)
+        ui5 = self.ui(i3)
+        
+        i4 = self.i4(torch.cat([ui4, d1, i1], dim=1))
+        i5 = self.i5(torch.cat([ui5, d2, i2], dim=1))
+        
+        ui6 = self.ui(i5)
+        
+        i6 = self.i6(torch.cat([ui6, d1, i1, i4], dim=1))
+        
+        u1 = self.up_c1(torch.cat([d4, self.up1(d5)], dim=1))             # 500
+        u2 = self.up_c2(torch.cat([d3, i3, self.up2(u1)], dim=1))         # 1000
+        u3 = self.up_c3(torch.cat([d2, i2, i5, self.up1(u2)], dim=1))     # 2000
+        u4 = self.up_c4(torch.cat([d1, i1, i4, i6, self.up1(u3)], dim=1)) # 4000
+        
+        x = self.out_intermediate(torch.cat([u4, d1], dim=1))
+        logits_x0 = self.outc(x)
+
+        ret = F.softplus(logits_x0).squeeze()
+        return  ret
+    
+    
+    # Fuse Conv+BN and Conv+BN+Relu modules prior to quantization
+    # This operation does not change the numerics
+    # If you are reading this, this function is probably not relevant to you. Carry on.
+    def fuse_model(self):
+        for m in self.modules():
+            if type(m) == ConvBNrelu:
+                torch.quantization.fuse_modules(m, ['0', '1', '2'], inplace=True)
+
+# ======================= Perturbative Models ====================================
+class PerturbativeUNet(nn.Module):
+    def __init__(self, 
+                 n=64, 
+                 sc_mode='concat', 
+                 dropout_p=.20,
+                 d_selection='ConvBNrelu',
+                 u_selection='Up'
+                 ):
+        super().__init__()
+        if sc_mode == 'concat': 
+            factor = 2
+        else: 
+            factor = 1
+        self.mode = sc_mode
+        self.p = dropout_p
+        
+        assert d_selection in downsample_options.keys(), f'Selection for downsampling block {d_selection} not present in available options - {downsample_options.keys()}'
+        assert u_selection in upsample_options.keys(), f'Selection for downsampling block {u_selection} not present in available options - {upsample_options.keys()}'
+        
+        d_block = downsample_options[d_selection]
+        u_block = upsample_options[u_selection]
+
+        # network for X features (KDE A + B)
+        self.rcbn1 = d_block(2, n, kernel_size = 25, p=dropout_p)
+        self.rcbn2 = d_block(n, n, kernel_size = 7, p=dropout_p)
+        self.rcbn3 = d_block(n, n, kernel_size = 5, p=dropout_p)
+        self.rcbn4 = d_block(n, n, kernel_size = 5, p=dropout_p)
+        self.rcbn5 = d_block(n, n, kernel_size = 5, p=dropout_p)
+
+        self.up1 = u_block(n, n, kernel_size = 5, p=dropout_p)
+        self.up2 = u_block(n*factor, n, kernel_size = 5, p=dropout_p)
+        self.up3 = u_block(n*factor, n, kernel_size = 5, p=dropout_p)
+        self.up4 = u_block(n*factor, n, kernel_size = 5, p=dropout_p)
+        self.out_intermediate = nn.Conv1d(n*factor, n, 5, padding=2)
+
+        self.outc_larger = nn.Conv1d(factor*n, 1, 3, padding=1)
+
+        self.down = nn.MaxPool1d(2)
+
         # network for perturbative features
-        self.cbn1_x = ConvBNrelu(2, n, k_size = 11, p = dropout_p)
+        self.cbn1_x = ConvBNrelu(2, n, kernel_size = 11, p = dropout_p)
         self.cbn2_x = ConvBNrelu(n, n, p = dropout_p)
         self.cbn3_x = ConvBNrelu(n, n, p = dropout_p)
         self.cbn4_x = ConvBNrelu(n, n, p = dropout_p)
@@ -291,28 +418,25 @@ class PerturbativeUNet(nn.Module):
         self.up3_x = Up(n*factor, n, p = dropout_p)
         self.up4_x = Up(n*factor, n, p = dropout_p)
 
-        self.down = nn.MaxPool1d(2)
         self.d = nn.MaxPool1d(2)
-        
-        # network for X features
-        self.rcbn1 = ConvBNrelu(1, n, k_size = 25, p = dropout_p)
-        self.rcbn2 = ConvBNrelu(n, n, k_size = 7, p = dropout_p)
-        self.rcbn3 = ConvBNrelu(n, n, k_size = 5, p = dropout_p)
-        self.rcbn4 = ConvBNrelu(n, n, k_size = 5, p = dropout_p)
-        self.rcbn5 = ConvBNrelu(n, n, k_size = 5, p = dropout_p)
-
-        self.up1 = Up(n, n, k_size = 5, p = dropout_p)
-        self.up2 = Up(n*factor, n, k_size = 5, p = dropout_p)
-        self.up3 = Up(n*factor, n, k_size = 5, p = dropout_p)
-        self.up4 = Up(n*factor, n, k_size=5, p = dropout_p)
-        self.out_intermediate = nn.Conv1d(n*factor, n, 5, padding=2)
-
-        self.outc_larger = nn.Conv1d(factor*n, 1, 3, padding=1)
 
     def forward(self, x):
-        X = x[:, 0:1, :] # one-slice prevents need for .unsqueeze()
+        X = x[:, :2, :] # one-slice prevents need for .unsqueeze()
         x_y = x[:, -2:, :]
-        
+
+        # X feature based on U-Net
+        x1 = self.rcbn1(X) # 4000
+        x2 = self.d(self.rcbn2(x1)) # 2000
+        x3 = self.d(self.rcbn3(x2)) # 1000
+        x4 = self.d(self.rcbn4(x3)) # 500
+        x = self.d(self.rcbn5(x4)) # 250
+
+        x = self.up1(x) # 500
+        x = self.up2(combine(x, x4, mode=self.mode)) # 1000
+        x = self.up3(combine(x, x3, mode=self.mode)) # 2000
+        x = self.up4(combine(x, x2, mode=self.mode)) # 4000
+        logits_x0 = self.out_intermediate(combine(x, x1, mode=self.mode))
+
         # x / y  feature
         p_x = self.cbn1_x(x_y) 
         p_x = self.down(p_x)
@@ -330,19 +454,6 @@ class PerturbativeUNet(nn.Module):
         p_x = self.up2_x(combine(p_x, p_x4, mode=self.mode))
         p_x = self.up3_x(combine(p_x, p_x3, mode=self.mode))
         logits_x1 = self.up4_x(combine(p_x, p_x2, mode=self.mode))
-
-        # X feature based on U-Net
-        x1 = self.rcbn1(X) # 4000
-        x2 = self.d(self.rcbn2(x1)) # 2000
-        x3 = self.d(self.rcbn3(x2)) # 1000
-        x4 = self.d(self.rcbn4(x3)) # 500
-        x = self.d(self.rcbn5(x4)) # 250
-
-        x = self.up1(x) # 500
-        x = self.up2(combine(x, x4, mode=self.mode)) # 1000
-        x = self.up3(combine(x, x3, mode=self.mode)) # 2000
-        x = self.up4(combine(x, x2, mode=self.mode)) # 4000
-        logits_x0 = self.out_intermediate(combine(x, x1, mode=self.mode))
 
         logits_X_and_x = self.outc_larger(combine(logits_x0, logits_x1, mode=self.mode))
 
@@ -467,9 +578,7 @@ class WeirdResidualAutoencoder(nn.Module):
 
         ret = torch.nn.Softplus()(logits_x0).squeeze()
         return  ret
-    
-    
-    
+     
 class ConvBNleaky(nn.Sequential):
     """convolution => [BN] => ReLU"""
     def __init__(self, in_channels, out_channels, k_size=3, stride=1):
@@ -477,6 +586,122 @@ class ConvBNleaky(nn.Sequential):
         nn.Conv1d(in_channels, out_channels, k_size, stride=stride, padding=(k_size-1)//2),
 #         nn.BatchNorm1d(out_channels),
         nn.LeakyReLU())
+
+# ======================================================================
+# AllCNN Models
+# ======================================================================
+class DenseNet(nn.Module):
+    '''
+    This is used to pretrain the X feature set
+    '''
+    def __init__(self):
+        super(DenseNet, self).__init__()
+
+        self.conv1 = nn.Conv1d(
+            in_channels=4,
+            out_channels=25,
+            kernel_size=25,
+            stride=1,
+            padding=(25 - 1) // 2,
+        )
+
+        self.conv2 = nn.Conv1d(
+            in_channels=self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        self.conv3 = nn.Conv1d(
+            in_channels=self.conv2.out_channels+self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        self.conv4 = nn.Conv1d(
+            in_channels=self.conv3.out_channels+self.conv2.out_channels+self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        self.conv5 = nn.Conv1d(
+            in_channels=self.conv4.out_channels+self.conv3.out_channels+self.conv2.out_channels+self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+
+        self.conv6 = nn.Conv1d(
+            in_channels=self.conv5.out_channels+self.conv4.out_channels+self.conv3.out_channels+self.conv2.out_channels
+                +self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=15,
+            stride=1,
+            padding=(15 - 1) // 2,
+        )
+        
+        self.conv7 = nn.Conv1d(
+            in_channels=self.conv6.out_channels+self.conv5.out_channels+self.conv4.out_channels+self.conv3.out_channels
+                +self.conv2.out_channels+self.conv1.out_channels,
+            out_channels=25,
+            kernel_size=5,
+            stride=1,
+            padding=(5 - 1) // 2,
+        )
+        
+        self.conv8 = nn.Conv1d(
+            in_channels=self.conv7.out_channels+self.conv6.out_channels+self.conv5.out_channels+self.conv4.out_channels
+                +self.conv3.out_channels+self.conv2.out_channels+self.conv1.out_channels,
+            out_channels=1,
+            kernel_size=5,
+            stride=1,
+            padding=(5 - 1) // 2,
+        )
+
+        ##  18 July 2019 try dropout 0.15 rather than 0.05 (used in CNN5Layer_A) to mitigate overtraining
+        self.convdropout = nn.Dropout(0.25)
+        
+        self.bn1 = nn.BatchNorm1d(self.conv1.out_channels)
+        self.bn2 = nn.BatchNorm1d(self.conv2.out_channels)
+        self.bn3 = nn.BatchNorm1d(self.conv3.out_channels)
+        self.bn4 = nn.BatchNorm1d(self.conv4.out_channels)
+        self.bn5 = nn.BatchNorm1d(self.conv5.out_channels)
+        self.bn6 = nn.BatchNorm1d(self.conv6.out_channels)
+        self.bn7 = nn.BatchNorm1d(self.conv7.out_channels)
+        self.bn8 = nn.BatchNorm1d(self.conv8.out_channels)
+
+    def forward(self, x):
+        leaky = nn.LeakyReLU(0.01)
+        x01 = leaky(self.bn1(self.conv1(x)))
+        x01 = self.convdropout(x01)
+        x2 = leaky(self.bn2(self.conv2(x01)))
+        x2 = self.convdropout(x2)
+        x3 = leaky(self.bn3(self.conv3(torch.cat([x01,x2],1))))
+        x3 = self.convdropout(x3)
+        x4 = leaky(self.bn4(self.conv4(torch.cat([x01,x2,x3],1))))
+        x4 = self.convdropout(x4)
+        x5 = leaky(self.bn5(self.conv5(torch.cat([x01,x2,x3,x4],1))))
+        x5 = self.convdropout(x5)
+        x6 = leaky(self.bn6(self.conv6(torch.cat([x01,x2,x3,x4,x5],1))))
+        x6 = self.convdropout(x6)
+        x7 = leaky(self.bn7(self.conv7(torch.cat([x01,x2,x3,x4,x5,x6],1))))
+        x7 = self.convdropout(x7)
+
+        ##  with a little luck, the following two lines instantiate the
+        ##  conv8 filter and reshape its output to work as output to the
+        ##  softplus activation
+        x = self.bn8(self.conv8(torch.cat([x01,x2,x3,x4,x5,x6,x7],1)))
+        x = x.view(x.shape[0], x.shape[-1])
+
+        x = torch.nn.Softplus()(x)
+
+        return x
 
 
 # ===================== NOT AUTOENCODER MODEL =============================================
@@ -627,5 +852,3 @@ class Conv6_SC(nn.Module):
         x = self.conv6(torch.cat( [x, x1], 1))
         x = self.softplus(x)
         return x
-
-

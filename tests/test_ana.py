@@ -44,7 +44,7 @@ def makehist_core(*, split: bool, dat: Path, build: Path):
 @pytest.fixture(scope="session")
 def compile_code(tmpdir_factory):
     build = tmpdir_factory.mktemp("build")
-    kwargs = dict(stdout=sys.stdout, stderr=sys.stderr)
+    kwargs = dict(stdout=sys.stdout, stderr=sys.stderr, check=True)
     subprocess.run(["cmake", "-S", ANA_DIR, "-B", build, "-G", "Ninja"], **kwargs)
     subprocess.run(["cmake", "--build", build], **kwargs)
     return build

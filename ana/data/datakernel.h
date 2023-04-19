@@ -7,14 +7,16 @@ class DataKernelOut {
     TTree *t;
 
   public:
-    std::array<float, 4000> zdata{};
-    std::array<float, 4000> xmax{};
-    std::array<float, 4000> ymax{};
+    std::array<float, NBINS> zdata{};
+    std::array<float, NBINS> xmax{};
+    std::array<float, NBINS> ymax{};
+
+    
 
     DataKernelOut(TTree *tree) : t(tree) {
-        t->Branch("zdata", zdata.data(), "zdata[4000]/F");
-        t->Branch("xmax", xmax.data(), "xmax[4000]/F");
-        t->Branch("ymax", ymax.data(), "ymax[4000]/F");
+        t->Branch("zdata", zdata.data(), TString::Format("zdata[%d]/F", NBINS));
+        t->Branch("xmax", xmax.data(), TString::Format("xmax[%d]/F", NBINS));
+        t->Branch("ymax", ymax.data(), TString::Format("ymax[%d]/F", NBINS));
     }
 
     void clear() {

@@ -26,7 +26,6 @@ inline AnyTracks make_tracks(const CoreHitsIn &data) {
 // Take a function of n, kernel, x, y, and call on each n value from 0 to 4000
 inline void compute_over(AnyTracks &any_tracks, std::function<void(int, float, float, float)> dothis) {
 
-    constexpr int nb = 4000;
     constexpr double zmin = -100.;
     constexpr double zmax = 300.;
 
@@ -37,8 +36,8 @@ inline void compute_over(AnyTracks &any_tracks, std::function<void(int, float, f
 
     // build the kernel vs z profiled in x-y
     // TODO: clearly non-optimal CPU-wise how this search is done
-    for(int b = 0; b < nb; b++) {
-        double z = bin_center(nb, zmin, zmax, b);
+    for(int b = 0; b < NBINS; b++) {
+        double z = bin_center(NBINS, zmin, zmax, b);
         double kmax = -1.;
         double xmax = 0.;
         double ymax = 0.;

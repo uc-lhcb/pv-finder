@@ -10,4 +10,4 @@ def load_prebuilt_dataset(batch_size=16, num_files=1):
 # all 3
 #     return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(torch.cat(tracks), torch.cat(KDEs), torch.cat(PVs)), batch_size=batch_size)
 # tracks and KDEs
-    return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(torch.cat(tracks), torch.cat(KDEs)), batch_size=batch_size)
+    return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(torch.cat(tracks), torch.cat(PVs)), batch_size=batch_size)

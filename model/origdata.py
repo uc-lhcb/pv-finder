@@ -17,8 +17,8 @@ try:
 except ModuleNotFoundError:
     import awkward
 
-dtype_X = np.float16
-dtype_Y = np.float16
+dtype_X = np.float32
+dtype_Y = np.float32
 
 # Assuming there are N events:
 OutputData = namedtuple(
@@ -26,6 +26,7 @@ OutputData = namedtuple(
     (
         "X",  # Density in Z, 4000xN
         "Y",  #
+        "Y_will",
         "Xmax",
         "Ymax",
         "pv_loc_x",
@@ -105,14 +106,14 @@ def process_root_file(filepath, sd_1=0.1):
 
     with Timer(start=f"Loading file: {name}"):
         tree = uproot.open(str(filepath))["kernel"]
-
-        X = (tree["zdata"].array() / 2500.0).astype(dtype_X)  # Density in z, 4000xN
-        Xmax = (tree["xmax"].array() / 2500.0).astype(
-            dtype_X
-        )  # Location of max z in x   <OPTIONAL>
-        Ymax = (tree["ymax"].array() / 2500.0).astype(
-            dtype_X
-        )  # Location of max z in y   <OPTIONAL>
+        X = (tree["zdata"].array() / 2500.0)
+        X = awkward.values_astype(X, dtype_X)
+        Xmax = (tree["xmax"].array() / 2500.0)
+        Xmax = awkward.values_astype(Xmax, dtype_X)
+        # Location of max z in x   <OPTIONAL>
+        Ymax = (tree["ymax"].array() / 2500.0)
+        Ymax = awkward.values_astype(Ymax, dtype_Y)
+        # Location of max z in y   <OPTIONAL>
         Xmax[X == 0] = 0
         Ymax[X == 0] = 0  # The following is Truth info for training:
         pv_loc = tree["pv_loc"].array()  # z locations of each PV [#pvs]*N
@@ -141,6 +142,7 @@ def process_root_file(filepath, sd_1=0.1):
     N_vals = len(X)
     zvals_range = (-99.95, 299.95)
     Y = np.zeros([4, N_vals, 4000], dtype=dtype_Y)
+    Y_will = np.zeros([4, N_vals, 4000], dtype=dtype_Y)
     edges = np.array([-0.05, 0.05])
     bins = np.arange(-3, 4)
     mat = 0.1 * bins[np.newaxis, :] + edges[:, np.newaxis] - 99.95
@@ -167,6 +169,7 @@ def process_root_file(filepath, sd_1=0.1):
 
                     try:
                         Y[n, i, bins + N_bin] += values[1] - values[0]
+                        Y_will[n, i, relevant_range + N_bin] += 1
                     except IndexError:
                         msgs.append(
                             f"Ignored hit at bin {N_bin} at {mean:.4g} in event {i}, column {n}"
@@ -178,6 +181,7 @@ def process_root_file(filepath, sd_1=0.1):
     return OutputData(
         X,
         Y,
+        Y_will,
         Xmax,
         Ymax,
         pv_loc_x,
