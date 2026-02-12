@@ -1,0 +1,17 @@
+name: pv-finder
+channels:
+    - conda-forge
+dependencies:
+    - python=3.9
+    - awkward=2.4.3
+    - pandas
+    - matplotlib
+    - h5py
+    - numba
+    # - uproot5
+    - mplhep
+    - nb_conda_kernels
+    # - tqdm    
+#    - jupyterlab    
+#    - ipywidgets=7.7.2
+#    - jupyterlab-widgets=1.1.1

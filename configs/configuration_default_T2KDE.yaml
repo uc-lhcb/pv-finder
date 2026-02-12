@@ -1,0 +1,181 @@
+# ===================================================
+Experiment: LHCb 
+# depending on the user case, simply change this variable
+# to either "ATLAS" or "CMS" to switch global_configs dictionnary
+
+# ===================================================
+global_configs:
+    # -----------------------------------------------
+    LHCb:
+        ## Number of considered true originating tracks for reconstructible PVs 
+        n_tracks_valid_PVs: 5
+
+        ## Number of bins in the KDE and target histograms 
+        n_bins_poca_kde: 4000
+
+        ## Scaling factors for KDEs variables
+        scaleFactor_IP_KDE:     2500
+        scaleFactor_poca_KDE_A: 1000
+        scaleFactor_poca_KDE_B: 10000
+        epsilon_KDE: 0.001
+
+        ## Arbitrary values of tracks POCA to filter out badly behaving tracks:
+        MaxPOCA: 100000
+        MinPOCA: 0.0000000001
+
+        ## z range values [mm]
+        z_min: -100. 
+        z_max:  300.
+
+        ## minimal resolution for target histogram [mm]
+        res_min_target: 0.15
+
+        ## Parameters' values for the resolution as a function of the number 
+        ## of tracks originating from the PV 
+        A_res: 926.0
+        B_res: 0.84
+        C_res: 10.7
+
+        ## Split KDE and target histograms, as well as tracks in intervals 
+        ## This approach is required for tracks-to-hist models
+        doIntervals: True
+        # Number of intervals
+        nBinsPerInterval: 100
+        # Extension in [mm] to the intervals from which we consider tracks 
+        intervalExtension: 2.5
+        # Maximum number of tracks to be kept in each interval
+        maxTracksPerInterval: 250
+        # Number of "sigmas" of the uncertainties on the tracks
+        # used to select track with good quality (small POCA ellipsoid volume)
+        maxSigmaX: 4.0
+        maxSigmaY: 4.0
+        maxSigmaZ: 2.0
+        # Dummy value for initializing the tracks containers values when splitting in intervals
+        # i.e. equivalent of padding
+        tracks_default_POCA: -99.
+    
+    # -----------------------------------------------
+    ATLAS:
+        # Number of considered true originating tracks for reconstructible PVs 
+        n_tracks_valid_PVs: 2
+    
+        # Number of bins in the KDE and target histograms 
+        n_bins_poca_kde: 8000
+    
+        # z range values [mm]
+        z_min: -999999.999
+        z_max:  999999.999
+    # -----------------------------------------------
+    CMS:
+        # Number of considered true originating tracks for reconstructible PVs 
+        n_tracks_valid_PVs: 2
+    
+        # Number of bins in the KDE and target histograms 
+        n_bins_poca_kde: 8000
+    
+        # z range values [mm]
+        z_min: -999999.999
+        z_max:  999999.999
+
+# ===================================================
+data_processing_configs:
+    # path to the input root files used to create the hdf5 dataset
+    input_files_path: /share/lazy/pv-finder/
+    # path to the output hdf5 files created from the input root files
+    output_files_path: /data/home/sakar/ML_dir/
+    # NB: this directory has been made public, so one can use it to read in
+    # the files already there. Ideally, one should make it's own user
+    # directory to store the data files
+    
+    # -----------------------------
+    # Data that should be persisted
+    # as pytorch tensors
+    # -----------------------------
+    # Full event data tensors
+    persist_tracks_tensor: False
+    persist_KDE_tensor: False
+    persist_targetHist_tensor: False
+    # Intervals data tensors
+    persist_tracks_inter_tensor: True
+    persist_KDE_inter_tensor: True
+    persist_targetHist_inter_tensor: True
+    
+# ===================================================
+training_configs:
+    # If training using data split in intervals
+    doIntervals: True
+    # Total number of events to be used from input files 
+    n_evts: 1000
+    # if splitting in [train, valid, test] samples
+    train_split: [0.8, 0.1, 0.1]    
+    batch_size: 32
+    learning_rate: 0.00001
+    epsilon_loss:  0.00001
+    asym_coeff: 2.5
+    n_epochs: 5
+    prunning: False
+    optimizer: Adam
+    output_files_path: /data/home/sakar/ML_dir/
+    
+# ===================================================
+# Class of model to be used
+# Currently possible classe is only "tracks-to-KDE"
+# Will implement "tracks-to-hist" and "KDE-to-hist" soon
+
+model_class: tracks-to-KDE
+model_type:  FCN6L
+
+#model_class: tracks-to-hist
+#model_type:  FCN6L_UNet
+
+# ===================================================
+# Specific configurations of all available models
+models_config:
+    FCN6L:
+        l_HiddenNodes:    [20,20,20,20,20]
+        n_InputFeatures:  9
+        LeakyReLU_param:  0.01
+        predScaleFactor:  0.001
+    FCN6L_UNet:
+        l_HiddenNodes:    [20,20,20,20,20]
+        n_InputFeatures:  9
+        n_LatentChannels: 8
+        n_UNetChannels:   64
+        sc_mode:          concat
+        dropout:          0.25
+        LeakyReLU_param:  0.01
+        predScaleFactor:  0.001
+  
+# ===================================================
+# Efficiency computation parameters
+efficiency_config:
+    # Parameter to define threshold as to when start deciding we should consider 
+    # a "peak" in the predicted histogram. We use a per bin threshold as well as 
+    # an integral threshold
+    threshold: 0.07
+    integral_threshold: 0.7
+    # minimum width of the predicted hist to be considered
+    min_width: 0
+    
+    # Parameters used for the method to obtain the 
+    # resolution based on the sqrt(Variance) of the predicted "peaks"
+    nsig_res: 5
+    f_ratio_window: 0.001
+    nbins_lookup: 20
+    
+    # Bool to use update PV location method 
+    use_locations_updated: True
+
+    # Parameters used for the method to remove ghosts, 
+    # i.e. secondary predicted peaks close to real PVs
+    # >>> DEPRECATED
+    remove_ghosts: False
+    z_ghosts: 10
+    h_ghosts: 2.0
+    
+    # Bool to apply debug mode 
+    debug: False
+    
+
+    
+  
